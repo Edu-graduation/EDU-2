@@ -989,8 +989,8 @@ async function updateLastMessageInChatList(chatId, messageContent, senderId) {
       const chatsList = chatItem.parentElement;
       if (chatsList && chatsList.firstChild !== chatItem) {
         // Use animation API for smoother transitions
-        chatItem.style.transition = "none";
-        chatItem.style.opacity = "0.7";
+        // chatItem.style.transition = "none";
+        // chatItem.style.opacity = "0.7";
 
         // Move to top
         chatsList.insertBefore(chatItem, chatsList.firstChild);
@@ -1000,7 +1000,7 @@ async function updateLastMessageInChatList(chatId, messageContent, senderId) {
 
         // Animate back to normal
         // chatItem.style.transition = "opacity 0.3s ease";
-        chatItem.style.opacity = "1";
+        // chatItem.style.opacity = "1";
       }
     }
   }

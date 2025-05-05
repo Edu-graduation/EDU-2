@@ -71,16 +71,16 @@ body {
 .sidebar {
   background-color: var(--color-primary);
   color: var(--color-grey-light-1);
-  padding: 1.5rem;
+  padding: 2.5rem;
   flex-direction: column;
-  margin-right: -1rem;
+  margin-right: -2rem;
   font-weight: bold;
   font-size: 2.5rem;
   text-align: center;
 }
 .sidebar__list {
   position: sticky;
-  top: 10rem;
+  top: 0rem;
 }
 
 .sidebar h2 {
@@ -235,5 +235,5 @@ body {
   padding-right: 10px;
 }
 .log-out {
-  margin-top: 6rem;
+  margin-top: 2rem;
 }

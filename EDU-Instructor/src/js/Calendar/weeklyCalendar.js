@@ -1,6 +1,6 @@
-import { supaClient } from "../app.js";
+import { supaClient } from "../main.js";
 import { subtractDates } from "../utilities/dateCalc.js";
-import { getUserName } from "../app.js"; // Adjust the import path as needed
+import { getInstructorName } from "../main.js"; // Adjust the import path as needed
 
 const userName = document.querySelector(".user__name");
 
@@ -142,9 +142,7 @@ endOfWeek.setHours(23, 59, 59, 999);
 export const startStr = startOfWeek.toISOString();
 export const endStr = endOfWeek.toISOString();
 
-const middleSide = document.querySelector(".middle__side");
-const dayRow = document.querySelector(".day__row");
-const studentId = sessionStorage.getItem("studentId");
+const instructorId = sessionStorage.getItem("instructorId");
 
 // Clear all events from day rows
 function clearAllEvents() {
@@ -157,20 +155,34 @@ function clearAllEvents() {
   fridayRow.innerHTML = "";
 }
 
+
 async function getCalendarEvents() {
+  let uniqueEvents = [];
   const { data, error } = await supaClient
     .from("calendar_event")
     .select("*")
-    .eq("student_id", studentId)
+    .eq("instructor_id", instructorId)
     .gte("event_startdatetime", startStr)
-    .lte("event_startdatetime", endStr);
-
+    .lte("event_startdatetime", endStr)
   if (error) {
     console.error("Error fetching calendar events:", error);
     return null;
   }
   if (data) {
-    return data;
+    const seen = new Set();
+    
+    data.forEach(event => {
+      const key = `${event.event_startdatetime}-${event.event_enddatetime}`;
+    
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueEvents.push(event);
+      }
+    });
+    
+    console.log(seen);
+    return uniqueEvents;
+  
   }
 }
 
@@ -211,7 +223,7 @@ function addEventToCalendar(event) {
       dayNumber = day - 5;
       break;
   }
- let eventTime = subtractDates(
+  let eventTime = subtractDates(
     new Date(event.event_enddatetime),
     new Date(event.event_startdatetime)
   );
@@ -224,6 +236,7 @@ function addEventToCalendar(event) {
   if(eventTime < 60){
     eventTime = `${eventTime} min`;
   }
+
   if (targetRow) {
     targetRow.insertAdjacentHTML(
       "afterbegin",
@@ -241,8 +254,7 @@ function addEventToCalendar(event) {
 
 async function renderWeeklyEvents(eventsArray) {
   const events = await eventsArray;
-  userName.textContent = await getUserName(studentId);
-  console.log("Student ID:", studentId);
+  userName.textContent = await getInstructorName(instructorId);
   // Clear existing events
   clearAllEvents();
 
@@ -273,7 +285,7 @@ function setupRealtimeSubscription() {
         event: "*",
         schema: "public",
         table: "calendar_event",
-        filter: `student_id=eq.${studentId}`,
+        filter: `instructor_id=eq.${instructorId}`,
       },
       (payload) => {
         console.log("Change received!", payload);

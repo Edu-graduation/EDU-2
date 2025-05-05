@@ -32,7 +32,7 @@ export async function getInstructorName(instructorId) {
   if (data && data.length > 0) {
     // const name = data[0].student_name;
     // userName.textContent = name;
-    return data[0].instructor;
+    return data[0].instructor_name;
   }
 }
 getInstructorName(instructorId);

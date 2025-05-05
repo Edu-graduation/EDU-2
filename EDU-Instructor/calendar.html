@@ -36,36 +36,47 @@
           <h2><img src="src/images/logo.png" class="img-logo" />EDU</h2>
         </div>
         <ul class="sidebar__list">
-          <li id="home" class="Sli homeli">
-            <a href="home.html">Home</a>
-          </li>
-          <li id="courses" class="Sli couli">
-            <a href="courses.html">Courses</a>
-          </li>
-          <li id="calen" class="Sli calli active-button">
-            <a href="calendar.html">Calendar</a>
-          </li>
-          <li id="chats" class="chatli">
-            <a class="Sli" href="chats.html">Chats</a>
-          </li>
-          <li class="log-out">
-            <button class="Btn">
-              <div class="sign">
-                <svg viewBox="0 0 512 512">
-                  <path
-                    d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 
-            20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128
-             0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 
-             17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 
-             14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 
-             32 32s-14.3 32-32 32z"
-                  ></path>
-                </svg>
-              </div>
-              <div class="text">Logout</div>
-            </button>
-          </li>
-        </ul>
+            <li id="home" class="Sli homeli">
+              <a class="nav__link" href="home.html">Home</a>
+            </li>
+            <li id="courses" class="Sli couli">
+              <a class="nav__link" href="session.html">Session</a>
+            </li>
+            <li id="calendar" class="Sli calli">
+              <a class="nav__link" href="quiz.html">Quiz</a>
+            </li>
+            <li id="chats" class="chatli">
+              <a class="Sli" href="assignment.html">Assignment</a>
+            </li>
+            <li id="chats" class="chatli">
+              <a class="Sli" href="project.html">Project</a>
+            </li>
+            <li id="chats" class="chatli active-button">
+              <a class="Sli" href="calendar.html">Calendar</a>
+            </li>
+            <li id="chats" class="chatli">
+              <a class="Sli" href="chats.html">Chats</a>
+            </li>
+            <li class="log-out">
+              <a>
+                <button class="Btn">
+                  <div class="sign">
+                    <svg viewBox="0 0 512 512">
+                      <path
+                        d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 
+                                          20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128
+                                          0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 
+                                          17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 
+                                          14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 
+                                          32 32s-14.3 32-32 32z"
+                      ></path>
+                    </svg>
+                  </div>
+                  <div class="text">Logout</div>
+                </button>
+              </a>
+            </li>
+          </ul>
       </div>
       <!-- Main Content -->
       <div class="main-content">
@@ -77,15 +88,26 @@
           <div class="modal__event-container">
             <div class="modal__left">
               <form class="modal__form" id="event-form">
-                <div class="group-input">
-                  <label class="event-date-label" for="event-title"
-                    >Event title</label
-                  >
-                  <input
-                    class="modal__input event-title-input"
-                    type="text"
-                    id="event-title"
-                  />
+                <div class="group-input-special">
+                    <div class="group-input">
+                        <label class="event-date-label" for="event-title"
+                        >Event title</label
+                      >
+                      <input
+                        class="modal__input event-title-input"
+                        type="text"
+                        id="event-title"
+                      /> 
+                    </div>
+                    <div class="group-input">
+                        <label for="event-type">Event type</label>
+                        <select name="" id="event-type">
+                          <option value="">Select Event Type</option>
+                          <option value="Quiz">Quiz</option>
+                          <option value="Assignment">Assignment</option>
+                          <option value="Project">Project</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="date-container">
                   <div class="group-input">
@@ -436,42 +458,6 @@
           <div class="line-sprator-top"></div>
 
           <div class="day__row friday__row"></div>
-          <!-- <div class="line-sprator-top"></div> -->
-          <!-- <div class="day__event day-1__event">
-            <div class="event__time__left">28 min</div>
-            <div class="event__type">Assignment</div>
-          </div>
-          <div class="line-sprator-top"></div>
-          <div class="day__event day-2__event">
-            <div class="event__time__left">27 min</div>
-            <div class="event__type">Quiz</div>
-          </div>
-          <div class="line-sprator-top"></div>
-          <div class="day__event day-3__event">
-            <div class="event__time__left">2 hour</div>
-            <div class="event__type">Project negotiation</div>
-          </div>
-          <div class="line-sprator-top"></div>
-          <div class="day__event day-4__event">
-            <div class="event__time__left">2 hour</div>
-            <div class="event__type">Project negotiation</div>
-          </div>
-          <div class="line-sprator-top"></div>
-          <div class="day__event day-5__event">
-            <div class="event__time__left">2 hour</div>
-            <div class="event__type">Project negotiation</div>
-          </div>
-          <div class="line-sprator-top"></div>
-          <div class="day__event day-6__event">
-            <div class="event__time__left">2 hour</div>
-            <div class="event__type">Project negotiation</div>
-          </div>
-          <div class="line-sprator-top"></div>
-          <div class="day__event day-7__event">
-            <div class="event__time__left">2 hour</div>
-            <div class="event__type">Project negotiation</div>
-          </div>
-          <div class="line-sprator-top"></div> -->
         </div>
         <div class="right__side">
           <!-- <div id="calendar" class="calendar full-calendar"></div> -->
@@ -544,6 +530,6 @@
     <script type="module" src="src/js/Calendar/weeklyCalendar.js"></script>
     <script type="module" src="src/js/Calendar/dailyCalendar.js"></script>
     <script type="module" src="src/js/Calendar/addEventCalendar.js"></script>
-    <script type="module" src="src/js/app.js"></script>
+    <script type="module" src="src/js/main.js"></script>
   </body>
 </html>
