@@ -39,19 +39,19 @@
           <li id="home" class="Sli homeli">
             <a class="nav__link" href="home.html">Home</a>
           </li>
-          <li id="courses" class="Sli couli">
+          <li id="session" class="Sli couli">
             <a class="nav__link" href="session.html">Session</a>
           </li>
-          <li id="calendar" class="Sli calli">
+          <li id="quiz" class="Sli calli">
             <a class="nav__link" href="quiz.html">Quiz</a>
           </li>
-          <li id="chats" class="chatli active-button">
+          <li id="assignment" class="chatli active-button">
             <a class="Sli" href="assignment.html">Assignment</a>
           </li>
-          <li id="chats" class="chatli">
+          <li id="project" class="chatli">
             <a class="Sli" href="project.html">Project</a>
           </li>
-          <li id="chats" class="chatli">
+          <li id="calendar" class="chatli">
             <a class="Sli" href="calendar.html">Calendar</a>
           </li>
           <li id="chats" class="chatli">
@@ -84,13 +84,13 @@
           <!-- Left Section: Assignment List -->
           <div class="left-section">
             <div class="assignment-list-card">
-              <h2>Assignments</h2>
+              <h2 class="head-table">Assignments</h2>
               <table class="assignment-list-table">
                 <thead>
                   <tr>
                     <th>Number</th>
                     <th>Due Date</th>
-                    <th>View Assignment</th>
+                    <th class="assignment-view">View Assignment</th>
                   </tr>
                 </thead>
                 <tbody id="assignmentListBody">
@@ -111,7 +111,7 @@
                   <tr>
                     <th>Student</th>
                     <!-- <th>Student ID</th> -->
-                    <th>Assignment</th>
+                    <th class="assignment-head">Assignment</th>
                     <th>View</th>
                   </tr>
                 </thead>
@@ -127,14 +127,14 @@
 
         <div class="right-section">
           <div class="upload-form-card">
-            <h2>Upload Assignment</h2>
+            <h2 class="form-title">Upload Assignment</h2>
             <div class="form-group-special">
               <label for="course-name">Course Name</label>
               <select name="courseName" id="course-name">
                 <option value="1">bla</option>
                 <option value="2">blaaa</option>
               </select>
-              <label for="assignmentTitle">Assignment Title</label>
+              <label class="assignment-title"  for="assignmentTitle">Assignment Title</label>
               <input
                 type="text"
                 id="assignmentTitle"
@@ -143,7 +143,7 @@
               />
             </div>
             <div class="form-group">
-              <label for="assignmentDescription">Assignment Description</label>
+              <label class="assignment-description" for="assignmentDescription">Assignment Description</label>
               <textarea
                 id="assignmentDescription"
                 placeholder="Enter assignment description"

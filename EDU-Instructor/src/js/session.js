@@ -702,6 +702,8 @@ const sessionContainer = document.querySelector(".sessions-container");
 const uploadButton = document.querySelector(".upload-btn");
 const uploadFrom = document.querySelector(".upload-from");
 uploadFrom.addEventListener("submit", uploadSession); // Fixed typo in "submit"
+const institutionId = sessionStorage.getItem("institution_id");
+const institutionName = sessionStorage.getItem("institution_name");
 
 // Toast notification function
 function showToast(message, type = "success") {
@@ -1214,3 +1216,95 @@ if (!document.querySelector('link[href*="fontawesome"]')) {
     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css";
   document.head.appendChild(fontAwesomeLink);
 }
+// Script to hide session type selector for school institutions
+document.addEventListener("DOMContentLoaded", function () {
+  // Get institution from session storage
+  const institutionId = sessionStorage.getItem("institution_id");
+  const institutionName = sessionStorage.getItem("institution_name");
+
+  // Check if institution is a school (we can check by name or ID)
+  // For this example, we'll check if institutionName contains "school" case-insensitive
+  // or if a specific institution_id matches
+  if (
+    (institutionName && institutionName.toLowerCase().includes("school")) ||
+    institutionId === "school_id" // Replace with actual school institution ID if known
+  ) {
+    // Get the session type container - this should be the parent element of the select
+    const sessionTypeContainer =
+      document.querySelector("#session-type").closest(".form-group") ||
+      document.querySelector("#session-type").parentElement;
+
+    // Hide the session type selector
+    if (sessionTypeContainer) {
+      sessionTypeContainer.style.display = "none";
+    }
+
+    // Make sure the session type is set to "lecture" by default
+    const sessionTypeSelect = document.querySelector("#session-type");
+    if (sessionTypeSelect) {
+      sessionTypeSelect.value = "lecture";
+
+      // Force update the session numbers based on lecture type
+      const courseName = document.querySelector("#course-name");
+      if (courseName && courseName.value) {
+        // If updateSessionNumbers function exists, call it with the current course ID
+        if (typeof updateSessionNumbers === "function") {
+          updateSessionNumbers(courseName.value, "lecture");
+        }
+      }
+
+      // Trigger change event on session type to ensure any listeners update accordingly
+      sessionTypeSelect.dispatchEvent(new Event("change"));
+    }
+
+    // Adjust the layout if necessary (if there are flex/grid containers)
+    const uploadForm = document.querySelector(".upload-from");
+    if (uploadForm) {
+      // You might need to adjust the grid/flex layout here if removing one item affects layout
+    }
+
+    console.log(
+      "Institution is a school. Session type selector has been hidden."
+    );
+  } else {
+    console.log(
+      "Institution is not a school. Session type selector is visible."
+    );
+  }
+});
+
+// Also modify the form rendering logic to check for the institution
+// This ensures the check happens when form data is loaded
+const originalRenderFormData = renderFormData;
+renderFormData = async function () {
+  await originalRenderFormData();
+
+  // Check institution after the form has been rendered
+  const institutionName = sessionStorage.getItem("institution_name");
+  const institutionId = sessionStorage.getItem("institution_id");
+
+  if (
+    (institutionName && institutionName.toLowerCase().includes("school")) ||
+    institutionId === "school_id" // Replace with actual school institution ID if known
+  ) {
+    const sessionTypeContainer =
+      document.querySelector("#session-type").closest(".form-group") ||
+      document.querySelector("#session-type").parentElement;
+
+    if (sessionTypeContainer) {
+      sessionTypeContainer.style.display = "none";
+    }
+
+    // Set session type to lecture and update the UI accordingly
+    const sessionTypeSelect = document.querySelector("#session-type");
+    if (sessionTypeSelect) {
+      sessionTypeSelect.value = "lecture";
+
+      // Get the current selected course
+      const courseName = document.querySelector("#course-name");
+      if (courseName && courseName.value) {
+        updateSessionNumbers(courseName.value, "lecture");
+      }
+    }
+  }
+};
