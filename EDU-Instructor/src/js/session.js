@@ -695,6 +695,7 @@
 
 /////////////////// THIRD VIRSION ///////////////////
 import { supaClient } from "./main.js";
+import { isInstitutionSchool } from "./main.js";
 const pageTitle = document.querySelector(".page-title");
 const courseId = sessionStorage.getItem("courseId");
 const instructorId = sessionStorage.getItem("instructorId");
@@ -704,6 +705,7 @@ const uploadFrom = document.querySelector(".upload-from");
 uploadFrom.addEventListener("submit", uploadSession); // Fixed typo in "submit"
 const institutionId = sessionStorage.getItem("institution_id");
 const institutionName = sessionStorage.getItem("institution_name");
+
 
 // Toast notification function
 function showToast(message, type = "success") {
@@ -888,13 +890,14 @@ async function renderSessions(courseId) {
                 ).toLocaleDateString()}</span></p>
                 <a class="session__file" target="_blank" href="${
                   lecture.session_file_path
-                }"> lecture ${lectureCount}</a>
+                }"> ${isInstitutionSchool() ? "lesson" : "lecture"} ${lectureCount}</a>
               </div>
       `;
   });
-  sections.forEach((section) => {
-    sectionCount++;
-    sectionMarkup += `
+  if(!isInstitutionSchool()){
+    sections.forEach((section) => {
+      sectionCount++;
+      sectionMarkup += `
       <div class="session section">
                 <p class="session__number"><span>${sectionCount}</span></p>
                 <p class="session__date"><span>${new Date(
@@ -905,7 +908,8 @@ async function renderSessions(courseId) {
                 }"> section ${sectionCount}</a>
               </div>
       `;
-  });
+    });
+  }
   sessionContainer.innerHTML = lectureMarkup + sectionMarkup;
 
   // Update session numbers in the form based on the current course

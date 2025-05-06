@@ -238,9 +238,9 @@
     </div>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script type="module" src="src/js/main.js"></script>
-    <script type="module">
+    <script>
       // API and Supabase configuration
-      import { getInstitutionId } from "./src/js/main.js";
+      // import { getInstitutionId } from "./src/js/main.js";
       const API_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1aXdkanRtZGVlbXBjcXhldWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTY1MDcsImV4cCI6MjA2MDMzMjUwN30.XfSmnKA8wbsXIA1qkfYaRkzxtEdudIDNYbSJu-M5Zag";
       const INSTRUCTOR_BASE_URL =
@@ -573,11 +573,11 @@
             console.log(
               "No sessions found for today, falling back to demo data"
             );
-            loadDemoScheduleData();
+            // loadDemoScheduleData();
           }
         } catch (error) {
           console.error("Error loading sessions data:", error);
-          loadDemoScheduleData();
+          // loadDemoScheduleData();
         }
       }
 

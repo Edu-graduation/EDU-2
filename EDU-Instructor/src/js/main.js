@@ -97,7 +97,7 @@ getInstitutionName().then((institutionName) => {
   }
 });
 
-function isInstitutionSchool() {
+export function isInstitutionSchool() {
   const institutionName = sessionStorage.getItem("institution_name");
   const institutionId = sessionStorage.getItem("institution_id");
   if (
@@ -114,8 +114,6 @@ function isInstitutionSchool() {
 if (isInstitutionSchool()) {
   const assignment = document.querySelector("#assignment a");
   const project = document.querySelector("#project a");
-  console.log(assignment);
-  console.log(project);
 
   assignment.textContent = "Homework";
   project.textContent = "Actvities";
@@ -145,6 +143,7 @@ if (isInstitutionSchool()) {
   const projectHead = document.querySelector('.project-head');
   const projectView = document.querySelector('.project-view');
   const headTableProject = document.querySelector('.head-table-project');
+  const formHead = document.querySelector('.head-form-project');
   if(assignmentView){
     assignmentView.textContent = "View Homework";
     uploadAssignment.textContent = "Upload Homework";
@@ -155,15 +154,14 @@ if (isInstitutionSchool()) {
     formTitle.textContent = "Upload Homework";
   }
   ////////////////////////////////////////
-  console.log(titleLabelProject);
-  
   if(titleLabelProject){
-      projectView.textContent = "View Activity";
+    projectView.textContent = "View Activity";
     submitBtnProject.textContent = "Upload Activity";
     headTableProject.textContent = "Upload Activity";
     titleLabelProject.textContent = "Activity Title";
     descriptionLabelProject.textContent = "Activity Description";
     formTitleProject.textContent = "Upload Activity";
-    projectHead.textContent = "Activities";
+    projectHead.textContent = "Activity";
+    formHead.textContent = "Upload Activity";
     }
 }
