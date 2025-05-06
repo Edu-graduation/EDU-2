@@ -128,6 +128,37 @@
       .modal-content .close-button:hover {
         background-color: #4a41a3;
       }
+      .quiz-list {
+        margin: 20px 0;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .quiz-item {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        background-color: #f9f9f9;
+      }
+      .quiz-item:hover {
+        background-color: #e0e0e0;
+      }
+      /* Color coding for quiz statuses */
+      .quiz-item.new {
+        background-color: #c2beff9c; /* Light red for untaken quizzes with score 0 */
+      }
+      .quiz-item.completed {
+        background-color: #beecc9; /* Light green for completed quizzes */
+        cursor: not-allowed; /* Disable clicking for completed quizzes */
+      }
+      .quiz-item.expired {
+        background-color: #ffe6e6; /* Light red for expired quizzes */
+        cursor: not-allowed; /* Disable clicking for expired quizzes */
+      }
+      .no-quizzes {
+        color: #721c24;
+      }
     </style>
   </head>
   <body>
@@ -197,8 +228,8 @@
         </div>
 
         <div id="content-container" class="content-container">
-          <!-- Question Content will be loaded here -->
-          <div class="loading">Loading quiz...</div>
+          <!-- Quiz list or question content will be loaded here -->
+          <div class="loading">Loading quizzes...</div>
         </div>
 
         <div id="error-container"></div>
@@ -206,7 +237,7 @@
         <div class="footer">
           <div class="hide"></div>
           <div class="navigation-buttons">
-            <button class="button button-secondary" id="prev-button">
+            <button class="button button-secondary" id="prev-button" style="display: none;">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
                 <path
                   fill="#5B50C6"
@@ -216,7 +247,7 @@
               </svg>
               <a class="previous">Previous</a>
             </button>
-            <button class="button button-secondary" id="next-button">
+            <button class="button button-secondary" id="next-button" style="display: none;">
               <a class="next">Next</a>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
                 <path
@@ -226,10 +257,19 @@
               </svg>
             </button>
           </div>
-          <button id="finish-button" class="button button-primary">
+          <button id="finish-button" class="button button-primary" style="display: none;">
             Finish
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- Modal for Quiz Selection -->
+    <div id="quiz-selection-modal" class="modal">
+      <div class="modal-content">
+        <h2>Available Quizzes</h2>
+        <div id="quiz-list" class="quiz-list"></div>
+        <button class="close-button" id="close-selection-modal">Close</button>
       </div>
     </div>
 
@@ -251,7 +291,6 @@
       import { supaClient } from "./src/js/app.js";
 
       document.addEventListener("DOMContentLoaded", async () => {
-        // Get course ID and student ID from sessionStorage
         const courseId = sessionStorage.getItem("courseId");
         const studentId = sessionStorage.getItem("studentId") || "demo_student_id";
         const errorContainer = document.getElementById("error-container");
@@ -263,17 +302,13 @@
         const progressPercent = document.getElementById("progress-percent");
         const timerValue = document.getElementById("timer-value");
         const title = document.querySelector(".title");
+        const quizSelectionModal = document.getElementById("quiz-selection-modal");
+        const quizList = document.getElementById("quiz-list");
+        const closeSelectionModalButton = document.getElementById("close-selection-modal");
         const modal = document.getElementById("quiz-modal");
         const modalScoreDetails = document.getElementById("modal-score-details");
         const closeModalButton = document.getElementById("close-modal");
-        let quizData = null;
-        let currentQuestionIndex = 0;
-        let selectedAnswers = [];
-        let timerInterval = null;
-        let remainingTime = 0;
-        let timerStarted = false;
 
-        // Function to get the course name
         async function getCourseName() {
           const { data, error } = await supaClient
             .from("course")
@@ -282,7 +317,7 @@
             .single();
 
           if (error) {
-            console.error("Error fetching course name", error);
+            console.error("Error fetching course name:", error.message);
             return null;
           }
           if (data) {
@@ -291,412 +326,215 @@
         }
         await getCourseName();
 
-        // Check if the student has already taken the quiz
-        async function checkStudentQuiz() {
+        // Check student's quiz history
+        async function checkStudentQuizHistory() {
           const { data, error } = await supaClient
             .from("student_quiz")
-            .select("*")
+            .select("score, student_answers")
             .eq("student_id", studentId)
-            .eq("quiz_id", quizData.quiz_id)
-            .single();
-
-          if (error && error.code !== "PGRST116") { // PGRST116 means no rows found
-            console.error("Error checking student quiz:", error);
-            return null;
-          }
-          return data; // Returns the quiz record if found, or null if not
-        }
-
-        // Display previous quiz results if the student has already taken the quiz
-        function displayPreviousResults(previousResult) {
-          contentContainer.innerHTML = `
-            <div class="quiz-results">
-              <h2>You Have Already Taken This Quiz</h2>
-              <div class="score-details">
-                <p class="score">Your Score: ${previousResult.score}</p>
-                <p class="score">Percentage: ${previousResult.percentage}%</p>
-                <div class="result-progress">
-                  <div class="result-bar" style="width: ${previousResult.percentage}%"></div>
-                </div>
-              </div>
-              <div class="actions">
-                <button class="button button-primary" onclick="window.location.href='courses.html'">
-                  Back to Courses
-                </button>
-              </div>
-            </div>
-          `;
-          // Hide navigation buttons
-          nextButton.style.display = "none";
-          prevButton.style.display = "none";
-          finishButton.style.display = "none";
-        }
-
-        // Save quiz results to the student_quiz table
-        async function saveQuizResults(score, percentage) {
-          const { error } = await supaClient
-            .from("student_quiz")
-            .insert({
-              student_id: studentId,
-              quiz_id: quizData.quiz_id,
-              score: score,
-              percentage: percentage,
-            });
+            
 
           if (error) {
-            console.error("Error saving quiz results:", error);
-            return false;
+            console.error("Error checking student quiz history:", error.message);
+            return [];
           }
-          return true;
+          return data.map((record) => ({
+            quiz_id: record.quiz_id,
+            score: record.score || 0,
+            student_answers: record.student_answers ? JSON.parse(record.student_answers) : [],
+          }));
         }
 
-        // Initialize timer
-        function startTimer(duration) {
-          if (timerStarted) return;
-          timerStarted = true;
-          remainingTime = duration * 60; // Convert minutes to seconds
-          updateTimerDisplay();
+        // Fetch all quizzes for the course
+        async function fetchAllQuizzes() {
+          const { data, error } = await supaClient
+            .from("quiz")
+            .select("*")
+            .eq("course_id", courseId);
 
-          clearInterval(timerInterval); // Clear any existing timer
-          timerInterval = setInterval(() => {
-            remainingTime--;
-            updateTimerDisplay();
-
-            if (remainingTime <= 0) {
-              clearInterval(timerInterval);
-              submitQuiz(); // Auto-submit when time runs out
-            }
-          }, 1000);
+          if (error) {
+            console.error("Error fetching quizzes:", error.message);
+            return [];
+          }
+          return data;
         }
 
-        function updateTimerDisplay() {
-          const minutes = Math.floor(remainingTime / 60);
-          const seconds = remainingTime % 60;
-          timerValue.textContent = `${minutes
-            .toString()
-            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+        // Check and record zero score for approaching deadlines
+        async function checkApproachingDeadlines(quizzes, completedQuizIds) {
+          const currentDate = new Date();
+          const approachingThreshold = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+          for (const quiz of quizzes) {
+            const deadline = new Date(quiz.quiz_dueDateTime);
+            const timeUntilDeadline = deadline - currentDate;
+
+            if (timeUntilDeadline > 0 && timeUntilDeadline <= approachingThreshold && !completedQuizIds.includes(quiz.quiz_id)) {
+              const { data: existingSubmission, error: fetchError } = await supaClient
+                .from("student_quiz")
+                .select("*")
+                .eq("student_id", studentId)
+                .eq("quiz_id", quiz.quiz_id)
+                .single();
+
+              if (fetchError && fetchError.code !== "PGRST116") {
+                console.error("Error checking existing submission:", fetchError.message);
+                continue;
+              }
+
+              if (!existingSubmission) {
+                const { error: insertError } = await supaClient.from("student_quiz").insert({
+                  student_id: studentId,
+                  quiz_id: quiz.quiz_id,
+                  score: 0,
+                  student_answers: JSON.stringify([]),
+                  
+                });
+
+                if (insertError) {
+                  console.error("Error recording zero score for approaching deadline:", insertError.message);
+                } else {
+                  console.log("Zero score recorded for approaching deadline quiz:", quiz.quiz_id);
+                }
+              }
+            }
+          }
         }
 
-        // Update progress bar
-        function updateProgress() {
-          const totalQuestions = quizData?.questions?.length || 1;
-          const answeredQuestions = selectedAnswers.filter(
-            (answer) => answer !== null && answer !== undefined
-          ).length;
-          const progress = (answeredQuestions / totalQuestions) * 100;
-          progressBar.style.width = `${progress}%`;
-          progressPercent.textContent = `${Math.round(progress)}%`;
+        // Record zero score for expired quizzes
+        async function recordZeroScoreForExpiredQuizzes(quizzes, completedQuizIds) {
+          const currentDate = new Date();
+          for (const quiz of quizzes) {
+            const deadline = new Date(quiz.quiz_dueDateTime);
+            const isExpired = deadline < currentDate;
+            const isCompleted = completedQuizIds.includes(quiz.quiz_id);
+
+            if (isExpired && !isCompleted) {
+              const { data: existingSubmission, error: fetchError } = await supaClient
+                .from("student_quiz")
+                .select("*")
+                .eq("student_id", studentId)
+                .eq("quiz_id", quiz.quiz_id)
+                .single();
+
+              if (fetchError && fetchError.code !== "PGRST116") {
+                console.error("Error checking existing submission:", fetchError.message);
+                continue;
+              }
+
+              if (!existingSubmission) {
+                const { error: insertError } = await supaClient.from("student_quiz").insert({
+                  student_id: studentId,
+                  quiz_id: quiz.quiz_id,
+                  score: 0,
+                  student_answers: JSON.stringify([]),
+                });
+
+                if (insertError) {
+                  console.error("Error recording zero score for expired quiz:", insertError.message);
+                } else {
+                  console.log("Zero score recorded for expired quiz:", quiz.quiz_id);
+                }
+              }
+            }
+          }
         }
 
-        // Fetch quiz data for the specific course
-        async function fetchQuizData() {
-          try {
-            contentContainer.innerHTML =
-              '<div class="loading">Loading quiz...</div>';
+        // Show quiz selection popup
+        async function showQuizSelectionPopup() {
+          const quizHistory = await checkStudentQuizHistory();
+          const completedQuizIds = quizHistory.map((q) => q.quiz_id);
+          const allQuizzes = await fetchAllQuizzes();
 
-            // First try to get quiz from Supabase client
-            const { data, error } = await supaClient
-              .from("quiz")
-              .select("*")
-              .eq("course_id", courseId)
-              .limit(1);
+          // Check for approaching deadlines and record zero scores
+          await checkApproachingDeadlines(allQuizzes, completedQuizIds);
 
-            if (error) {
-              throw new Error(`Supabase error: ${error.message}`);
+          // Record zero scores for expired quizzes
+          await recordZeroScoreForExpiredQuizzes(allQuizzes, completedQuizIds);
+
+          if (allQuizzes.length === 0) {
+            contentContainer.innerHTML = '<p class="no-quizzes">No quizzes available for this course.</p>';
+            return;
+          }
+
+          let html = "";
+          const currentDate = new Date();
+
+          allQuizzes.forEach((quiz) => {
+            const historyEntry = quizHistory.find((h) => h.quiz_id === quiz.quiz_id);
+            const isCompleted = completedQuizIds.includes(quiz.quiz_id);
+            const deadline = new Date(quiz.quiz_dueDateTime);
+            const isExpired = deadline < currentDate;
+            let statusClass = "";
+
+            if (isCompleted) {
+              statusClass = "completed"; // Completed quizzes (green)
+            } else if (isExpired || (historyEntry && historyEntry.score === 0)) {
+              statusClass = "new"; // Untaken with score 0 or expired (red)
+            } else {
+              statusClass = "new"; // Untaken with no score yet (red)
             }
 
-            if (data && data.length > 0) {
-              return data[0];
-            }
+            // Format the deadline to show date and time (HH:mm)
+            const deadlineDate = new Date(quiz.quiz_dueDateTime);
+            const dateString = deadlineDate.toLocaleDateString();
+            const hours = String(deadlineDate.getUTCHours()).padStart(2, '0');
+            const minutes = String(deadlineDate.getUTCMinutes()).padStart(2, '0');
+            const timeString = `${hours}:${minutes}`;
 
-            // Fallback to direct API call if no data from supaClient
-            const API_URL = `https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1/quiz?course_id=eq.${courseId}`;
-            const API_KEY =
-              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1aXdkanRtZGVlbXBjcXhldWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTY1MDcsImV4cCI6MjA2MDMzMjUwN30.XfSmnKA8wbsXIA1qkfYaRkzxtEdudIDNYbSJu-M5Zag";
-
-            const response = await fetch(API_URL, {
-              method: "GET",
-              headers: {
-                apikey: API_KEY,
-                Authorization: `Bearer ${API_KEY}`,
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-            });
-
-            if (!response.ok) {
-              const errorText = await response.text();
-              throw new Error(
-                `HTTP error! Status: ${response.status}, Details: ${errorText}`
-              );
-            }
-
-            const quizzes = await response.json();
-
-            if (!quizzes || quizzes.length === 0) {
-              throw new Error("No quiz found for this course.");
-            }
-
-            return quizzes[0];
-          } catch (error) {
-            console.error("Error fetching quiz:", error);
-            errorContainer.innerHTML = `
-              <div class="error-message">
-                <h3>Error Loading Quiz</h3>
-                <p>${error.message}</p>
-                <p>Please check your network connection and try again later.</p>
+            // Only allow clicking on new quizzes that aren't expired and have no score yet
+            const isClickable = !isCompleted && !isExpired && (!historyEntry || historyEntry.score === 0);
+            html += `
+              <div class="quiz-item ${statusClass}" 
+                   ${isClickable ? `onclick="startQuiz(${quiz.quiz_id})"` : ""} 
+                   data-quiz-id="${quiz.quiz_id}">
+                ${quiz.quiz_title} (Deadline: ${dateString} ${timeString})
               </div>
             `;
-            contentContainer.innerHTML = "";
-            return null;
-          }
-        }
-
-        // Render the current question
-        function renderQuestion() {
-          if (
-            !quizData ||
-            !quizData.questions ||
-            quizData.questions.length === 0
-          ) {
-            contentContainer.innerHTML =
-              "<p>No questions available for this quiz.</p>";
-            return;
-          }
-
-          const question = quizData.questions[currentQuestionIndex];
-          const questionNumber = currentQuestionIndex + 1;
-
-          let questionHTML = `
-            <div class="content">
-              <div class="question-number">Question ${questionNumber}</div>
-              <div class="question-text">${
-                question.question || "No question text"
-              }</div>
-              <div class="options">
-          `;
-
-          if (question.options && Array.isArray(question.options)) {
-            question.options.forEach((option, optionIndex) => {
-              const isChecked =
-                selectedAnswers[currentQuestionIndex] === option;
-              questionHTML += `
-                <label class="option">
-                  <input type="radio" name="question${currentQuestionIndex}" value="${option}" 
-                    ${isChecked ? "checked" : ""} />
-                  <span class="option-text">${option}</span>
-                  <span class="radio"></span>
-                </label>
-              `;
-            });
-          } else {
-            questionHTML += "<p>No options available for this question.</p>";
-          }
-
-          questionHTML += `
-              </div>
-            </div>
-          `;
-
-          contentContainer.innerHTML = questionHTML;
-
-          // Add event listeners to radio buttons
-          const radioButtons = document.querySelectorAll(
-            `input[name="question${currentQuestionIndex}"]`
-          );
-          radioButtons.forEach((radio) => {
-            radio.addEventListener("change", (e) => {
-              selectedAnswers[currentQuestionIndex] = e.target.value;
-              if (!timerStarted) {
-                const duration = quizData.time_limit || 30; // Default to 30 minutes if not specified
-                startTimer(duration);
-              }
-              updateProgress();
-              updateFinishButton();
-            });
           });
 
-          // Update navigation buttons
-          updateNavigationButtons();
-          updateProgress();
-        }
-
-        // Update the state of navigation and finish buttons
-        function updateNavigationButtons() {
-          if (currentQuestionIndex === 0) {
-            prevButton.disabled = true;
-          } else {
-            prevButton.disabled = false;
-          }
-
-          if (currentQuestionIndex === quizData.questions.length - 1) {
-            nextButton.style.display = "none";
-            finishButton.style.display = "inline-block";
-          } else {
-            nextButton.style.display = "inline-block";
-            finishButton.style.display = "none";
-          }
-        }
-
-        // Update the finish button state
-        function updateFinishButton() {
-          const answeredQuestions = selectedAnswers.filter(
-            (answer) => answer !== null && answer !== undefined
-          );
-          finishButton.disabled =
-            answeredQuestions.length !== quizData.questions.length;
-        }
-
-        // Show question review after closing the modal
-        function showQuestionReview(score, totalPossibleScore, percentage, correctAnswers) {
-          contentContainer.innerHTML = `
-            <div class="quiz-results">
-              <h2>Quiz Review</h2>
-              <div class="score-details">
-                <p class="score">Total Questions: ${quizData.questions.length}</p>
-                <p class="score">Correct Answers: ${correctAnswers}/${quizData.questions.length}</p>
-                <p class="score">Your score: ${score}/${totalPossibleScore} (${percentage.toFixed(
-                  2
-                )}%)</p>
-                <div class="result-progress">
-                  <div class="result-bar" style="width: ${percentage}%"></div>
-                </div>
-              </div>
-              
-              <div class="question-review">
-                <h3>Question Review</h3>
-                ${quizData.questions
-                  .map((question, index) => {
-                    const isCorrect =
-                      selectedAnswers[index] === question.correct_answer;
-                    return `
-                    <div class="review-item ${
-                      isCorrect ? "correct" : "incorrect"
-                    }">
-                      <p><strong>Question ${index + 1}:</strong> ${
-                      question.question
-                    }</p>
-                      <p>Your answer: ${
-                        selectedAnswers[index] || "Not answered"
-                      }</p>
-                      <p>Correct answer: ${question.correct_answer}</p>
-                    </div>
-                  `;
-                  })
-                  .join("")}
-              </div>
-              
-              <div class="actions">
-                <button class="button button-primary" onclick="window.location.href='courses.html'">
-                  Back to Courses
-                </button>
-              </div>
-            </div>
-          `;
-        }
-
-        // Submit the quiz, save results, and show modal
-        async function submitQuiz() {
-          clearInterval(timerInterval);
-
-          if (!quizData || !quizData.questions) {
-            alert("No quiz data available.");
+          if (html === "") {
+            contentContainer.innerHTML = '<p class="no-quizzes">No quizzes available for this course.</p>';
             return;
           }
 
-          let score = 0;
-          let totalPossibleScore = 0;
-          let correctAnswers = 0;
+          quizList.innerHTML = html;
+          quizSelectionModal.style.display = "flex";
 
-          quizData.questions.forEach((question, index) => {
-            const mark = parseFloat(question.marks) || 1; // Default to 1 if mark is not specified
-            totalPossibleScore += mark;
-
-            if (selectedAnswers[index] === question.correct_answer) {
-              score += mark;
-              correctAnswers++;
-            }
-          });
-
-          const percentage = (score / totalPossibleScore) * 100;
-
-          // Save the results to the student_quiz table
-          const saved = await saveQuizResults(score, percentage);
-          if (!saved) {
-            alert("Failed to save quiz results. Please try again.");
-            return;
-          }
-
-          // Show the modal with quiz summary
-          modalScoreDetails.innerHTML = `
- blossom            <p class="score">Total Questions: ${quizData.questions.length}</p>
-            <p class="score">Correct Answers: ${correctAnswers}/${quizData.questions.length}</p>
-            <p class="score">Your score: ${score}/${totalPossibleScore} (${percentage.toFixed(
-              2
-            )}%)</p>
-            <div class="result-progress">
-              <div class="result-bar" style="width: ${percentage}%"></div>
-            </div>
-          `;
-          modal.style.display = "flex";
-
-          // Hide navigation buttons when showing the modal
-          nextButton.style.display = "none";
-          prevButton.style.display = "none";
-          finishButton.style.display = "none";
-
-          // Add event listener to close the modal and show the review
-          closeModalButton.onclick = () => {
-            modal.style.display = "none";
-            showQuestionReview(score, totalPossibleScore, percentage, correctAnswers);
+          closeSelectionModalButton.onclick = () => {
+            quizSelectionModal.style.display = "none";
           };
         }
 
-        // Initialize the quiz
-        async function initQuiz() {
-          // Fetch quiz data
-          quizData = await fetchQuizData();
+        // Start the selected quiz
+        window.startQuiz = async (quizId) => {
+          const allQuizzes = await fetchAllQuizzes();
+          const selectedQuiz = allQuizzes.find((q) => q.quiz_id === quizId);
+          const deadline = new Date(selectedQuiz.quiz_dueDateTime);
+          const currentDate = new Date();
 
-          if (!quizData) {
-            return; // Error was already displayed by fetchQuizData
-          }
-
-          // Check if the student has already taken the quiz
-          const previousResult = await checkStudentQuiz();
-          if (previousResult) {
-            // If the student has already taken the quiz, display their results
-            displayPreviousResults(previousResult);
+          if (deadline < currentDate) {
+            // This case should not occur due to the logic in showQuizSelectionPopup,
+            // but adding a safeguard here
+            console.log("Quiz has expired, cannot start.");
             return;
           }
 
-          // If the student hasn't taken the quiz, proceed with the quiz
-          selectedAnswers = Array(quizData.questions.length).fill(null);
+          quizSelectionModal.style.display = "none";
+          sessionStorage.setItem("selectedQuizId", quizId);
+          window.location.href = `quiz-details.html?quizId=${quizId}`;
+        };
 
-          // Set up event listeners
-          nextButton.addEventListener("click", () => {
-            if (currentQuestionIndex < quizData.questions.length - 1) {
-              currentQuestionIndex++;
-              renderQuestion();
-            }
-          });
-
-          prevButton.addEventListener("click", () => {
-            if (currentQuestionIndex > 0) {
-              currentQuestionIndex--;
-              renderQuestion();
-            }
-          });
-
-          finishButton.addEventListener("click", submitQuiz);
-
-          // Start the quiz
-          renderQuestion();
-          updateFinishButton();
+        // Initialize the page
+        async function initPage() {
+          await getCourseName();
+          await showQuizSelectionPopup();
+          nextButton.style.display = "none";
+          prevButton.style.display = "none";
+          finishButton.style.display = "none";
         }
 
-        // Start the quiz
-        initQuiz();
+        initPage();
       });
     </script>
   </body>
-</html>
+</html>x

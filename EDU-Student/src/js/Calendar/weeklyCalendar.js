@@ -1,7 +1,7 @@
 import { supaClient } from "../app.js";
 import { subtractDates } from "../utilities/dateCalc.js";
 import { getUserName } from "../app.js"; // Adjust the import path as needed
-
+const institutionId = sessionStorage.getItem("institution_id");
 const userName = document.querySelector(".user__name");
 
 // Existing calendar code
@@ -156,14 +156,33 @@ function clearAllEvents() {
   thursdayRow.innerHTML = "";
   fridayRow.innerHTML = "";
 }
+async function getInstructorInstitution() {
+  const { data, error } = await supaClient
+    .from("instructor_institution")
+    .select("*")
+    .eq("institution_id", institutionId);
 
+  if (error) {
+    console.error("Error fetching institution data:", error);
+    return null;
+  }
+
+  const instructorsId = data.map((instructor) => instructor.instructor_id);
+  console.log("Instructors at this institution:", instructorsId);
+  return instructorsId;
+}
 async function getCalendarEvents() {
+  const instructorsId = await getInstructorInstitution();
+  console.log(instructorsId);
+
   const { data, error } = await supaClient
     .from("calendar_event")
     .select("*")
     .eq("student_id", studentId)
+    .in("instructor_id", instructorsId)
     .gte("event_startdatetime", startStr)
     .lte("event_startdatetime", endStr);
+  console.log(data);
 
   if (error) {
     console.error("Error fetching calendar events:", error);
@@ -211,31 +230,36 @@ function addEventToCalendar(event) {
       dayNumber = day - 5;
       break;
   }
- let eventTime = subtractDates(
+  let eventTime = subtractDates(
     new Date(event.event_enddatetime),
     new Date(event.event_startdatetime)
   );
-  if(eventTime > 1440){
+  if (eventTime > 1440) {
     eventTime = `${Math.floor(eventTime / 1440)} day`;
   }
-  if(eventTime >= 60){
+  if (eventTime >= 60) {
     eventTime = `${Math.floor(eventTime / 60)} hour`;
   }
-  if(eventTime < 60){
+  if (eventTime < 60) {
     eventTime = `${eventTime} min`;
   }
+
   if (targetRow) {
     targetRow.insertAdjacentHTML(
       "afterbegin",
       `<div class="day__event day-${dayNumber}__event ${
         event.event_type === "student event" ? "student-event" : ""
       }" data-event-id="${event.event_id}">
-          <div class="event__time__left">${eventTime}</div>
+          <div class="event__time__duration">${eventTime}</div>
           <div class="event__type" style="font-size:${
             eventNameLength > 8 ? "12" : "16"
           }px">${event.event_name}</div>
         </div>`
     );
+  }
+  const eventsNum = targetRow.children.length;
+  if (eventsNum > 5) {
+    targetRow.classList.add("event__type--multiple");
   }
 }
 

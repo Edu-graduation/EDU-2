@@ -136,9 +136,6 @@
             <a class="Sli" href="project.html">Project</a>
           </li>
           <li id="chats" class="chatli">
-            <a class="Sli" href="calendar.html">Calendar</a>
-          </li>
-          <li id="chats" class="chatli">
             <a class="Sli" href="chats.html">Chats</a>
           </li>
           <li class="log-out">
@@ -201,15 +198,18 @@
             <table class="schedule-table">
               <thead>
                 <tr>
-                  <th>Course</th>
-                  <th>Date</th>
+                  <th>Course</th> 
                   <th>Time</th>
                   <th>Place</th>
-                  <th>Type</th>
+                  <th>Type</th> 
                 </tr>
               </thead>
               <tbody id="scheduleTableBody">
                 <!-- Schedule data will be loaded here -->
+                 <td></td>
+                 <td></td>
+                 <td></td>
+                 <td></td>
               </tbody>
             </table>
           </div>
@@ -234,524 +234,489 @@
       </div>
     </div>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script type="module" src="src/js/main.js"></script>
-    <script>
-      // API and Supabase configuration
-      const API_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1aXdkanRtZGVlbXBjcXhldWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTY1MDcsImV4cCI6MjA2MDMzMjUwN30.XfSmnKA8wbsXIA1qkfYaRkzxtEdudIDNYbSJu-M5Zag";
-      const INSTRUCTOR_BASE_URL =
-        "https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1/instructor";
-      const BASE_URL = "https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1";
+<script type="module" src="src/js/main.js"></script>
+<script>
+    // API and Supabase configuration
+    const API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1aXdkanRtZGVlbXBjcXhldWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTY1MDcsImV4cCI6MjA2MDMzMjUwN30.XfSmnKA8wbsXIA1qkfYaRkzxtEdudIDNYbSJu-M5Zag";
+    const INSTRUCTOR_BASE_URL = "https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1/instructor";
+    const INSTRUCTOR_INSTITUTION_URL = "https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1/instructor_institution";
+    const INSTITUTION_BASE_URL = "https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1/institution";
+    const BASE_URL = "https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1";
 
-      // Function to set dynamic greeting based on time of day
-      function setDynamicGreeting() {
+    // Function to set dynamic greeting based on time of day
+    function setDynamicGreeting() {
         const hour = new Date().getHours();
         let greeting = "Welcome";
 
         if (hour < 12) {
-          greeting = "Good Morning";
+            greeting = "Good Morning";
         } else if (hour < 18) {
-          greeting = "Good Afternoon";
+            greeting = "Good Afternoon";
         } else {
-          greeting = "Good Evening";
+            greeting = "Good Evening";
         }
 
         document.getElementById("welcomeMessage").textContent = greeting;
-      }
+    }
 
-      // Function to fetch instructor data
-      async function fetchInstructorData() {
+    // Function to fetch instructor data
+    async function fetchInstructorData() {
         const instructorId = sessionStorage.getItem("instructorId");
         const currentInstructorId = instructorId;
 
         try {
-          const response = await fetch(
-            `${INSTRUCTOR_BASE_URL}?instructor_id=eq.${currentInstructorId}`,
-            {
-              headers: {
-                apikey: API_KEY,
-                Authorization: `Bearer ${API_KEY}`,
-              },
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error(
-              `API request failed with status ${response.status}`
-            );
-          }
-
-          const instructorData = await response.json();
-
-          if (instructorData.length === 0) {
-            console.error("No instructor found with this ID");
-            displayInstructorData({
-              instructor_name: "Dr. Sarah Johnson",
-              instructor_id: currentInstructorId,
+            // Step 1: Fetch instructor data
+            const response = await fetch(`${INSTRUCTOR_BASE_URL}?instructor_id=eq.${currentInstructorId}`, {
+                headers: {
+                    apikey: API_KEY,
+                    Authorization: `Bearer ${API_KEY}`,
+                },
             });
-          } else {
-            displayInstructorData(instructorData[0]);
-          }
 
-          try {
-            await loadSessionsData(currentInstructorId);
-          } catch (sessionError) {
-            console.error("Error in session loading:", sessionError);
-            loadDemoScheduleData();
-          }
+            if (!response.ok) {
+                throw new Error(`API request failed with status ${response.status}`);
+            }
 
-          try {
-            await fetchEnrollmentData(currentInstructorId);
-          } catch (enrollmentError) {
-            console.error("Error in enrollment loading:", enrollmentError);
-            loadDemoEnrollmentData();
-          }
+            const instructorData = await response.json();
+
+            if (instructorData.length === 0) {
+                console.error("No instructor found with this ID:", currentInstructorId);
+                displayInstructorData({
+                    instructor_id: currentInstructorId,
+                    instructorName: "Dr. Sarah Johnson",
+                    instructorId: currentInstructorId,
+                    institution_id: 1,
+                    institution_name: "Unknown Institution",
+                });
+            } else {
+                const instructor = instructorData[0];
+                console.log("Instructor data fetched:", instructor);
+
+                // Step 2: Fetch institution_id from instructor_institution table
+                let institutionId = 1; // Default
+                let institutionName = "Unknown Institution"; // Default
+                try {
+                    const institutionMappingResponse = await fetch(`${INSTRUCTOR_INSTITUTION_URL}?instructor_id=eq.${currentInstructorId}`, {
+                        headers: {
+                            apikey: API_KEY,
+                            Authorization: `Bearer ${API_KEY}`,
+                        },
+                    });
+
+                    if (!institutionMappingResponse.ok) {
+                        throw new Error(`Institution mapping API request failed with status ${institutionMappingResponse.status}`);
+                    }
+
+                    const institutionMappingData = await institutionMappingResponse.json();
+                    console.log("Institution mapping data:", institutionMappingData);
+
+                    if (institutionMappingData.length > 0) {
+                        institutionId = institutionMappingData[0].institution_id;
+
+                        // Step 3: Fetch institution_name from institution table
+                        const institutionResponse = await fetch(`${INSTITUTION_BASE_URL}?institution_id=eq.${institutionId}`, {
+                            headers: {
+                                apikey: API_KEY,
+                                Authorization: `Bearer ${API_KEY}`,
+                            },
+                        });
+
+                        if (!institutionResponse.ok) {
+                            throw new Error(`Institution API request failed with status ${institutionResponse.status}`);
+                        }
+
+                        const institutionData = await institutionResponse.json();
+                        console.log("Institution data fetched:", institutionData);
+
+                        institutionName = institutionData.length > 0 ? institutionData[0].institution_name || "Unknown Institution" : "Unknown Institution";
+                    } else {
+                        console.warn("No institution mapping found for instructor:", currentInstructorId);
+                    }
+                } catch (institutionError) {
+                    console.error("Error fetching institution data:", institutionError);
+                }
+
+                // Step 4: Prepare data for display
+                const dataToDisplay = {
+                    instructor_id: instructor.instructor_id,
+                    instructorName: instructor.instructor_name,
+                    instructorId: instructor.instructor_id,
+                    institution_id: institutionId,
+                    institution_name: institutionName,
+                };
+
+                displayInstructorData(dataToDisplay);
+            }
+
+            try {
+                await loadSessionsData(currentInstructorId);
+            } catch (sessionError) {
+                console.error("Error in session loading:", sessionError);
+                loadDemoScheduleData();
+            }
+
+            try {
+                await fetchEnrollmentData(currentInstructorId);
+            } catch (enrollmentError) {
+                console.error("Error in enrollment loading:", enrollmentError);
+                loadDemoEnrollmentData();
+            }
         } catch (error) {
-          console.error("Error fetching instructor data:", error);
-          loadDemoScheduleData();
-          loadDemoEnrollmentData();
+            console.error("Error fetching instructor data:", error);
+            displayInstructorData({
+                instructor_id: currentInstructorId,
+                instructorName: "Dr. Sarah Johnson",
+                instructorId: currentInstructorId,
+                institution_id: 1,
+                institution_name: "Unknown Institution",
+            });
+            loadDemoScheduleData();
+            loadDemoEnrollmentData();
         }
-      }
+    }
 
-      // Function to display instructor data
-      function displayInstructorData(instructor) {
-        document.getElementById("instructorName").textContent =
-          instructor.instructor_name;
-        document.getElementById("instructorId").textContent =
-          instructor.instructor_id;
+
+
+    // Function to display instructor data
+    function displayInstructorData(data) {
+        document.getElementById("instructorName").textContent = ` ${data.instructorName}`;
+        document.getElementById("instructorId").textContent = ` ${data.instructorId}`;
+        document.getElementById("universityName").textContent = ` ${data.institution_name}`;
 
         const welcomeElement = document.getElementById("welcomeMessage");
         const currentGreeting = welcomeElement.textContent;
-        welcomeElement.textContent = `${currentGreeting} ${instructor.instructor_name}`;
-      }
+        welcomeElement.textContent = `${currentGreeting} ${data.instructorName}`;
+    }
 
-      // Function to load sessions data from API
-      async function loadSessionsData(instructorId) {
+
+  
+    // Function to load sessions data from API
+    async function loadSessionsData(instructorId) {
         try {
-          // First get all courses taught by this instructor from enrollment table
-          const enrollmentResponse = await fetch(
-            `${BASE_URL}/enrollment?instructor_id=eq.${instructorId}`,
-            {
-              headers: {
-                apikey: API_KEY,
-                Authorization: `Bearer ${API_KEY}`,
-              },
-            }
-          );
-
-          if (!enrollmentResponse.ok) {
-            console.error(
-              "Failed to fetch enrollment data:",
-              enrollmentResponse.status
-            );
-            throw new Error(
-              `Enrollment API request failed with status ${enrollmentResponse.status}`
-            );
-          }
-
-          const enrollmentData = await enrollmentResponse.json();
-
-          if (!enrollmentData || enrollmentData.length === 0) {
-            console.log("No courses found for this instructor");
-            loadDemoScheduleData();
-            return;
-          }
-
-          // Extract course IDs from enrollment data
-          const courseIds = [
-            ...new Set(enrollmentData.map((item) => item.course_id)),
-          ];
-          console.log("Course IDs for instructor:", courseIds);
-
-          // For each course, fetch session data
-          const allSessionsData = [];
-
-          // Get today's date for filtering
-          const today = new Date();
-          const todayYear = today.getFullYear();
-          const todayMonth = today.getMonth();
-          const todayDay = today.getDate();
-
-          for (const courseId of courseIds) {
-            try {
-              // Query format: course.session - get sessions for this course
-              const sessionUrl = `${BASE_URL}/course?course_id=eq.${courseId}&select=*,session!inner(session_id,session_time,session_type,session_place)`;
-              console.log("Fetching sessions from:", sessionUrl);
-
-              const sessionResponse = await fetch(sessionUrl, {
+            const enrollmentResponse = await fetch(`${BASE_URL}/enrollment?instructor_id=eq.${instructorId}`, {
                 headers: {
-                  apikey: API_KEY,
-                  Authorization: `Bearer ${API_KEY}`,
+                    apikey: API_KEY,
+                    Authorization: `Bearer ${API_KEY}`,
                 },
-              });
+            });
 
-              if (!sessionResponse.ok) {
-                console.error(
-                  `Failed to fetch sessions for course ${courseId}:`,
-                  sessionResponse.status
-                );
-                continue;
-              }
+            if (!enrollmentResponse.ok) {
+                console.error("Failed to fetch enrollment data:", enrollmentResponse.status);
+                throw new Error(`Enrollment API request failed with status ${enrollmentResponse.status}`);
+            }
 
-              const courseSessionsData = await sessionResponse.json();
+            const enrollmentData = await enrollmentResponse.json();
 
-              if (
-                courseSessionsData.length > 0 &&
-                courseSessionsData[0].session
-              ) {
-                const courseName =
-                  courseSessionsData[0].course_name || `Course ${courseId}`;
+            if (!enrollmentData || enrollmentData.length === 0) {
+                console.log("No courses found for this instructor");
+                loadDemoScheduleData();
+                return;
+            }
 
-                // Format each session
-                const sessions = Array.isArray(courseSessionsData[0].session)
-                  ? courseSessionsData[0].session
-                  : [courseSessionsData[0].session];
+            const courseIds = [...new Set(enrollmentData.map((item) => item.course_id))];
+            console.log("Course IDs for instructor:", courseIds);
 
-                sessions.forEach((session) => {
-                  // Check if the session is for today
-                  const sessionDate = new Date(session.session_time);
-                  const sessionYear = sessionDate.getFullYear();
-                  const sessionMonth = sessionDate.getMonth();
-                  const sessionDay = sessionDate.getDate();
+            const allSessionsData = [];
+            const today = new Date();
+            const todayYear = today.getFullYear();
+            const todayMonth = today.getMonth();
+            const todayDay = today.getDate();
 
-                  if (
-                    sessionYear === todayYear &&
-                    sessionMonth === todayMonth &&
-                    sessionDay === todayDay
-                  ) {
-                    // Determine icon based on course name
-                    let icon = "icon-data";
-                    if (courseName.toLowerCase().includes("programming")) {
-                      icon = "icon-programming";
-                    } else if (courseName.toLowerCase().includes("web")) {
-                      icon = "icon-web";
+            for (const courseId of courseIds) {
+                try {
+                    const sessionUrl = `${BASE_URL}/course?course_id=eq.${courseId}&select=*,session!inner(session_id,session_time,session_type,session_place)`;
+                    console.log("Fetching sessions from:", sessionUrl);
+
+                    const sessionResponse = await fetch(sessionUrl, {
+                        headers: {
+                            apikey: API_KEY,
+                            Authorization: `Bearer ${API_KEY}`,
+                        },
+                    });
+
+                    if (!sessionResponse.ok) {
+                        console.error(`Failed to fetch sessions for course ${courseId}:`, sessionResponse.status);
+                        continue;
                     }
 
-                    // Format date
-                    const formattedDate = sessionDate.toLocaleDateString(
-                      "en-US",
-                      {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      }
-                    );
+                    const courseSessionsData = await sessionResponse.json();
 
-                    // Format time (assume 1.5 hour sessions)
-                    const startTime = formatTimeTo12Hour(sessionDate);
-                    const endTime = new Date(sessionDate);
-                    endTime.setMinutes(endTime.getMinutes() + 90);
-                    const formattedEndTime = formatTimeTo12Hour(endTime);
+                    if (courseSessionsData.length > 0 && courseSessionsData[0].session) {
+                        const courseName = courseSessionsData[0].course_name || `Course ${courseId}`;
+                        const sessions = Array.isArray(courseSessionsData[0].session) ? courseSessionsData[0].session : [courseSessionsData[0].session];
 
-                    // Capitalize session type
-                    const sessionType =
-                      session.session_type.charAt(0).toUpperCase() +
-                      session.session_type.slice(1).toLowerCase();
+                        sessions.forEach((session) => {
+                            const sessionDate = new Date(session.session_time);
+                            const sessionYear = sessionDate.getFullYear();
+                            const sessionMonth = sessionDate.getMonth();
+                            const sessionDay = sessionDate.getDate();
 
-                    allSessionsData.push({
-                      course: courseName,
-                      icon: icon,
-                      date: formattedDate,
-                      time: `${startTime} - ${formattedEndTime}`,
-                      place: session.session_place || "N/A",
-                      type: sessionType,
-                    });
-                  }
-                });
-              }
-            } catch (error) {
-              console.error(
-                `Error fetching sessions for course ${courseId}:`,
-                error
-              );
+                            if (sessionYear === todayYear && sessionMonth === todayMonth && sessionDay === todayDay) {
+                                let icon = "icon-data";
+                                if (courseName.toLowerCase().includes("programming")) {
+                                    icon = "icon-programming";
+                                } else if (courseName.toLowerCase().includes("web")) {
+                                    icon = "icon-web";
+                                }
+
+                                const formattedDate = sessionDate.toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                });
+
+                                const startTime = formatTimeTo12Hour(sessionDate);
+                                const endTime = new Date(sessionDate);
+                                endTime.setMinutes(endTime.getMinutes() + 90);
+                                const formattedEndTime = formatTimeTo12Hour(endTime);
+
+                                const sessionType = session.session_type.charAt(0).toUpperCase() + session.session_type.slice(1).toLowerCase();
+
+                                allSessionsData.push({
+                                    course: courseName,
+                                    icon: icon,
+                               
+                                    time: `${startTime} - ${formattedEndTime}`,
+                                    place: session.session_place || "N/A",
+                                    type: sessionType,
+                                });
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Error fetching sessions for course ${courseId}:`, error);
+                }
             }
-          }
 
-          if (allSessionsData.length > 0) {
-            // Sort by time
-            allSessionsData.sort((a, b) => {
-              const timeA = a.time.split(" - ")[0];
-              const timeB = b.time.split(" - ")[0];
-              return timeA.localeCompare(timeB);
-            });
-            console.log("Today's sessions data:", allSessionsData);
-            renderScheduleData(allSessionsData);
-          } else {
-            console.log(
-              "No sessions found for today, falling back to demo data"
-            );
-            loadDemoScheduleData();
-          }
+            if (allSessionsData.length > 0) {
+                allSessionsData.sort((a, b) => {
+                    const timeA = a.time.split(" - ")[0];
+                    const timeB = b.time.split(" - ")[0];
+                    return timeA.localeCompare(timeB);
+                });
+                console.log("Today's sessions data:", allSessionsData);
+                renderScheduleData(allSessionsData);
+            } else {
+                console.log("No sessions found for today, falling back to demo data");
+                loadDemoScheduleData();
+            }
         } catch (error) {
-          console.error("Error loading sessions data:", error);
-          loadDemoScheduleData();
+            console.error("Error loading sessions data:", error);
+            loadDemoScheduleData();
         }
-      }
+    }
 
-      // Helper function to format time to 12-hour format
-      function formatTimeTo12Hour(date) {
+    // Helper function to format time to 12-hour format
+    function formatTimeTo12Hour(date) {
         let hours = date.getHours();
         const minutes = String(date.getMinutes()).padStart(2, "0");
         const period = hours >= 12 ? "PM" : "AM";
-        hours = hours % 12 || 12; // Convert 0 to 12 for midnight
+        hours = hours % 12 || 12;
         return `${hours}:${minutes} ${period}`;
-      }
+    }
 
-      // Function to load demo schedule data (fallback)
-      function loadDemoScheduleData() {
+    // Function to load demo schedule data (fallback)
+    function loadDemoScheduleData() {
         const demoData = [];
         renderScheduleData(demoData);
-      }
+    }
 
-      // Function to fetch enrollment data with student counts
-      async function fetchEnrollmentData(instructorId) {
+    // Function to fetch enrollment data with student counts
+    async function fetchEnrollmentData(instructorId) {
         try {
-          // First get all courses taught by this instructor
-          const response = await fetch(
-            `${BASE_URL}/enrollment?instructor_id=eq.${instructorId}`,
-            {
-              headers: {
-                apikey: API_KEY,
-                Authorization: `Bearer ${API_KEY}`,
-              },
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error(
-              `Enrollment API request failed with status ${response.status}`
-            );
-          }
-
-          const enrollmentData = await response.json();
-
-          if (!enrollmentData || enrollmentData.length === 0) {
-            console.log("No enrollment data found");
-            loadDemoEnrollmentData();
-            return;
-          }
-
-          // Extract unique course IDs
-          const courseIds = [
-            ...new Set(enrollmentData.map((item) => item.course_id)),
-          ];
-          const courseEnrollments = [];
-
-          // For each course, get course name and count students
-          for (const courseId of courseIds) {
-            try {
-              // Get course details
-              const courseResponse = await fetch(
-                `${BASE_URL}/course?course_id=eq.${courseId}`,
-                {
-                  headers: {
+            const response = await fetch(`${BASE_URL}/enrollment?instructor_id=eq.${instructorId}`, {
+                headers: {
                     apikey: API_KEY,
                     Authorization: `Bearer ${API_KEY}`,
-                  },
-                }
-              );
+                },
+            });
 
-              if (!courseResponse.ok) {
-                console.error(
-                  `Failed to fetch course ${courseId}:`,
-                  courseResponse.status
-                );
-                continue;
-              }
-
-              const courseData = await courseResponse.json();
-              const courseName =
-                courseData.length > 0
-                  ? courseData[0].course_name
-                  : `Course ${courseId}`;
-
-              // Count students in this course with this instructor
-              const studentCountResponse = await fetch(
-                `${BASE_URL}/enrollment?course_id=eq.${courseId}&instructor_id=eq.${instructorId}`,
-                {
-                  headers: {
-                    ...{
-                      apikey: API_KEY,
-                      Authorization: `Bearer ${API_KEY}`,
-                    },
-                    Prefer: "count=exact",
-                  },
-                }
-              );
-
-              // Get count from content-range header
-              const contentRange =
-                studentCountResponse.headers.get("content-range");
-              let studentCount = 0;
-
-              if (contentRange) {
-                studentCount = parseInt(contentRange.split("/")[1]) || 0;
-              } else {
-                // If content-range header is not available, count manually
-                const enrolledStudents = await studentCountResponse.json();
-                studentCount = enrolledStudents.length;
-              }
-
-              courseEnrollments.push({
-                course_name: courseName,
-                student_count: studentCount,
-              });
-            } catch (error) {
-              console.error(`Error processing course ${courseId}:`, error);
+            if (!response.ok) {
+                throw new Error(`Enrollment API request failed with status ${response.status}`);
             }
-          }
 
-          if (courseEnrollments.length > 0) {
-            renderEnrollmentData(courseEnrollments);
-          } else {
-            loadDemoEnrollmentData();
-          }
+            const enrollmentData = await response.json();
+
+            if (!enrollmentData || enrollmentData.length === 0) {
+                console.log("No enrollment data found");
+                loadDemoEnrollmentData();
+                return;
+            }
+
+            const courseIds = [...new Set(enrollmentData.map((item) => item.course_id))];
+            const courseEnrollments = [];
+
+            for (const courseId of courseIds) {
+                try {
+                    const courseResponse = await fetch(`${BASE_URL}/course?course_id=eq.${courseId}`, {
+                        headers: {
+                            apikey: API_KEY,
+                            Authorization: `Bearer ${API_KEY}`,
+                        },
+                    });
+
+                    if (!courseResponse.ok) {
+                        console.error(`Failed to fetch course ${courseId}:`, courseResponse.status);
+                        continue;
+                    }
+
+                    const courseData = await courseResponse.json();
+                    const courseName = courseData.length > 0 ? courseData[0].course_name : `Course ${courseId}`;
+
+                    const studentCountResponse = await fetch(`${BASE_URL}/enrollment?course_id=eq.${courseId}&instructor_id=eq.${instructorId}`, {
+                        headers: {
+                            ...{
+                                apikey: API_KEY,
+                                Authorization: `Bearer ${API_KEY}`,
+                            },
+                            Prefer: "count=exact",
+                        },
+                    });
+
+                    const contentRange = studentCountResponse.headers.get("content-range");
+                    let studentCount = 0;
+
+                    if (contentRange) {
+                        studentCount = parseInt(contentRange.split("/")[1]) || 0;
+                    } else {
+                        const enrolledStudents = await studentCountResponse.json();
+                        studentCount = enrolledStudents.length;
+                    }
+
+                    courseEnrollments.push({
+                        course_name: courseName,
+                        student_count: studentCount,
+                    });
+                } catch (error) {
+                    console.error(`Error processing course ${courseId}:`, error);
+                }
+            }
+
+            if (courseEnrollments.length > 0) {
+                renderEnrollmentData(courseEnrollments);
+            } else {
+                loadDemoEnrollmentData();
+            }
         } catch (error) {
-          console.error("Error fetching enrollment data:", error);
-          loadDemoEnrollmentData();
+            console.error("Error fetching enrollment data:", error);
+            loadDemoEnrollmentData();
         }
-      }
+    }
 
-      // Function to load demo enrollment data (fallback)
-      function loadDemoEnrollmentData() {
-        const demoData = [
-          { course_name: "Programming 101", student_count: 25 },
-          { course_name: "Web Development", student_count: 20 },
-          { course_name: "Data Science", student_count: 15 },
-        ];
-        renderEnrollmentData(demoData);
-      }
 
-      // Function to render schedule data in the table
-      function renderScheduleData(scheduleData) {
+    // Function to render schedule data in the table
+    function renderScheduleData(scheduleData) {
         const tableBody = document.getElementById("scheduleTableBody");
         tableBody.innerHTML = "";
 
-        // Update status message
-        const statusMessageElem = document.getElementById(
-          "scheduleStatusMessage"
-        );
+        const statusMessageElem = document.getElementById("scheduleStatusMessage");
         if (scheduleData.length > 0) {
+            statusMessageElem.textContent = "";
         } else {
-          statusMessageElem.textContent = "No sessions scheduled for today";
+            statusMessageElem.textContent = "No sessions scheduled for today";
         }
 
         if (!scheduleData || scheduleData.length === 0) {
-          const row = document.createElement("tr");
-          const cell = document.createElement("td");
-          cell.colSpan = 5; // Updated to 5 columns
-          cell.textContent = "No sessions available";
-          cell.style.textAlign = "center";
-          row.appendChild(cell);
-          tableBody.appendChild(row);
-          return;
+            const row = document.createElement("tr");
+            const cell = document.createElement("td");
+            cell.colSpan = 5;
+            cell.textContent = "No sessions available";
+            cell.style.textAlign = "center";
+            row.appendChild(cell);
+            tableBody.appendChild(row);
+            return;
         }
 
         scheduleData.forEach((item) => {
-          const row = document.createElement("tr");
+            const row = document.createElement("tr");
 
-          // Course column with icon
-          const courseCell = document.createElement("td");
-          const courseDiv = document.createElement("div");
-          courseDiv.className = "course-row";
+            const courseCell = document.createElement("td");
+            const courseDiv = document.createElement("div");
+            courseDiv.className = "course-row";
 
-          const iconDiv = document.createElement("div");
-          iconDiv.className = `course-icon ${item.icon}`;
-          const iconSymbol = document.createElement("span");
+            const iconDiv = document.createElement("div");
 
-          if (item.icon === "icon-programming") {
-            iconSymbol.innerHTML = "</>";
-          } else if (item.icon === "icon-data") {
-            iconSymbol.innerHTML = "⋮";
-          } else if (item.icon === "icon-web") {
-            iconSymbol.innerHTML = "🌐";
-          }
+            const iconSymbol = document.createElement("span");
 
-          iconDiv.appendChild(iconSymbol);
-          courseDiv.appendChild(iconDiv);
+  
 
-          const courseName = document.createElement("span");
-          courseName.textContent = item.course;
-          courseDiv.appendChild(courseName);
+            iconDiv.appendChild(iconSymbol);
+            courseDiv.appendChild(iconDiv);
 
-          courseCell.appendChild(courseDiv);
-          row.appendChild(courseCell);
+            const courseName = document.createElement("span");
+            courseName.textContent = item.course;
+            courseDiv.appendChild(courseName);
 
-          // Date column
-          const dateCell = document.createElement("td");
-          dateCell.textContent = item.date;
-          row.appendChild(dateCell);
+            courseCell.appendChild(courseDiv);
+            row.appendChild(courseCell);
 
-          // Time column
-          const timeCell = document.createElement("td");
-          timeCell.textContent = item.time;
-          row.appendChild(timeCell);
+ 
 
-          // Place column
-          const placeCell = document.createElement("td");
-          placeCell.textContent = item.place;
-          row.appendChild(placeCell);
+            const timeCell = document.createElement("td");
+            timeCell.textContent = item.time;
+            row.appendChild(timeCell);
 
-          // Type column with tag
-          const typeCell = document.createElement("td");
-          const typeTag = document.createElement("span");
-          typeTag.textContent = item.type;
+            const placeCell = document.createElement("td");
+            placeCell.textContent = item.place;
+            row.appendChild(placeCell);
 
-          if (item.type.toLowerCase() === "lecture") {
-            typeTag.className = "tag tag-lecture";
-          } else if (item.type.toLowerCase() === "lab") {
-            typeTag.className = "tag tag-lab";
-          } else if (item.type.toLowerCase() === "quiz") {
-            typeTag.className = "tag tag-quiz";
-          } else {
-            typeTag.className = "tag";
-          }
+            const typeCell = document.createElement("td");
+            const typeTag = document.createElement("span");
+            typeTag.textContent = item.type;
 
-          typeCell.appendChild(typeTag);
-          row.appendChild(typeCell);
+            if (item.type.toLowerCase() === "lecture") {
+                typeTag.className = "tag tag-lecture";
+            } else if (item.type.toLowerCase() === "lab") {
+                typeTag.className = "tag tag-lab";
+            } else if (item.type.toLowerCase() === "quiz") {
+                typeTag.className = "tag tag-quiz";
+            } else {
+                typeTag.className = "tag";
+            }
 
-          tableBody.appendChild(row);
+            typeCell.appendChild(typeTag);
+            row.appendChild(typeCell);
+
+            tableBody.appendChild(row);
         });
-      }
+    }
 
-      // Function to render enrollment data in the table
-      function renderEnrollmentData(enrollmentData) {
+    // Function to render enrollment data in the table
+    function renderEnrollmentData(enrollmentData) {
         const tableBody = document.getElementById("enrollmentTableBody");
         tableBody.innerHTML = "";
 
         if (!enrollmentData || enrollmentData.length === 0) {
-          const row = document.createElement("tr");
-          const cell = document.createElement("td");
-          cell.colSpan = 2;
-          cell.textContent = "No enrollment data available";
-          cell.style.textAlign = "center";
-          row.appendChild(cell);
-          tableBody.appendChild(row);
-          return;
+            const row = document.createElement("tr");
+            const cell = document.createElement("td");
+            cell.colSpan = 2;
+            cell.textContent = "No enrollment data available";
+            cell.style.textAlign = "center";
+            row.appendChild(cell);
+            tableBody.appendChild(row);
+            return;
         }
 
         enrollmentData.forEach((item) => {
-          const row = document.createElement("tr");
+            const row = document.createElement("tr");
 
-          // Course Name column
-          const courseNameCell = document.createElement("td");
-          courseNameCell.textContent = item.course_name;
-          row.appendChild(courseNameCell);
+            const courseNameCell = document.createElement("td");
+            courseNameCell.textContent = item.course_name;
+            row.appendChild(courseNameCell);
 
-          // Student count column
-          const studentCountCell = document.createElement("td");
-          studentCountCell.textContent = item.student_count;
-          row.appendChild(studentCountCell);
+            const studentCountCell = document.createElement("td");
+            studentCountCell.textContent = item.student_count;
+            row.appendChild(studentCountCell);
 
-          tableBody.appendChild(row);
+            tableBody.appendChild(row);
         });
-      }
+    }
 
-      // Initialize the page
-      window.onload = () => {
+    // Initialize the page
+    window.onload = () => {
         setDynamicGreeting();
         fetchInstructorData();
-      };
-    </script>
+    };
+</script>
   </body>
 </html>

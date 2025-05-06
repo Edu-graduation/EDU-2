@@ -69,3 +69,26 @@ function logOut() {
 //   return data;
 // }
 // test();
+
+export async function getInstitutionId(studentId) {
+  console.log("Entering getInstitutionId with studentId:", studentId);
+  const { data, error } = await supaClient
+    .from("student")
+    .select("institution_id")
+    .eq("student_id", studentId);
+
+  if (error) {
+    console.error("Error fetching institution_id:", error);
+    return null;
+  }
+
+  if (data && data.length > 0) {
+    const institutionId = data[0].institution_id;
+    console.log("Fetched institution_id:", institutionId);
+    sessionStorage.setItem("institution_id", institutionId);
+    return institutionId;
+  } else {
+    console.log("No data found for studentId:", studentId);
+    return null;
+  }
+}

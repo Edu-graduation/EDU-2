@@ -32,7 +32,7 @@
       <!-- Sidebar -->
       <div class="courses__modal modal-hidden">
         <div class="courses__modal-container">
-          <div class="courses__modal-item lecture">
+          <div class="courses__modal-item lecture" onclick="window.location.href='./lectures.html';" style="cursor: pointer;">
             <div class="icon">
               <svg
                 width="52"
@@ -48,12 +48,12 @@
               </svg>
               </div>
               <div class="details">
-                <div class="title" onclick="window.location.href='./lectures.html';" style="cursor: pointer;">
+                <div class="lectures-title" >
                   Lectures<span class="show"></i></span>
                 </div>
               </div>
           </div>
-          <div class="courses__modal-item section">
+          <div class="courses__modal-item section" onclick="window.location.href='./section.html';" style="cursor: pointer;">
             <div class="icon">
               <svg
                 width="48"
@@ -75,14 +75,14 @@
                 </defs>
               </svg>
             </div>
-            <div class="details">
-              <div class="title" onclick="window.location.href='./section.html';" style="cursor: pointer;">
+            <div class="section-details">
+              <div class="title"  >
                 Sections<span class="show"
                   ></span>
               </div>
             </div>
           </div>
-          <div class="courses__modal-item assignment">
+          <div class="courses__modal-item assignment" onclick="window.location.href='./assignments.html';" style="cursor: pointer;">
             <div class="icon">
               <svg
                 width="50"
@@ -105,13 +105,13 @@
               </svg>
             </div>
             <div class="details">
-              <div class="title" onclick="window.location.href='./assignments.html';" style="cursor: pointer;">
+              <div class="assignments-title" >
                 Assignments<span class="show"
                   ></span>
               </div>
             </div>
           </div>
-          <div class="courses__modal-item quiz">
+          <div class="courses__modal-item quiz" onclick="window.location.href='./quiz.html';" style="cursor: pointer;">
             <div class="icon">
               <svg
                 width="50"
@@ -154,13 +154,13 @@
               </svg>
             </div>
             <div class="details">
-              <div class="title" onclick="window.location.href='./quiz.html';" style="cursor: pointer;">
+              <div class="title" >
                 Quizes
                 <span class="show"></span>
               </div>
             </div>
           </div>
-          <div class="courses__modal-item project">
+          <div class="courses__modal-item project" onclick="window.location.href='./projects.html';" style="cursor: pointer;">
             <div class="icon">
               <svg
                 width="50"
@@ -183,13 +183,13 @@
               </svg>
             </div>
             <div class="details">
-              <div class="title" onclick="window.location.href='./projects.html';" style="cursor: pointer;">
+              <div class="projects-title" >
                 Projects
                 <span class="show"></i></span>
               </div>
             </div>
           </div>
-          <div class="courses__modal-item chat">
+          <div class="courses__modal-item chat" onclick="window.location.href='./chats.html';" style="cursor: pointer;">
             <div class="icon">
               <svg
                 width="45"
@@ -217,7 +217,7 @@
               </svg>
             </div>
             <div class="details">
-              <div class="title" onclick="window.location.href='./chats.html';" style="cursor: pointer;">
+              <div class="title" >
                 Chats
                 <span class="show"></span>
               </div>
@@ -287,8 +287,8 @@
       </div>
     </div>
     <div class="overlay"></div>
-
-    <script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script type="module">
       
       const BASE_URL =
         "https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1/enrollment";
@@ -347,7 +347,6 @@
         const path = imageMap[courseName] || "./images/Courses/brain2.svg";
         return encodeURI(path);
       }
-
       function fetchStudentCourses() {
         if (!studentId) {
           alert("sign in first");
@@ -366,49 +365,51 @@
         )
           .then((response) => response.json())
           .then((data) => {
+            console.log(data);
+            
             const container = document.querySelector(".courses__container");
             container.innerHTML = ""; // Clear existing content
 
             // Create course elements with proper layout
-            data.forEach((enrollment, index) => {
-              const courseNumber = index + 1;
-              const course = enrollment.course;
-              const instructor = enrollment.instructor;
-              const imageSrc = getCourseImage(course.course_name);
+            // data.forEach((enrollment, index) => {
+            //   const courseNumber = index + 1;
+            //   const course = enrollment.course;
+            //   const instructor = enrollment.instructor;
+            //   const imageSrc = getCourseImage(course.course_name);
 
-              // Add course card with link wrapper
-              const courseHTML = `
+            //   // Add course card with link wrapper
+            //   const courseHTML = `
                   
-                    <div class="course course-${courseNumber}" data-course-id="${course.course_id}">
-                      <h3 class="course__name">${course.course_name}</h3>
-                      <p class="course__desription">${course.course_description}</p>
-                      <p class="course__proffesor__name">${instructor.instructor_name}</p>
-                      <div class="course__icon-box">
-                        <img src="${imageSrc}" alt="${course.course_name} icon" class="course__icon">
-                      </div>
-                    </div>
-                  </a>
-                `;
+            //         <div class="course course-${courseNumber}" data-course-id="${course.course_id}">
+            //           <h3 class="course__name">${course.course_name}</h3>
+            //           <p class="course__desription">${course.course_description}</p>
+            //           <p class="course__proffesor__name">${instructor.instructor_name}</p>
+            //           <div class="course__icon-box">
+            //             <img src="${imageSrc}" alt="${course.course_name} icon" class="course__icon">
+            //           </div>
+            //         </div>
+                  
+            //     `;
 
-              container.insertAdjacentHTML("beforeend", courseHTML);
+            //   container.insertAdjacentHTML("beforeend", courseHTML);
 
-              // Add vertical separator line after each course in the row (except the last in a row)
-              if (courseNumber % 3 !== 0 && index !== data.length - 1) {
-                container.insertAdjacentHTML(
-                  "beforeend",
-                  `<div class="line-sprator"></div>`
-                );
-              }
+            //   // Add vertical separator line after each course in the row (except the last in a row)
+            //   if (courseNumber % 3 !== 0 && index !== data.length - 1) {
+            //     container.insertAdjacentHTML(
+            //       "beforeend",
+            //       `<div class="line-sprator"></div>`
+            //     );
+            //   }
 
-              // Add horizontal separator line after each row of 3 courses (unless it's the last row)
-              if (courseNumber % 3 === 0 && index !== data.length - 1) {
-                // Add the horizontal line across all columns
-                container.insertAdjacentHTML(
-                  "beforeend",
-                  `<div class="line-sprator-top"></div>`
-                );
-              }
-            });
+            //   // Add horizontal separator line after each row of 3 courses (unless it's the last row)
+            //   if (courseNumber % 3 === 0 && index !== data.length - 1) {
+            //     // Add the horizontal line across all columns
+            //     container.insertAdjacentHTML(
+            //       "beforeend",
+            //       `<div class="line-sprator-top"></div>`
+            //     );
+            //   }
+            // });
 
             // If there are fewer than 3 courses in the last row, we need to handle layout
             const remainingCells = data.length % 3;
@@ -440,6 +441,46 @@
             console.error("Error fetching course data:", err);
           });
       }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const institutionId = sessionStorage.getItem("institution_id");
+
+  if (institutionId === "2") {
+    const titleElement = document.querySelector(".courses__title");
+    if (titleElement) titleElement.textContent = "Lessons in progress";
+
+    const sectionElement = document.querySelector(".courses__modal-item.section");
+    if (sectionElement) sectionElement.style.display = "none";
+
+    const lecturesTitleElement = document.querySelector(".lectures-title");
+    if (lecturesTitleElement) lecturesTitleElement.textContent = "Lessons";
+
+    const projectsTitleElement = document.querySelector(".projects-title");
+    if (projectsTitleElement) projectsTitleElement.textContent = "Activities";
+
+    const assignmentsTitleElement = document.querySelector(".assignments-title");
+    if (assignmentsTitleElement) assignmentsTitleElement.textContent = "Homework";
+
+    const shouldShowPopup = sessionStorage.getItem("backToPopup");
+    if (shouldShowPopup === "true") {
+      showCourseModal();
+      sessionStorage.removeItem("backToPopup");
+    }
+  }
+});
+if (!sessionStorage.getItem("institution_id")) {
+  console.log("institution_id is not set in sessionStorage.");
+}
+
+
+window.addEventListener("DOMContentLoaded", function () {
+  const shouldShowPopup = sessionStorage.getItem("backToPopup");
+
+  if (shouldShowPopup === "true") {
+    showCourseModal();
+    sessionStorage.removeItem("backToPopup");
+  }
+});
 
       // Call the function when the page loads
       document.addEventListener("DOMContentLoaded", fetchStudentCourses);

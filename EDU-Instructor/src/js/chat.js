@@ -381,7 +381,9 @@ function attachChatClickListeners() {
         renderChatDetails(chatDetails);
 
         // Extract all user IDs from messages and enrolled students
-        const messageUserIds = chatMessages.map((msg) => msg.senderid);
+        const messageUserIds = chatMessages.map(
+          (msg) => +msg.sender_data.slice(0, 14)
+        );
         const allUserIds = [
           ...new Set([...messageUserIds, ...enrolledStudents, instructorId]),
         ];
@@ -686,21 +688,21 @@ function handleNewMessage(payload) {
 
   // Mark as processed to prevent duplicates
   processedMessageIds.add(msgId);
-
+  const senderId = +message.sender_data.slice(0, 14);
   // Always fetch the name for non-instructor senders to ensure we have student names
   if (
-    Number(message.senderid) !== Number(instructorId) &&
-    (!userNameCache.has(message.senderid) ||
-      userNameCache.get(message.senderid) === "Unknown User")
+    Number(senderId) !== Number(instructorId) &&
+    (!userNameCache.has(senderId) ||
+      userNameCache.get(senderId) === "Unknown User")
   ) {
     // Try to get student name first, then instructor name as fallback
-    safeGetUserName(message.senderid)
+    safeGetUserName(senderId)
       .then((senderName) => {
-        userNameCache.set(message.senderid, senderName);
+        userNameCache.set(senderId, senderName);
 
         // Refresh display of sender name in any messages from this sender
         document
-          .querySelectorAll(`[data-sender-id="${message.senderid}"]`)
+          .querySelectorAll(`[data-sender-id="${senderId}"]`)
           .forEach((msg) => {
             const senderEl = msg.querySelector(".message__sender-name");
             if (senderEl) {
@@ -710,7 +712,7 @@ function handleNewMessage(payload) {
       })
       .catch((err) => {
         console.error("Error fetching sender name:", err);
-        userNameCache.set(message.senderid, "Unknown User");
+        userNameCache.set(senderId, "Unknown User");
       });
   }
 
@@ -723,7 +725,7 @@ function processMessageUpdate(message) {
     console.log(
       `Processing message update for chat ${message.chat_id}, current chat: ${currentChatId}`
     );
-
+    const senderId = +message.sender_data.slice(0, 14);
     // If this is the current open chat, add message to chat view
     if (Number(currentChatId) === Number(message.chat_id)) {
       console.log("This is the active chat, adding message to view");
@@ -733,11 +735,7 @@ function processMessageUpdate(message) {
     }
 
     // Update the chat list item with this message regardless
-    updateLastMessageInChatList(
-      message.chat_id,
-      message.msg_content,
-      message.senderid
-    );
+    updateLastMessageInChatList(message.chat_id, message.msg_content, senderId);
   } catch (error) {
     console.error("Error processing message update:", error);
   }
@@ -821,7 +819,8 @@ function createMessageElement(message, animate = true) {
     "data-timestamp",
     new Date(message.msg_date_time).getTime()
   );
-  messageEl.setAttribute("data-sender-id", message.senderid);
+  const senderId = +message.sender_data.slice(0, 14);
+  messageEl.setAttribute("data-sender-id", senderId);
 
   const messageSenderName = document.createElement("p");
   const messageContent = document.createElement("p");
@@ -835,7 +834,7 @@ function createMessageElement(message, animate = true) {
   messageTime.textContent = formatDateTime(new Date(message.msg_date_time));
 
   // Check if the message is from the current instructor
-  const isSentByCurrentUser = Number(message.senderid) === Number(instructorId);
+  const isSentByCurrentUser = Number(senderId) === Number(instructorId);
 
   // Add message classes based on sender
   if (isSentByCurrentUser) {
@@ -844,36 +843,36 @@ function createMessageElement(message, animate = true) {
   } else {
     messageEl.classList.add("received");
     // Get sender name from cache or set a placeholder
-    const senderName = userNameCache.get(message.senderid);
+    const senderName = userNameCache.get(senderId);
     messageSenderName.textContent = senderName || "Loading...";
 
     // If name isn't in cache yet, fetch it asynchronously with priority on student names
     if (!senderName || senderName === "Unknown User") {
-      getStudentName(message.senderid)
+      getStudentName(senderId)
         .then((studentName) => {
           if (studentName) {
-            userNameCache.set(message.senderid, studentName);
+            userNameCache.set(senderId, studentName);
             messageSenderName.textContent = studentName;
           } else {
             // Fallback to instructor name if not a student
-            getInstructorName(message.senderid)
+            getInstructorName(senderId)
               .then((instructorName) => {
                 if (instructorName) {
-                  userNameCache.set(message.senderid, instructorName);
+                  userNameCache.set(senderId, instructorName);
                   messageSenderName.textContent = instructorName;
                 } else {
-                  userNameCache.set(message.senderid, "Unknown User");
+                  userNameCache.set(senderId, "Unknown User");
                   messageSenderName.textContent = "Unknown User";
                 }
               })
               .catch(() => {
-                userNameCache.set(message.senderid, "Unknown User");
+                userNameCache.set(senderId, "Unknown User");
                 messageSenderName.textContent = "Unknown User";
               });
           }
         })
         .catch(() => {
-          safeGetUserName(message.senderid).then((name) => {
+          safeGetUserName(senderId).then((name) => {
             messageSenderName.textContent = name;
           });
         });
@@ -1037,12 +1036,10 @@ async function renderChatList() {
     const lastMessagePromises = pendingChats.map(async (chatId) => {
       const lastMessage = await getLastMessage(chatId);
       if (lastMessage) {
+        const senderId = +lastMessage.sender_data.slice(0, 14);
         // Ensure we have the sender name
-        if (
-          lastMessage?.senderid &&
-          !userNameCache.has(lastMessage?.senderid)
-        ) {
-          await safeGetUserName(lastMessage?.senderid);
+        if (senderId && !userNameCache.has(senderId)) {
+          await safeGetUserName(senderId);
         }
         return { chatId, lastMessage };
       }
@@ -1108,28 +1105,25 @@ async function updateChatLastMessageDisplay(lastMessageEl, lastMessage) {
     lastMessageEl.textContent = messageText;
     return;
   }
-
+  const senderId = +lastMessage.sender_data.slice(0, 14);
   // Try to get student name first for non-instructor messages
-  if (
-    lastMessage.senderid &&
-    Number(lastMessage.senderid) !== Number(instructorId)
-  ) {
-    const studentName = await getStudentName(lastMessage.senderid);
+  if (senderId && Number(senderId) !== Number(instructorId)) {
+    const studentName = await getStudentName(senderId);
     if (studentName) {
-      userNameCache.set(lastMessage.senderid, studentName);
+      userNameCache.set(senderId, studentName);
       senderPrefix = `${studentName}: `;
     } else {
       // Try instructor name as fallback
-      const instructorName = await getInstructorName(lastMessage.senderid);
+      const instructorName = await getInstructorName(senderId);
       if (instructorName) {
-        userNameCache.set(lastMessage.senderid, instructorName);
+        userNameCache.set(senderId, instructorName);
         senderPrefix = `${instructorName}: `;
       } else {
         senderPrefix = "Unknown User: ";
-        userNameCache.set(lastMessage.senderid, "Unknown User");
+        userNameCache.set(senderId, "Unknown User");
       }
     }
-  } else if (Number(lastMessage.senderid) === Number(instructorId)) {
+  } else if (Number(senderId) === Number(instructorId)) {
     senderPrefix = "You: ";
   }
 
@@ -1493,7 +1487,7 @@ async function sendMessage(chatId, messageContent) {
       .insert({
         chat_id: chatId,
         msg_content: messageContent,
-        senderid: instructorId,
+        sender_data: instructorId,
         msg_date_time: timestamp.toISOString(),
       })
       .select();

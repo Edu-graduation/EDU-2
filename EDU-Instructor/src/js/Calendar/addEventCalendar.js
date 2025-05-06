@@ -4,7 +4,6 @@ const eventModal = document.querySelector(".event-modal");
 
 const btnCloseModal = document.querySelector(".btn-close-modal");
 const overlay = document.querySelector(".overlay");
-// overlay.style.height = document.body.clientHeight + "px";
 if (eventModal) {
   btnCloseModal.addEventListener("click", hideEventModal);
   addEventButton.addEventListener("click", showEventModal);
@@ -52,7 +51,9 @@ endInput.addEventListener("change", () => {
     endInput.value = "";
   }
 });
-
+getStudentsIdWhoEnrolledInThisCourse().then((data) => {
+  console.log(data);
+});
 // 4. Save event to database with real-time support
 addEventForm.addEventListener("submit", async (e) => {
   e.preventDefault(); // Prevent form submission
@@ -75,14 +76,14 @@ addEventForm.addEventListener("submit", async (e) => {
     const studentsId = await getStudentsIdWhoEnrolledInThisCourse();
     const { data, error } = await supaClient
       .from("calendar_event")
-      .insert(studentsId.map((student) => ({
+      .insert(studentsId.map((studentId) => ({
         event_name: title,
         event_startdatetime: startDate,
         event_enddatetime: endDate,
         event_type: eventType,
         event_details: description,
         instructor_id: instructorId,
-        student_id: student.student_id,
+        student_id: studentId,
       })))
       .select("*");
 
@@ -126,7 +127,7 @@ async function getStudentsIdWhoEnrolledInThisCourse(){
   }
 
   if (data) {
-    console.log(data);
-    return data;
+    const uniqueStudentsId = new Set(data.map((student) => student.student_id));
+    return Array.from(uniqueStudentsId);
   }
 }

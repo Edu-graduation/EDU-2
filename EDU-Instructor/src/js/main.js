@@ -24,7 +24,7 @@ export async function getInstructorName(instructorId) {
   const { data, error } = await supaClient
     .from("instructor")
     .select("instructor_name")
-    .eq("instructor_id", instructorId);
+    .eq("instructor_id", +instructorId);
   if (error) {
     console.error("Error fetching student name:", error);
     return null;

@@ -447,18 +447,17 @@
 .chats__search::-ms-clear {
   display: none;
 }
-
 /* For older versions of IE */
 .chats__search::-ms-reveal {
   display: none;
 }
 .instrctor-message {
-  background-color: #9881ed !important;
+  background-color:#B3D5D9 !important;
 }
 .instrctor-message .message__content {
   font-size: var(--fs-6);
-  color: #fff !important;
+  color: #5955b3 !important;
 }
 .instrctor-message .message__sender-name {
-  color: #f9d7d7 !important;
+  color: #3b3939 !important;
 }

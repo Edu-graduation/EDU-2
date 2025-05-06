@@ -6,7 +6,7 @@ import { endStr, startStr } from "./weeklyCalendar.js";
 const dailySchedule = document.querySelector(".daily__event-container");
 const studentId = sessionStorage.getItem("studentId");
 const hoursContainer = document.querySelector(".time");
-
+const institutionId = sessionStorage.getItem("institution_id");
 // Helper function to format time in a readable format
 function formatTimeDisplay(dateTimeStr) {
   return new Date(dateTimeStr).toLocaleTimeString("en-US", {
@@ -69,12 +69,28 @@ function updateHoursDisplay(timeArray) {
     hoursContainer.appendChild(hourElement);
   });
 }
+async function getInstructorInstitution() {
+  const { data, error } = await supaClient
+    .from("instructor_institution")
+    .select("*")
+    .eq("institution_id", institutionId);
 
+  if (error) {
+    console.error("Error fetching institution data:", error);
+    return null;
+  }
+
+  const instructorsId = data.map((instructor) => instructor.instructor_id);
+  console.log("Instructors at this institution:", instructorsId);
+  return instructorsId;
+}
 async function getDailySchedule() {
+  const instructorsId = await getInstructorInstitution();
   const { data, error } = await supaClient
     .from("calendar_event")
     .select("*")
-    .eq("student_id", studentId);
+    .eq("student_id", studentId)
+    .in("instructor_id", instructorsId);
 
   if (error) {
     console.error("Error fetching calendar events:", error);
@@ -216,12 +232,13 @@ export function attachDayClickListeners() {
       currentlySelectedDay = selectedDay;
       currentlySelectedMonth = elementMonth;
       currentlySelectedYear = elementYear;
-
+      const instructorsId = await getInstructorInstitution();
       // Fetch events
       const { data, error } = await supaClient
         .from("calendar_event")
         .select("*")
-        .eq("student_id", studentId);
+        .eq("student_id", studentId)
+        .in("instructor_id", instructorsId);
 
       if (error) {
         console.error("Error fetching events:", error);

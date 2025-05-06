@@ -196,7 +196,7 @@ async function renderAssignments() {
         <h3 class="project-title">${assignment.assign_title}</h3>
         <p class="project-description">${assignment.assign_description.slice(
           0,
-          50
+          35
         )}</p>
         <hr class="project-divider" style="background-color:${
           dueDatePassed ? "#F44336" : "#5955B3"
@@ -555,7 +555,7 @@ async function uploadFile(e) {
 
     // Create a unique filename with timestamp to prevent overwriting
     const timestamp = new Date().getTime();
-    const fileName = `$-${assignmentId}-${timestamp}-${file.name}`.replaceAll(
+    const fileName = `${assignmentId}-${timestamp}-${file.name}`.replaceAll(
       "/",
       ""
     );
