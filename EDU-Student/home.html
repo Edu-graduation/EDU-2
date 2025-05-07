@@ -452,6 +452,7 @@ nextWeek.setHours(23, 59, 59, 999);
           const sessions = [];
           
           data.forEach((enrollment) => {
+            
             const course = enrollment.course;
             if (!course || !course.session) return;
             
@@ -538,11 +539,6 @@ window.addEventListener("DOMContentLoaded", async() => {
   // const institutionId = sessionStorage.getItem("institution_id");
   const majorElement = document.getElementById("dep")?.parentElement;
   const institutionId = await getInstitutionId(studentId);
-  console.log(institutionId);
-  console.log(majorElement);
-  
-  console.log(sessionStorage.getItem('institution_id'));
-  
   if (!institutionId || !majorElement) return; // تأكد من وجود البيانات والعنصر
 
   if (institutionId == "1") {

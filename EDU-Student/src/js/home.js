@@ -1267,7 +1267,6 @@ async function getInstructorInstitution() {
   }
 
   const instructorsId = data.map((instructor) => instructor.instructor_id);
-  console.log("Instructors at this institution:", instructorsId);
   return instructorsId;
 }
 
@@ -1290,11 +1289,382 @@ async function getStudentCourses() {
     console.error("Error fetching enrollment data:", error);
     return [];
   }
+console.log(data);
 
-  console.log("Student courses:", data);
   return data;
 }
-
+// Format time to display as "At 8:00 AM"
+function formatSessionTime(timeString) {
+    try {
+      // Check if it contains date information (format: 2025-05-07 14:00:00)
+      let time;
+      if (timeString.includes('-')) {
+        time = new Date(timeString);
+      } 
+      // Check if it's a full ISO datetime
+      else if (timeString.includes('T')) {
+        time = new Date(timeString);
+      } 
+      // Handle time-only format like "14:30:00"
+      else {
+        const [hours, minutes] = timeString.split(':').map(num => parseInt(num));
+        time = new Date();
+        time.setHours(hours, minutes, 0);
+      }
+      
+      if (isNaN(time.getTime())) {
+        console.warn("Invalid time:", timeString);
+        return "At " + timeString; // Return original if invalid
+      }
+      
+      // Format as "8:00 AM"
+      return "At " + time.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      });
+    } catch (e) {
+      console.error("Time formatting error:", e);
+      return "At " + timeString;
+    }
+  }
+  
+  // Check if a session is for today by examining various possible date fields
+  function isSessionToday(session) {
+    try {
+      // Get today's date without time for comparison
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // For debugging
+      console.log("Today's date:", today.toISOString().split('T')[0]);
+      console.log("Checking session:", session);
+      
+      // 1. Check session_date field (if it exists)
+      if (session.session_date) {
+        console.log("Found session_date:", session.session_date);
+        const sessionDate = new Date(session.session_date);
+        sessionDate.setHours(0, 0, 0, 0);
+        
+        if (sessionDate.toISOString().split('T')[0] === today.toISOString().split('T')[0]) {
+          console.log("✓ Match found in session_date");
+          return true;
+        }
+      }
+      
+      // 2. Check session_datetime field (if it exists)
+      if (session.session_datetime) {
+        console.log("Found session_datetime:", session.session_datetime);
+        const sessionDate = new Date(session.session_datetime);
+        sessionDate.setHours(0, 0, 0, 0);
+        
+        if (sessionDate.toISOString().split('T')[0] === today.toISOString().split('T')[0]) {
+          console.log("✓ Match found in session_datetime");
+          return true;
+        }
+      }
+      
+      // 3. Special check for session_time if it contains date information (format: 2025-05-07 14:00:00)
+      if (session.session_time && session.session_time.includes('-')) {
+        console.log("Found session_time with date format:", session.session_time);
+        const sessionDate = new Date(session.session_time);
+        sessionDate.setHours(0, 0, 0, 0);
+        
+        if (sessionDate.toISOString().split('T')[0] === today.toISOString().split('T')[0]) {
+          console.log("✓ Match found in session_time");
+          return true;
+        }
+      }
+      
+      // 4. Check session_day if it exists
+      if (session.session_day) {
+        console.log("Found session_day:", session.session_day);
+        // If session_day is a number representing day of week (0-6, where 0 is Sunday)
+        if (typeof session.session_day === 'number' || !isNaN(Number(session.session_day))) {
+          const sessionDayNum = Number(session.session_day);
+          const todayDayNum = today.getDay();
+          
+          if (sessionDayNum === todayDayNum) {
+            console.log("✓ Match found in session_day");
+            return true;
+          }
+        }
+        // If session_day is a string like "Monday", "Tuesday", etc.
+        else if (typeof session.session_day === 'string') {
+          const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+          const todayDayName = days[today.getDay()];
+          
+          if (session.session_day.toLowerCase() === todayDayName) {
+            console.log("✓ Match found in session_day name");
+            return true;
+          }
+        }
+      }
+      
+      console.log("No date match found for this session");
+      return false;
+    } catch (e) {
+      console.error("Error checking if session is today:", e);
+      // In case of error, show the session (better to show extra than miss sessions)
+      return true;
+    }
+  }
+  
+  // Updated function to get sessions with course names (only today's sessions)
+  async function getStudentSessionWithCourseNames() {
+    const studentCourses = await getStudentCourses();
+    const coursesId = studentCourses.map((course) => course.course_id);
+    
+    // Create a map of course_id to course_name for quick lookup
+    const courseNameMap = {};
+    for (const courseId of coursesId) {
+      courseNameMap[courseId] = await getCourseName(courseId);
+    }
+    
+    const { data, error } = await supaClient
+      .from("session")
+      .select("*")
+      .in("course_id", coursesId);
+    
+    if (error) {
+      console.error("Error fetching session data:", error);
+      return [];
+    }
+    
+    console.log("All fetched sessions:", data);
+    
+    // Filter for today's sessions only
+    const todaySessions = data.filter(session => isSessionToday(session));
+    
+    console.log(`Filtered ${data.length} sessions to ${todaySessions.length} today's sessions:`, todaySessions);
+    
+    // Map sessions to include their corresponding course name
+    const sessionsWithCourseNames = todaySessions.map(session => {
+      return {
+        ...session,
+        course_name: courseNameMap[session.course_id] || "Unknown Course"
+      };
+    });
+    
+    return sessionsWithCourseNames;
+  }
+  
+  // Updated render function
+  async function renderStudentSession() {
+    const scheduleGrid = document.querySelector(".schedule-grid");
+    if (!scheduleGrid) {
+      console.error("Schedule grid element not found!");
+      return;
+    }
+    
+    // Show loading indicator
+    scheduleGrid.innerHTML = '<div class="loading">Loading today\'s sessions...</div>';
+    
+    try {
+      const sessions = await getStudentSessionWithCourseNames();
+      console.log("Today's sessions with course names:", sessions);
+      
+      if (sessions.length === 0) {
+        scheduleGrid.innerHTML = '<div class="no-sessions">No sessions scheduled for today</div>';
+        return;
+      }
+      
+      let markup = "";
+      sessions.forEach((session) => {
+        const formattedTime = formatSessionTime(session.session_time);
+        markup += `
+          <div class="schedule-item">
+            <p>${session.course_name}</p>
+            <span>${formattedTime}</span>
+          </div>
+        `;
+      });
+      
+      scheduleGrid.innerHTML = markup;
+    } catch (error) {
+      console.error("Error rendering today's sessions:", error);
+      scheduleGrid.innerHTML = '<div class="error">Failed to load today\'s sessions</div>';
+    }
+  }
+  
+  // Call the updated function
+  renderStudentSession();
+// Format time to display as "At 8:00 AM"
+// function formatSessionTime(timeString) {
+//     try {
+//       // Check if it's a full ISO datetime or just a time
+//       let time;
+//       if (timeString.includes('T')) {
+//         // It's a full datetime
+//         time = new Date(timeString);
+//       } else {
+//         // It might be just a time like "14:30:00"
+//         const [hours, minutes] = timeString.split(':').map(num => parseInt(num));
+//         time = new Date();
+//         time.setHours(hours, minutes, 0);
+//       }
+      
+//       if (isNaN(time.getTime())) {
+//         console.warn("Invalid time:", timeString);
+//         return timeString; // Return original if invalid
+//       }
+      
+//       // Format as "8:00 AM"
+//       return time.toLocaleTimeString('en-US', { 
+//         hour: 'numeric', 
+//         minute: '2-digit',
+//         hour12: true 
+//       });
+//     } catch (e) {
+//       console.error("Time formatting error:", e);
+//       return timeString;
+//     }
+//   }
+  
+//   // Check if a session is scheduled for today
+//   function isSessionToday(sessionDate) {
+//     // If no date information, assume it's not for today
+//     if (!sessionDate) return false;
+    
+//     try {
+//       const today = new Date();
+//       const sessionDay = new Date(sessionDate);
+      
+//       // Compare year, month, and day
+//       return (
+//         today.getFullYear() === sessionDay.getFullYear() &&
+//         today.getMonth() === sessionDay.getMonth() &&
+//         today.getDate() === sessionDay.getDate()
+//       );
+//     } catch (e) {
+//       console.error("Error checking if session is today:", e);
+//       return false;
+//     }
+//   }
+  
+//   // Updated function to get sessions with course names (only today's sessions)
+//   async function getStudentSessionWithCourseNames() {
+//     const studentCourses = await getStudentCourses();
+//     const coursesId = studentCourses.map((course) => course.course_id);
+    
+//     // Create a map of course_id to course_name for quick lookup
+//     const courseNameMap = {};
+//     for (const courseId of coursesId) {
+//       courseNameMap[courseId] = await getCourseName(courseId);
+//     }
+    
+//     const { data, error } = await supaClient
+//       .from("session")
+//       .select("*")
+//       .in("course_id", coursesId);
+    
+//     if (error) {
+//       console.error("Error fetching session data:", error);
+//       return [];
+//     }
+//     console.log(data);
+//     // Filter for today's sessions only
+//     const todaySessions = data.filter(session => {
+//       // Check if session_date exists and is today
+//       if (session.session_date) {
+//         return isSessionToday(session.session_date);
+//       }
+      
+//       // If session has a datetime field instead of separate date/time
+//       if (session.session_datetime) {
+//         return isSessionToday(session.session_datetime);
+//       }
+      
+//       // If there's some other date field, add it here
+//       // For example: if (session.another_date_field) return isSessionToday(session.another_date_field);
+      
+//       return false; // No date info, can't determine if it's today
+//     });
+    
+//     console.log(`Filtered ${data.length} sessions to ${todaySessions.length} today's sessions`);
+    
+//     // Map sessions to include their corresponding course name
+//     const sessionsWithCourseNames = todaySessions.map(session => {
+//       return {
+//         ...session,
+//         course_name: courseNameMap[session.course_id] || "Unknown Course"
+//       };
+//     });
+    
+//     return sessionsWithCourseNames;
+//   }
+  
+//   // Updated render function
+//   async function renderStudentSession() {
+//     const scheduleGrid = document.querySelector(".schedule-grid");
+//     if (!scheduleGrid) {
+//       console.error("Schedule grid element not found!");
+//       return;
+//     }
+    
+//     // Show loading indicator
+//     scheduleGrid.innerHTML = '<div class="loading">Loading today\'s sessions...</div>';
+    
+//     try {
+//       const sessions = await getStudentSessionWithCourseNames();
+//       console.log("Today's sessions with course names:", sessions);
+      
+//       if (sessions.length === 0) {
+//         scheduleGrid.innerHTML = '<div class="no-sessions">No sessions scheduled for today</div>';
+//         return;
+//       }
+      
+//       let markup = "";
+//       sessions.forEach((session) => {
+//         console.log(session);
+        
+//         const formattedTime = formatSessionTime(session.session_time);
+//         markup += `
+//           <div class="schedule-item">
+//             <p>${session.session_name} - ${session.course_name}</p>
+//             <span>At ${formattedTime}</span>
+//           </div>
+//         `;
+//       });
+      
+//       scheduleGrid.innerHTML = markup;
+//     } catch (error) {
+//       console.error("Error rendering today's sessions:", error);
+//       scheduleGrid.innerHTML = '<div class="error">Failed to load today\'s sessions</div>';
+//     }
+//   }
+  
+//   // Call the updated function
+//   renderStudentSession();
+/////////////////////////////////////////////////////////
+// getStudentCourses();
+// async function getStudentSession(){
+//     const studentCourses = await getStudentCourses();
+//     const coursesId = studentCourses.map((course) => course.course_id);
+//     const { data, error } = await supaClient
+//     .from("session")
+//     .select("*")
+//     .in("course_id", coursesId);
+//     console.log(data);
+//     return data;
+// }
+// async function renderStudentSession() {
+//     const scheduleGrid = document.querySelector(".schedule-grid");
+//   const sessions = await getStudentSession();
+//   console.log(sessions);
+  
+//   let markup = "";
+//   sessions.forEach((session) => {
+//     markup += `
+//    <div class="schedule-item">
+//                 <p>${session.session_name}</p>
+//                 <span>At ${session.session_time}</span>
+//             </div>
+//     `;
+//   });
+//   scheduleGrid.innerHTML = markup;
+// }
+// // renderStudentSession();
 // Get course name by ID
 async function getCourseName(courseId) {
   const { data, error } = await supaClient
@@ -1351,11 +1721,6 @@ function isWithinNextWeek(dateString) {
     nextWeek.setDate(today.getDate() + 7);
     nextWeek.setHours(23, 59, 59, 999);
     
-    console.log(`Checking date: ${dateString}`);
-    console.log(`Date parsed as: ${date}`);
-    console.log(`Today: ${today}, Next week: ${nextWeek}`);
-    console.log(`Is within week: ${date >= today && date <= nextWeek}`);
-    
     return date >= today && date <= nextWeek;
   } catch (e) {
     console.error("Date check error:", e);
@@ -1382,12 +1747,8 @@ async function getWeeklyQuizzes() {
     console.error("Error fetching quizzes:", error);
     return [];
   }
-  
-  console.log("Fetched quizzes:", data);
-  
   // Filter quizzes for the next week
   const weeklyQuizzes = data.filter(quiz => isWithinNextWeek(quiz.quiz_dueDateTime));
-  console.log("Weekly quizzes after filtering:", weeklyQuizzes);
   
   return weeklyQuizzes;
 }
@@ -1411,12 +1772,8 @@ async function getWeeklyAssignments() {
     console.error("Error fetching assignments:", error);
     return [];
   }
-  
-  console.log("Fetched assignments:", data);
-  
   // Filter assignments for the next week
   const weeklyAssignments = data.filter(assignment => isWithinNextWeek(assignment.assign_duedate));
-  console.log("Weekly assignments after filtering:", weeklyAssignments);
   
   return weeklyAssignments;
 }
@@ -1436,9 +1793,6 @@ async function getWeeklyActivities() {
   for (const courseId of coursesId) {
     courseNameMap[courseId] = await getCourseName(courseId);
   }
-  
-  console.log("Course name map:", courseNameMap);
-  
   const { data: courseActivities, error } = await supaClient
     .from("course_activity")
     .select("*")
@@ -1453,8 +1807,6 @@ async function getWeeklyActivities() {
     return [];
   }
   
-  console.log("Fetched course activities:", courseActivities);
-  
   const activityIds = courseActivities.map((activity) => activity.activity_id);
   
   const { data: activityData, error: activityError } = await supaClient
@@ -1466,8 +1818,6 @@ async function getWeeklyActivities() {
     console.error("Error fetching activities:", activityError);
     return [];
   }
-  
-  console.log("Fetched activities:", activityData);
   
   // Filter activities for the next week
   const weeklyActivities = activityData.filter(activity => 
@@ -1488,7 +1838,6 @@ async function getWeeklyActivities() {
     };
   });
   
-  console.log("Weekly activities with course info:", activitiesWithCourseInfo);
   return activitiesWithCourseInfo;
 }
 
@@ -1527,8 +1876,6 @@ async function renderWeeklyDeadlines() {
   try {
     // Show loading indicator
     deadlineContainer.innerHTML = '<div class="loading">Loading deadlines...</div>';
-    
-    console.log("Fetching deadlines...");
     
     // Get all deadlines
     const quizzes = await getWeeklyQuizzes();
