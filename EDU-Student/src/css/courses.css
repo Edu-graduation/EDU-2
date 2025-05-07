@@ -386,3 +386,10 @@
     padding-bottom: 0rem;
   }
 }
+.courses__modal-item .assignments-title,
+.courses__modal-item .projects-title,
+.courses__modal-item .lectures-title {
+  font-size: var(--fs-4);
+  font-weight: 700;
+  color: var(--color-grey-dark-1);
+}

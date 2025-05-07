@@ -305,92 +305,92 @@ const nextWeek = new Date(today);
 nextWeek.setDate(today.getDate() + 7);
 nextWeek.setHours(23, 59, 59, 999);
 
-const weeklydeadline_URL = "https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1/enrollment";
-const weeklydeadlineAPI_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1aXdkanRtZGVlbXBjcXhldWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTY1MDcsImV4cCI6MjA2MDMzMjUwN30.XfSmnKA8wbsXIA1qkfYaRkzxtEdudIDNYbSJu-M5Zag";
+// const weeklydeadline_URL = "https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1/enrollment";
+// const weeklydeadlineAPI_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1aXdkanRtZGVlbXBjcXhldWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTY1MDcsImV4cCI6MjA2MDMzMjUwN30.XfSmnKA8wbsXIA1qkfYaRkzxtEdudIDNYbSJu-M5Zag";
 
-fetch(
-  `${weeklydeadline_URL}?student_id=eq.${studentId}&select=*,course(course_id,course_name,assignment(*))`,
-  {
-    headers: {
-      apikey: weeklydeadlineAPI_KEY,
-      Authorization: `Bearer ${weeklydeadlineAPI_KEY}`,
-    },
-  }
-)
-  .then((res) => res.json())
-  .then((data) => {
-    const deadlineContainer = document.querySelector(".deadlineBoxes");
-    deadlineContainer.innerHTML = "";
+// fetch(
+//   `${weeklydeadline_URL}?student_id=eq.${studentId}&select=*,course(course_id,course_name,assignment(*))`,
+//   {
+//     headers: {
+//       apikey: weeklydeadlineAPI_KEY,
+//       Authorization: `Bearer ${weeklydeadlineAPI_KEY}`,
+//     },
+//   }
+// )
+//   .then((res) => res.json())
+//   .then((data) => {
+//     const deadlineContainer = document.querySelector(".deadlineBoxes");
+//     deadlineContainer.innerHTML = "";
 
-    // 1. جمع كل المهام من جميع الكورسات في نطاق الأسبوع
-    const allAssignments = [];
-    data.forEach((enrollment) => {
-      const courseName = enrollment.course.course_name;
-      enrollment.course.assignment.forEach((assignment) => {
-        // تأكد من أن التاريخ صالح، وافترضنا الحقل اسمه assign_duedate
-        const dueDate = new Date(assignment.assign_duedate);
-        // إذا كان التاريخ داخل نطاق اليوم وحتى نهاية الأسبوع
-        if (dueDate >= today && dueDate <= nextWeek) {
-          allAssignments.push({
-            courseName,
-            assignTitle: assignment.assign_title,
-            dueDateRaw: assignment.assign_duedate,
-            dueDate: dueDate
-          });
-        }
-      });
-    });
+//     // 1. جمع كل المهام من جميع الكورسات في نطاق الأسبوع
+//     const allAssignments = [];
+//     data.forEach((enrollment) => {
+//       const courseName = enrollment.course.course_name;
+//       enrollment.course.assignment.forEach((assignment) => {
+//         // تأكد من أن التاريخ صالح، وافترضنا الحقل اسمه assign_duedate
+//         const dueDate = new Date(assignment.assign_duedate);
+//         // إذا كان التاريخ داخل نطاق اليوم وحتى نهاية الأسبوع
+//         if (dueDate >= today && dueDate <= nextWeek) {
+//           allAssignments.push({
+//             courseName,
+//             assignTitle: assignment.assign_title,
+//             dueDateRaw: assignment.assign_duedate,
+//             dueDate: dueDate
+//           });
+//         }
+//       });
+//     });
 
-    // 2. ترتيب المهام حسب الوقت (من الأقرب للأبعد)
-    allAssignments.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+//     // 2. ترتيب المهام حسب الوقت (من الأقرب للأبعد)
+//     allAssignments.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
 
-    // Debug: طباعة التواريخ للتأكد
-    console.log("Today's:", today);
-    console.log("Next week:", nextWeek);
-    console.log("Fetched assignments count:", allAssignments.length);
-    allAssignments.forEach(a => {
-      console.log(`${a.courseName}: ${a.dueDate.toLocaleDateString()} ${a.dueDate.toLocaleTimeString()}`);
-    });
+//     // Debug: طباعة التواريخ للتأكد
+//     console.log("Today's:", today);
+//     console.log("Next week:", nextWeek);
+//     console.log("Fetched assignments count:", allAssignments.length);
+//     allAssignments.forEach(a => {
+//       console.log(`${a.courseName}: ${a.dueDate.toLocaleDateString()} ${a.dueDate.toLocaleTimeString()}`);
+//     });
 
-    // 3. عرض المهام
-    allAssignments.forEach((assignment) => {
-      const dateObj = assignment.dueDate;
+//     // 3. عرض المهام
+//     allAssignments.forEach((assignment) => {
+//       const dateObj = assignment.dueDate;
       
-      // تنسيق التاريخ
-      const day = dateObj.getDate().toString().padStart(2, "0");
-      const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
-      const year = dateObj.getFullYear();
-      const formattedDate = `${day}/${month}/${year}`;
+//       // تنسيق التاريخ
+//       const day = dateObj.getDate().toString().padStart(2, "0");
+//       const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
+//       const year = dateObj.getFullYear();
+//       const formattedDate = `${day}/${month}/${year}`;
       
-      // تنسيق الوقت
-      const formattedTime = dateObj.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-      });
+//       // تنسيق الوقت
+//       const formattedTime = dateObj.toLocaleTimeString("en-US", {
+//         hour: "numeric",
+//         minute: "numeric",
+//         hour12: true,
+//       });
       
-      const assignDueDate = `${formattedDate}  ${formattedTime}`;
+//       const assignDueDate = `${formattedDate}  ${formattedTime}`;
       
-      const box = document.createElement("div");
-      box.classList.add("box");
+//       const box = document.createElement("div");
+//       box.classList.add("box");
       
-      box.innerHTML = `
-        <div class="upper">${assignment.courseName}</div>
-        <div class="lower">${assignment.assignTitle}</div>
-        <div class="box__time-container">
-          <p class="box__time">${assignDueDate}</p>
-          <img class="imgCard" src="src/images/icons8-clock-60.png" />
-        </div>
-      `;
+//       box.innerHTML = `
+//         <div class="upper">${assignment.courseName}</div>
+//         <div class="lower">${assignment.assignTitle}</div>
+//         <div class="box__time-container">
+//           <p class="box__time">${assignDueDate}</p>
+//           <img class="imgCard" src="src/images/icons8-clock-60.png" />
+//         </div>
+//       `;
       
-      deadlineContainer.appendChild(box);
-    });
-  })
-  .catch((err) => {
-    console.error("Error fetching deadlines:", err);
-    const deadlineContainer = document.querySelector(".deadlineBoxes");
-    deadlineContainer.innerHTML = "<p>Not found any assignment</p>";
-  });
+//       deadlineContainer.appendChild(box);
+//     });
+//   })
+//   .catch((err) => {
+//     console.error("Error fetching deadlines:", err);
+//     const deadlineContainer = document.querySelector(".deadlineBoxes");
+//     deadlineContainer.innerHTML = "<p>Not found any assignment</p>";
+//   });
 
 
     // Fetching today's Schedule

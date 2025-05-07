@@ -75,12 +75,12 @@
                         <p class="p">What Will We Study To Day ?</p>
                         <div class="icon_container">
                             <div class="row">
-                                <a href="./section.html" style="text-decoration: none; color: inherit;">
+                                <a  class="section-link" href="./section.html" style="text-decoration: none; color: inherit;">
                                     <div class="Section">
                                         <span>
                                             <img src="./src/images/journal-alt.png" style="width: 20px; height: 20px;">
                                         </span>
-                                        Section
+                                        <span id="section">Section</span>
                                     </div>
                                 </a>
                                 <a href="./assignments.html" style="text-decoration: none; color: inherit;">
@@ -88,7 +88,7 @@
                                         <span>
                                             <img src="./src/images/summary-check.png" style="width: 20px; height: 20px;">
                                         </span>
-                                        Assignment
+                                        <span id="assignment">Assignment</span>
                                     </div>
                                 </a>
                             </div>
@@ -98,7 +98,7 @@
                                         <span>
                                             <img src="./src/images/quiz.png" style="width: 20px; height: 20px;">
                                         </span>
-                                        Quiz
+                                        <span id="quiz">Quiz</span>
                                     </div>
                                 </a>
                                 <a href="./projects.html" style="text-decoration: none; color: inherit;">
@@ -106,7 +106,7 @@
                                         <span>
                                             <img src="./src/images/blueprint.png" style="width: 20px; height: 20px;">
                                         </span>
-                                        Project
+                                        <span id="project">Project</span>
                                     </div>
                                 </a>
                             </div>
@@ -116,7 +116,7 @@
                                         <span>
                                             <img src="./src/images/comment.png" style="width: 20px; height: 20px;">
                                         </span>
-                                        Chats
+                                        <span id="chats">Chats</span>
                                     </div>
                                 </a>
                             </div>
@@ -195,8 +195,8 @@
     </div>
     <script src=" https://unpkg.com/@supabase/supabase-js@2"></script>
     <script type="module" src="src/js/app.js"></script>
-    <script >
-
+    <script type="module">
+import { isInstitutionSchool } from "./src/js/app.js";
         document.addEventListener("DOMContentLoaded", async () => {
             const courseId = sessionStorage.getItem("courseId");
             const titleElement = document.getElementById("titleName");
@@ -319,6 +319,23 @@
                 // -------------------------
                 // عرض المحاضرات في الكروت
                 // -------------------------
+
+                if(isInstitutionSchool()){
+                    const assignment= document.getElementById("assignment");
+                    assignment.textContent = "Homework";
+                    const project= document.getElementById("project");
+                    project.textContent = "Project";
+                    const chats= document.getElementById("chats");
+                    chats.textContent = "Chat";
+                    const section= document.querySelector(".section-link");
+                    section.style.display = "none";
+                    const iconContainer = document.querySelector(".icon_container");
+                    iconContainer.style.flexDirection = "row";
+                    iconContainer.style.flexWrap = "wrap";
+                    iconContainer.style.width = "40%";
+                    iconContainer.style.gap = "10px";
+                    iconContainer.style.justifyContent = "flex-start";
+                }
                 const cardsContainer = document.querySelector(".cards-container");
                 if (cardsContainer) {
                     cardsContainer.innerHTML = "";
@@ -334,7 +351,7 @@
                                 <div class="card"></div>
                                 <div class="card">
                                     <img src="./src/images/books.svg" alt="coding" width="60">
-                                    <p class="lecture-number">Lecture ${index + 1}</p>
+                                    <p class="lecture-number">${isInstitutionSchool() ? "Lesson" : "Lecture"} ${index + 1}</p>
                                     <p class="lec">${fileName}</p>
                                     <p><small>${new Date(lecture.session_time).toLocaleDateString()}</small></p>
                                     <a href="${lecture.session_file_path}" target="_blank" class="file-button-outline">

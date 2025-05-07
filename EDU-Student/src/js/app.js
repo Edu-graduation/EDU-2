@@ -92,3 +92,40 @@ export async function getInstitutionId(studentId) {
     return null;
   }
 }
+async function getInstitutionName() {
+  const institutionId = sessionStorage.getItem("institution_id");
+  const { data, error } = await supaClient
+    .from("institution")
+    .select("institution_name")
+    .eq("institution_id", +institutionId);
+  if (error) {
+    console.error("Error fetching student name:", error);
+    return null;
+  }
+  if (data && data.length > 0) {
+    sessionStorage.setItem("institution_name", data[0].institution_name);
+    return data[0].institution_name;
+  }
+}
+getInstitutionName().then((institutionName) => {
+  if (institutionName) {
+    console.log("Institution Name:", institutionName);
+  } else {
+    console.log("No institution name found for the given institution ID.");
+  }
+});
+export function isInstitutionSchool() {
+  const institutionName = sessionStorage.getItem("institution_name");
+  const institutionId = sessionStorage.getItem("institution_id");
+  if (
+    (institutionName && institutionName.toLowerCase().includes("school")) ||
+    institutionId === "school_id" // Replace with actual school institution ID if known
+  ) {
+    console.log("Institution is a school.");
+    return true;
+  } else {
+    console.log("Institution is not a school.");
+    return false;
+  }
+}
+isInstitutionSchool();

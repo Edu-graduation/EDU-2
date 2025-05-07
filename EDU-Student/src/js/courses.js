@@ -378,6 +378,7 @@ function getCourseImage(courseName) {
 async function renderCourses() {
   const coursesContainer = document.querySelector(".courses__container");
   const courseInstructorMap = await getStudentCourses();
+  console.log(courseInstructorMap);
   const instructorsMap = await getInstructorsMap();
 
   if (!courseInstructorMap || !instructorsMap) {
@@ -386,7 +387,7 @@ async function renderCourses() {
   }
 
   const courseIds = Object.keys(courseInstructorMap);
-
+  console.log(courseIds);
   const { data, error } = await supaClient
     .from("course")
     .select("*")
@@ -396,7 +397,7 @@ async function renderCourses() {
     console.error("Error fetching course data:", error);
     return;
   }
-
+  console.log(data);
   let markup = "";
   data.forEach((course, index) => {
     const imageSrc = getCourseImage(course.course_name);

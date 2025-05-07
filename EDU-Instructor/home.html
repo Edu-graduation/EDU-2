@@ -495,7 +495,7 @@
               }
 
               const courseSessionsData = await sessionResponse.json();
-
+              console.log("Course sessions data:", courseSessionsData);
               if (
                 courseSessionsData.length > 0 &&
                 courseSessionsData[0].session

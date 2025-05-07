@@ -684,6 +684,7 @@
 //   }
 // });
 import { supaClient } from "./app.js";
+import { isInstitutionSchool } from "./app.js";
 const pageTitle = document.querySelector(".page-title");
 const courseId = sessionStorage.getItem("courseId");
 const studentId = sessionStorage.getItem("studentId");
@@ -773,6 +774,9 @@ async function getCourseName() {
 
   if (data && data.length > 0) {
     pageTitle.textContent = `${data[0].course_name} Projects`;
+    if(isInstitutionSchool()){
+      pageTitle.textContent = `${data[0].course_name} Activities`;
+    }
   }
 }
 
@@ -910,7 +914,7 @@ async function renderActivities() {
   const uploadedActivities = await alreadyUploadedActivities();
 
   if (activities.length === 0) {
-    activitiesContainer.innerHTML = `<h2 class="empty">No projects yet for this course</h2>`;
+    activitiesContainer.innerHTML = `<h2 class="empty">No ${isInstitutionSchool() ? "activities" : "projects"} yet for this course</h2>`;
     return;
   }
 
@@ -1001,7 +1005,7 @@ async function renderActivities() {
             ? `<div class="upload-status success" style="margin-top: 15px; background-color: rgba(76, 175, 80, 0.1); color: #4CAF50;">
                 <i class="fi fi-rr-check-circle" style="font-size: 18px;"></i>
                 <span>
-                  This project has already been submitted by one of your teammates!
+                  This ${isInstitutionSchool() ? 'Activity' : 'project'} has already been submitted by one of your teammates!
                 </span>
               </div>`
             : ""
@@ -1036,11 +1040,11 @@ async function renderActivities() {
             for="file-${index}"
           >
              <i class="fi fi-bs-cloud-download upload-icon"></i>
-              <p>Drag and drop project file here or<br/><p class="upload-btn">  Upload File</p> </p>
+              <p>Drag and drop ${isInstitutionSchool() ? 'activity' : 'project'} file here or<br/><p class="upload-btn">  Upload File</p> </p>
             <div class="text">
-              <span>Click to upload assignment</span>
+              <span>Click to upload ${isInstitutionSchool() ? 'activity' : 'project'}</span>
             </div>
-            <input class="file__input" type="file" id="file-${index}" data-file="${index}" data-assignment-id="${
+            <input class="file__input" type="file" id="file-${index}" data-file="${index}" data-activity-id="${
       activity.activity_id
     }" />
           </label>    
@@ -1178,7 +1182,7 @@ async function renderActivities() {
                 ${
                   isDatePassed(activity.activity_duedate)
                     ? `<div class="overdue-notice" style="margin-top: 20px; padding: 10px; background-color: rgba(244, 67, 54, 0.1); color: #F44336; border-radius: 8px;">
-                        <strong>Note:</strong> The due date for this project has passed. Submissions are no longer accepted.
+                        <strong>Note:</strong> The due date for this ${isInstitutionSchool() ? 'activity' : 'project'} has passed. Submissions are no longer accepted.
                       </div>`
                     : ""
                 }
@@ -1457,11 +1461,11 @@ async function uploadFile(e) {
     if (teamSubmission.submitted) {
       if (teamSubmission.byTeammate) {
         showToast(
-          "This project has already been submitted by one of your teammates!",
+          "This "+isInstitutionSchool() ? "activity" : "project"+"has already been submitted by one of your teammates!",
           "warning"
         );
       } else {
-        showToast("You have already submitted this project", "warning");
+        showToast("You have already submitted this "+isInstitutionSchool() ? "activity" : "project", "warning");
       }
       showLoadingSpinner(e.target, false);
       renderActivities(); // Refresh the activities display
@@ -1551,7 +1555,7 @@ async function uploadFile(e) {
 
     const teamSize = teamMembers.length;
     showToast(
-      `Project submitted successfully for all ${teamSize} team members!`,
+      `${isInstitutionSchool() ? "Activity" : "Project"} submitted successfully for all ${teamSize} team members!`,
       "success"
     );
 
@@ -1577,12 +1581,12 @@ document.addEventListener("DOMContentLoaded", () => {
   renderActivities();
 
   // Add navigation event listeners
-  const backButton = document.querySelector(".back-button");
-  if (backButton) {
-    backButton.addEventListener("click", () => {
-      window.location.href = "dashboard.html";
-    });
-  }
+  // const backButton = document.querySelector(".back-button");
+  // if (backButton) {
+  //   backButton.addEventListener("click", () => {
+  //     window.location.href = "dashboard.html";
+  //   });
+  // }
 
   // Add refresh button functionality
   const refreshButton = document.querySelector(".refresh-button");

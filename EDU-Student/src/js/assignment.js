@@ -1,5 +1,6 @@
 /////////////////////////// SIXTH VERSION //////////////////////////////
 import { supaClient } from "./app.js";
+import { isInstitutionSchool } from "./app.js";
 const pageTitle = document.querySelector(".page-title");
 const courseId = sessionStorage.getItem("courseId");
 const studentId = sessionStorage.getItem("studentId");
@@ -106,6 +107,9 @@ async function getCourseName() {
 
   if (data && data.length > 0) {
     pageTitle.textContent = `${data[0].course_name} Assignments`;
+    if(isInstitutionSchool()){
+      pageTitle.textContent = `${data[0].course_name} Homeworks`;
+    }
   }
 }
 
@@ -141,6 +145,9 @@ async function renderAssignments() {
 
   if (assignments.length === 0) {
     assignmentsContainer.innerHTML = `<h2 class="empty">No assignments yet for this course</h2>`;
+    if(isInstitutionSchool()){
+      assignmentsContainer.innerHTML = `<h2 class="empty">No homeworks yet for this course</h2>`;
+    }
     return;
   }
 
@@ -246,7 +253,7 @@ async function renderAssignments() {
              <i class="fi fi-bs-cloud-download upload-icon"></i>
               <p>Drag and drop assignment file here or<br/><p class="upload-btn">  Upload File</p> </p>
             <div class="text">
-              <span>Click to upload assignment</span>
+              <span>Click to upload ${isInstitutionSchool() ? "homework" : "assignment"}</span>
             </div>
             <input class="file__input" type="file" id="file-${index}" data-file="${index}" data-assignment-id="${
       assignment.assign_id
@@ -537,7 +544,7 @@ async function uploadFile(e) {
 
     // If already submitted, show message and prevent re-upload
     if (existingSubmissions && existingSubmissions.length > 0) {
-      showToast("This assignment has already been submitted", "warning");
+      showToast("This " + (isInstitutionSchool() ? "homework" : "assignment") + " has already been submitted", "warning");
       showLoadingSpinner(e.target, false);
       // Refresh the assignments display to show the submission
       renderAssignments();
@@ -547,7 +554,7 @@ async function uploadFile(e) {
     // Check if due date has passed for this assignment
     const assignment = await getAssignmentById(assignmentId);
     if (assignment && isDatePassed(assignment.assign_duedate)) {
-      showToast("Assignment deadline has passed. Cannot submit.", "error");
+      showToast("This " + (isInstitutionSchool() ? "homework" : "assignment") + " deadline has passed. Cannot submit.", "error");
       showLoadingSpinner(e.target, false);
       renderAssignments();
       return;
@@ -604,7 +611,7 @@ async function uploadFile(e) {
       return;
     }
 
-    showToast("Assignment submitted successfully!", "success");
+    showToast("This " + (isInstitutionSchool() ? "homework" : "assignment") + " submitted successfully!", "success");
 
     // Update UI to show success and hide upload controls
     setTimeout(() => {
@@ -731,10 +738,6 @@ function addCustomStyles() {
 // Initialize page
 document.addEventListener("DOMContentLoaded", () => {
   // Check if user is logged in
-  if (!studentId || !courseId) {
-    window.location.href = "login.html";
-    return;
-  }
 
   // Add custom styles
   addCustomStyles();
@@ -743,12 +746,12 @@ document.addEventListener("DOMContentLoaded", () => {
   renderAssignments();
 
   // Add navigation event listeners
-  const backButton = document.querySelector(".back-button");
-  if (backButton) {
-    backButton.addEventListener("click", () => {
-      window.location.href = "dashboard.html";
-    });
-  }
+  // const backButton = document.querySelector(".back-button");
+  // if (backButton) {
+  //   backButton.addEventListener("click", () => {
+  //     window.location.href = "dashboard.html";
+  //   });
+  // }
 
   // Add refresh button functionality
   const refreshButton = document.querySelector(".refresh-button");
