@@ -991,7 +991,7 @@ async function renderChatList() {
       chatListContainer.innerHTML = `
         <li class="no-chats">
           <p>No course chats available</p>
-          <p>You are not teaching any courses yet</p>
+          <p>You are not in any chats yet!</p>
         </li>
       `;
       return;
