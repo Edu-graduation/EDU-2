@@ -189,7 +189,11 @@
   color: var(--color-grey-dark-2);
   position: absolute;
   bottom: -2rem;
-  right: 1rem;
+  left: 0;
+  text-wrap: nowrap;
+}
+.message.sent .message__time {
+  left: -2rem;
 }
 .input__group {
   /* width: 100%; */
