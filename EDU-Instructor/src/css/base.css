@@ -71,7 +71,7 @@ body {
 .sidebar {
   background-color: var(--color-primary);
   color: var(--color-grey-light-1);
-  padding: 2.5rem;
+  padding: 1rem;
   flex-direction: column;
   margin-right: -2rem;
   font-weight: bold;
@@ -85,15 +85,15 @@ body {
 
 .sidebar h2 {
   margin-bottom: 5rem;
-  font-size: 3.5rem;
+  font-size: 2.5rem;
   font-style: italic;
 }
 .logo {
   position: sticky;
-  top: 2rem;
+  top: 0rem;
 }
 .img-logo {
-  width: 3.5rem;
+  width: 2.5rem;
   margin-bottom: -0.7rem;
 }
 
@@ -107,7 +107,7 @@ body {
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  /* padding: 3rem 4rem; */
+  padding: 0rem 2rem;
   border-top-left-radius: 2.5rem;
   border-bottom-left-radius: 2.5rem;
   transition: all 0.3s ease; /* Smooth transition for all properties */
@@ -118,8 +118,8 @@ body {
   align-items: center;
   text-wrap: nowrap;
   justify-content: center;
-  font-size: var(--fs-6);
-  padding: 2rem;
+  font-size: var(--fs-5);
+  padding: 1.5rem;
   color: var(--color-grey-light-1);
   text-decoration: none;
 }
@@ -175,7 +175,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  margin-top: 2rem;
+  margin-top: 1rem;
   width: 45px;
   height: 45px;
   border: none;
@@ -217,7 +217,7 @@ body {
 }
 /* hover effect on button width */
 .Btn:hover {
-  width: 125px;
+  width: 12.5rem;
   border-radius: 40px;
   transition-duration: 0.3s;
 }

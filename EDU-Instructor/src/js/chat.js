@@ -951,32 +951,58 @@ function scrollToBottom() {
 }
 
 // Format date/time for message timestamps
+// function formatDateTime(date) {
+//   // Adjust for local timezone and format
+//   console.log(date);
+  
+//   const options = {
+//     hour: "2-digit",
+//     minute: "2-digit",
+//     hour12: true,
+//   };
+
+//   // Get just the time part for today's messages
+//   const today = new Date();
+//   if (
+//     date.getDate() === today.getDate() &&
+//     date.getMonth() === today.getMonth() &&
+//     date.getFullYear() === today.getFullYear()
+//   ) {
+//     return date.toLocaleTimeString("en-US", {
+//       hour: "2-digit",
+//       minute: "2-digit",
+//       hour12: true,
+//     });
+//   }
+
+//   // Show full date for older messages
+//   return date.toLocaleString("en-US", options);
+// }
 function formatDateTime(date) {
-  // Adjust for local timezone and format
-  const options = {
+  const now = new Date();
+
+  // Strip time parts for accurate day comparison
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  const timeString = date.toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
-  };
+  });
 
-  // Get just the time part for today's messages
-  const today = new Date();
-  if (
-    date.getDate() === today.getDate() &&
-    date.getMonth() === today.getMonth() &&
-    date.getFullYear() === today.getFullYear()
-  ) {
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
+  const oneDay = 24 * 60 * 60 * 1000;
+  const diffDays = Math.round((today - messageDate) / oneDay);
+
+  if (diffDays === 0) {
+    return timeString; // Today
+  } else if (diffDays === 1) {
+    return `Yesterday ${timeString}`;
+  } else {
+    const dateString = date.toLocaleDateString("en-CA"); // yyyy-mm-dd format
+    return `${dateString} ${timeString}`;
   }
-
-  // Show full date for older messages
-  return date.toLocaleString("en-US", options);
 }
-
 // Render the chat list with instructor's courses
 async function renderChatList() {
   try {
@@ -1459,7 +1485,8 @@ async function sendMessage(chatId, messageContent) {
     const messageTime = document.createElement("p");
     messageTime.classList.add("message__time");
     messageTime.textContent = formatDateTime(timestamp);
-
+    console.log(formatDateTime(timestamp));
+    
     messageEl.appendChild(messageSenderName);
     messageEl.appendChild(messageContent_el);
     messageEl.appendChild(messageTime);

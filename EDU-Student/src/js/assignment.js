@@ -641,106 +641,106 @@ async function getAssignmentById(assignmentId) {
 }
 
 // Add CSS for new message styles
-function addCustomStyles() {
-  const customStyles = document.createElement("style");
-  customStyles.textContent = `
-    .deadline-passed-message {
-      background-color: rgba(244, 67, 54, 0.1);
-      color: #555;
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 15px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+// function addCustomStyles() {
+//   const customStyles = document.createElement("style");
+//   customStyles.textContent = `
+//     .deadline-passed-message {
+//       background-color: rgba(244, 67, 54, 0.1);
+//       color: #555;
+//       padding: 15px;
+//       border-radius: 8px;
+//       margin-top: 15px;
+//       display: flex;
+//       align-items: center;
+//       gap: 10px;
+//     }
     
-    .project-box.inactive {
-      opacity: 0.8;
-      border-color: #ddd;
-    }
+//     .project-box.inactive {
+//       opacity: 0.8;
+//       border-color: #ddd;
+//     }
     
-    .toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-    }
+//     .toast-container {
+//       position: fixed;
+//       top: 20px;
+//       right: 20px;
+//       z-index: 9999;
+//     }
     
-    .toast {
-      min-width: 250px;
-      margin-bottom: 10px;
-      padding: 12px 16px;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      animation: slideInRight 0.3s ease forwards;
-    }
+//     .toast {
+//       min-width: 250px;
+//       margin-bottom: 10px;
+//       padding: 12px 16px;
+//       border-radius: 8px;
+//       display: flex;
+//       justify-content: space-between;
+//       align-items: center;
+//       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+//       animation: slideInRight 0.3s ease forwards;
+//     }
     
-    .toast.success {
-      background-color: #E8F5E9;
-      color: #2E7D32;
-      border-left: 4px solid #2E7D32;
-    }
+//     .toast.success {
+//       background-color: #E8F5E9;
+//       color: #2E7D32;
+//       border-left: 4px solid #2E7D32;
+//     }
     
-    .toast.error {
-      background-color: #FFEBEE;
-      color: #C62828;
-      border-left: 4px solid #C62828;
-    }
+//     .toast.error {
+//       background-color: #FFEBEE;
+//       color: #C62828;
+//       border-left: 4px solid #C62828;
+//     }
     
-    .toast.warning {
-      background-color: #FFF8E1;
-      color: #F57F17;
-      border-left: 4px solid #F57F17;
-    }
+//     .toast.warning {
+//       background-color: #FFF8E1;
+//       color: #F57F17;
+//       border-left: 4px solid #F57F17;
+//     }
     
-    .toast.info {
-      background-color: #E3F2FD;
-      color: #1565C0;
-      border-left: 4px solid #1565C0;
-    }
+//     .toast.info {
+//       background-color: #E3F2FD;
+//       color: #1565C0;
+//       border-left: 4px solid #1565C0;
+//     }
     
-    .toast-close {
-      cursor: pointer;
-      margin-left: 10px;
-    }
+//     .toast-close {
+//       cursor: pointer;
+//       margin-left: 10px;
+//     }
     
-    .toast-hiding {
-      animation: fadeOut 0.3s ease forwards;
-    }
+//     .toast-hiding {
+//       animation: fadeOut 0.3s ease forwards;
+//     }
     
-    @keyframes slideInRight {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
+//     @keyframes slideInRight {
+//       from {
+//         transform: translateX(100%);
+//         opacity: 0;
+//       }
+//       to {
+//         transform: translateX(0);
+//         opacity: 1;
+//       }
+//     }
     
-    @keyframes fadeOut {
-      from {
-        opacity: 1;
-      }
-      to {
-        opacity: 0;
-      }
-    }
-  `;
-  document.head.appendChild(customStyles);
-}
+//     @keyframes fadeOut {
+//       from {
+//         opacity: 1;
+//       }
+//       to {
+//         opacity: 0;
+//       }
+//     }
+//   `;
+//   document.head.appendChild(customStyles);
+// }
 
 // Initialize page
 document.addEventListener("DOMContentLoaded", () => {
   // Check if user is logged in
 
   // Add custom styles
-  addCustomStyles();
+  // addCustomStyles();
 
   // Initialize assignments view
   renderAssignments();

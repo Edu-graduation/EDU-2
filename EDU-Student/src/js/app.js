@@ -81,7 +81,6 @@ export async function getInstitutionId(studentId) {
     console.error("Error fetching institution_id:", error);
     return null;
   }
-
   if (data && data.length > 0) {
     const institutionId = data[0].institution_id;
     console.log("Fetched institution_id:", institutionId);

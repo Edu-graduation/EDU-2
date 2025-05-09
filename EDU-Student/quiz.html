@@ -338,10 +338,11 @@
             console.error("Error checking student quiz history:", error.message);
             return [];
           }
+          console.log(data);
           return data.map((record) => ({
             quiz_id: record.quiz_id,
             score: record.score || 0,
-            student_answers: record.student_answers ? JSON.parse(record.student_answers) : [],
+//            student_answers: record.student_answers ? JSON.parse(record.student_answers) : [],
           }));
         }
 

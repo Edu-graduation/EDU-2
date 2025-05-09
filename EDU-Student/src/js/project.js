@@ -973,7 +973,7 @@ async function renderActivities() {
         <h3 class="project-title">${activity.activity_title}</h3>
         <p class="project-description">${activity.activity_description.slice(
           0,
-          50
+          35
         )}</p>
         <hr class="project-divider" style="background-color:${
           dueDatePassed ? "#F44336" : "#5955B3"

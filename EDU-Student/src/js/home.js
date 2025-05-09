@@ -1265,7 +1265,6 @@ async function getInstructorInstitution() {
     console.error("Error fetching institution data:", error);
     return [];
   }
-
   const instructorsId = data.map((instructor) => instructor.instructor_id);
   return instructorsId;
 }

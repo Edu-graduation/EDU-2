@@ -458,6 +458,15 @@
   animation: spin 1s ease-in-out infinite;
   margin-bottom: 20px;
 }
+.loading-assignments{
+  justify-self: center;
+  margin: auto;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
 
 .empty {
   text-align: center;
