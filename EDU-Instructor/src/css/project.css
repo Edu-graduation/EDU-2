@@ -241,8 +241,8 @@
 .submission-section {
   width: 100%;
   overflow: hidden scroll;
-  /* min-height: 30rem;
-  max-height: 28rem; */
+  min-height: 30rem;
+  max-height: 28rem;
 }
 
 /* Responsive design */
@@ -442,13 +442,13 @@
     transform: rotate(360deg);
   }
 }
-.submission-header{
+.submission-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 .search__input {
-  width: 100%;  
+  width: 100%;
   padding: 1rem;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -460,4 +460,18 @@
   outline: none;
   border-color: #6a5af9;
 }
-
+.team-number {
+  background-color: var(--color-primary-light);
+  color: var(--color-grey-light-1);
+  width: 3rem;
+  height: 3rem;
+  padding: 0.2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+  border-radius: 50%;
+}
+.team-number-column {
+  text-align: center !important;
+}

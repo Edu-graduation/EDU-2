@@ -419,7 +419,7 @@ async function renderCourses() {
                 <div class="course__icon-box">
                 <img src="${imageSrc}" alt="${
       course.course_name
-    } icon" class="course__icon">
+    } icon" class="course__icon" onerror="this.onerror=null; this.src='src/images/Courses/ai.png';">
                 </div>
               </div>
               <div class="line-sprator"></div>`;

@@ -205,9 +205,9 @@ import { isInstitutionSchool } from "./src/js/app.js";
             const studentId = sessionStorage.getItem("studentId") || "demo_student_id";
             sessionStorage.setItem("studentId", studentId);
         
-            const apiUrl = "https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1/enrollment";
+            const apiUrl = "https://nwwqsqkwmkkuunczucdm.supabase.co/rest/v1/enrollment";
             const queryParams = "select=*,student(*),course(*)";
-            const API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1aXdkanRtZGVlbXBjcXhldWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTY1MDcsImV4cCI6MjA2MDMzMjUwN30.XfSmnKA8wbsXIA1qkfYaRkzxtEdudIDNYbSJu-M5Zag";
+            const API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53d3FzcWt3bWtrdXVuY3p1Y2RtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY1MzEyODIsImV4cCI6MjA2MjEwNzI4Mn0.EF6CGrpM3bjxBo4-ItU3S1BPjfVHdv2HnvoeAdfPZug";
         
             try {
                 const response = await fetch(`${apiUrl}?${queryParams}`, {
@@ -238,7 +238,7 @@ import { isInstitutionSchool } from "./src/js/app.js";
                 }
         
                 const instructorId = currentCourse[0].instructor_id;
-                const instructorApiUrl = `https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1/instructor?instructor_id=eq.${instructorId}`;
+                const instructorApiUrl = `https://nwwqsqkwmkkuunczucdm.supabase.co/rest/v1/instructor?instructor_id=eq.${instructorId}`;
         
                 fetch(instructorApiUrl, {
                     headers: {
@@ -269,7 +269,7 @@ import { isInstitutionSchool } from "./src/js/app.js";
                 // -------------------------
                 // جلب المحاضرات
                 // -------------------------
-                const sessionsApiUrl = `https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1/session?course_id=eq.${courseId}&select=*`;
+                const sessionsApiUrl = `https://nwwqsqkwmkkuunczucdm.supabase.co/rest/v1/session?course_id=eq.${courseId}&select=*`;
         
                 const sessionsResponse = await fetch(sessionsApiUrl, {
                     headers: {

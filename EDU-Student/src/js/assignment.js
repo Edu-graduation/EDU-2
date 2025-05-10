@@ -81,7 +81,7 @@ async function alreadyUploadedAssignments() {
     .from("student_assignment")
     .select("*")
     .eq("student_id", studentId)
-    .neq("assignment_path", null);
+    .neq("assign_path", null);
 
   if (error) {
     console.error("Error fetching uploaded assignments:", error);
@@ -107,7 +107,7 @@ async function getCourseName() {
 
   if (data && data.length > 0) {
     pageTitle.textContent = `${data[0].course_name} Assignments`;
-    if(isInstitutionSchool()){
+    if (isInstitutionSchool()) {
       pageTitle.textContent = `${data[0].course_name} Homeworks`;
     }
   }
@@ -145,7 +145,7 @@ async function renderAssignments() {
 
   if (assignments.length === 0) {
     assignmentsContainer.innerHTML = `<h2 class="empty">No assignments yet for this course</h2>`;
-    if(isInstitutionSchool()){
+    if (isInstitutionSchool()) {
       assignmentsContainer.innerHTML = `<h2 class="empty">No homeworks yet for this course</h2>`;
     }
     return;
@@ -171,7 +171,7 @@ async function renderAssignments() {
     );
 
     const uploadedFilePath = uploadedAssignment
-      ? uploadedAssignment.assignment_path
+      ? uploadedAssignment.assign_path
       : null;
 
     // Extract just the filename from the path for display
@@ -253,7 +253,9 @@ async function renderAssignments() {
              <i class="fi fi-bs-cloud-download upload-icon"></i>
               <p>Drag and drop assignment file here or<br/><p class="upload-btn">  Upload File</p> </p>
             <div class="text">
-              <span>Click to upload ${isInstitutionSchool() ? "homework" : "assignment"}</span>
+              <span>Click to upload ${
+                isInstitutionSchool() ? "homework" : "assignment"
+              }</span>
             </div>
             <input class="file__input" type="file" id="file-${index}" data-file="${index}" data-assignment-id="${
       assignment.assign_id
@@ -533,7 +535,7 @@ async function uploadFile(e) {
       .select("*")
       .eq("student_id", studentId)
       .eq("assign_id", assignmentId)
-      .neq("assignment_path", null);
+      .neq("assign_path", null);
 
     if (checkError) {
       console.error("Error checking existing submissions:", checkError);
@@ -544,7 +546,12 @@ async function uploadFile(e) {
 
     // If already submitted, show message and prevent re-upload
     if (existingSubmissions && existingSubmissions.length > 0) {
-      showToast("This " + (isInstitutionSchool() ? "homework" : "assignment") + " has already been submitted", "warning");
+      showToast(
+        "This " +
+          (isInstitutionSchool() ? "homework" : "assignment") +
+          " has already been submitted",
+        "warning"
+      );
       showLoadingSpinner(e.target, false);
       // Refresh the assignments display to show the submission
       renderAssignments();
@@ -554,7 +561,12 @@ async function uploadFile(e) {
     // Check if due date has passed for this assignment
     const assignment = await getAssignmentById(assignmentId);
     if (assignment && isDatePassed(assignment.assign_duedate)) {
-      showToast("This " + (isInstitutionSchool() ? "homework" : "assignment") + " deadline has passed. Cannot submit.", "error");
+      showToast(
+        "This " +
+          (isInstitutionSchool() ? "homework" : "assignment") +
+          " deadline has passed. Cannot submit.",
+        "error"
+      );
       showLoadingSpinner(e.target, false);
       renderAssignments();
       return;
@@ -595,7 +607,7 @@ async function uploadFile(e) {
           {
             student_id: studentId,
             assign_id: assignmentId,
-            assignment_path: publicUrl.publicUrl,
+            assign_path: publicUrl.publicUrl,
           },
         ],
         { onConflict: ["student_id", "assign_id"] }
@@ -611,7 +623,12 @@ async function uploadFile(e) {
       return;
     }
 
-    showToast("This " + (isInstitutionSchool() ? "homework" : "assignment") + " submitted successfully!", "success");
+    showToast(
+      "This " +
+        (isInstitutionSchool() ? "homework" : "assignment") +
+        " submitted successfully!",
+      "success"
+    );
 
     // Update UI to show success and hide upload controls
     setTimeout(() => {
@@ -654,19 +671,19 @@ async function getAssignmentById(assignmentId) {
 //       align-items: center;
 //       gap: 10px;
 //     }
-    
+
 //     .project-box.inactive {
 //       opacity: 0.8;
 //       border-color: #ddd;
 //     }
-    
+
 //     .toast-container {
 //       position: fixed;
 //       top: 20px;
 //       right: 20px;
 //       z-index: 9999;
 //     }
-    
+
 //     .toast {
 //       min-width: 250px;
 //       margin-bottom: 10px;
@@ -678,40 +695,40 @@ async function getAssignmentById(assignmentId) {
 //       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 //       animation: slideInRight 0.3s ease forwards;
 //     }
-    
+
 //     .toast.success {
 //       background-color: #E8F5E9;
 //       color: #2E7D32;
 //       border-left: 4px solid #2E7D32;
 //     }
-    
+
 //     .toast.error {
 //       background-color: #FFEBEE;
 //       color: #C62828;
 //       border-left: 4px solid #C62828;
 //     }
-    
+
 //     .toast.warning {
 //       background-color: #FFF8E1;
 //       color: #F57F17;
 //       border-left: 4px solid #F57F17;
 //     }
-    
+
 //     .toast.info {
 //       background-color: #E3F2FD;
 //       color: #1565C0;
 //       border-left: 4px solid #1565C0;
 //     }
-    
+
 //     .toast-close {
 //       cursor: pointer;
 //       margin-left: 10px;
 //     }
-    
+
 //     .toast-hiding {
 //       animation: fadeOut 0.3s ease forwards;
 //     }
-    
+
 //     @keyframes slideInRight {
 //       from {
 //         transform: translateX(100%);
@@ -722,7 +739,7 @@ async function getAssignmentById(assignmentId) {
 //         opacity: 1;
 //       }
 //     }
-    
+
 //     @keyframes fadeOut {
 //       from {
 //         opacity: 1;

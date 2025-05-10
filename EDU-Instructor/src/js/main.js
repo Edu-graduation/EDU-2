@@ -1,7 +1,12 @@
+// const { createClient } = supabase;
+// const supabaseProjectUrl = "https://iuiwdjtmdeempcqxeuhf.supabase.co";
+// const supabaseKey =
+//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1aXdkanRtZGVlbXBjcXhldWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTY1MDcsImV4cCI6MjA2MDMzMjUwN30.XfSmnKA8wbsXIA1qkfYaRkzxtEdudIDNYbSJu-M5Zag";
+// export const supaClient = createClient(supabaseProjectUrl, supabaseKey);
 const { createClient } = supabase;
-const supabaseProjectUrl = "https://iuiwdjtmdeempcqxeuhf.supabase.co";
+const supabaseProjectUrl = "https://nwwqsqkwmkkuunczucdm.supabase.co";
 const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1aXdkanRtZGVlbXBjcXhldWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTY1MDcsImV4cCI6MjA2MDMzMjUwN30.XfSmnKA8wbsXIA1qkfYaRkzxtEdudIDNYbSJu-M5Zag";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53d3FzcWt3bWtrdXVuY3p1Y2RtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY1MzEyODIsImV4cCI6MjA2MjEwNzI4Mn0.EF6CGrpM3bjxBo4-ItU3S1BPjfVHdv2HnvoeAdfPZug";
 export const supaClient = createClient(supabaseProjectUrl, supabaseKey);
 const instructorId = sessionStorage.getItem("instructorId");
 const logoutButton = document.querySelector(".log-out");
@@ -43,7 +48,6 @@ getInstructorName(instructorId);
 // }
 
 export async function getInstitutionId(instructorId) {
-  console.log("Entering getInstitutionId with studentId:", instructorId);
   const { data, error } = await supaClient
     .from("instructor_institution")
     .select("institution_id")
@@ -53,21 +57,17 @@ export async function getInstitutionId(instructorId) {
     console.error("Error fetching institution_id:", error);
     return null;
   }
-  console.log("Fetched data:", data);
 
   if (data && data.length > 0) {
     const institutionId = data[0].institution_id;
-    console.log("Fetched institution_id:", institutionId);
     sessionStorage.setItem("institution_id", institutionId);
     return institutionId;
   } else {
-    console.log("No data found for instructorId:", instructorId);
     return null;
   }
 }
 getInstitutionId(instructorId).then((institutionId) => {
   if (institutionId) {
-    console.log("Institution ID:", institutionId);
   } else {
     console.log("No institution ID found for the given instructor ID.");
   }
@@ -91,7 +91,6 @@ async function getInstitutionName() {
 
 getInstitutionName().then((institutionName) => {
   if (institutionName) {
-    console.log("Institution Name:", institutionName);
   } else {
     console.log("No institution name found for the given institution ID.");
   }
@@ -117,51 +116,50 @@ if (isInstitutionSchool()) {
 
   assignment.textContent = "Homework";
   project.textContent = "Actvities";
-  const course = document.querySelector('#course');
-  const courseName = document.querySelector('.course_name');
-  const courseHeader = document.querySelector('.schedule-title');
- if(course){
-  courseHeader.textContent= 'Subject Managent';
-  courseName.textContent = 'subject name';
-  course.textContent = 'subject';
- }
-  
-
-  const assignmentView = document.querySelector('.assignment-view');
-  const uploadAssignment = document.querySelector('#submitAssignment');
-  const assignmentTitle = document.querySelector('.assignment-title');
-  const assignmentDescription = document.querySelector('.assignment-description');
-  const formTitle =document.querySelector('.form-title')
-  const headTable = document.querySelector('.head-table');
-  const assignmentHead = document.querySelector('.assignment-head');
-  //////////////////////
-  const submitBtnProject = document.querySelector('.submit-btn-project');
-  const assignmentHeadProject = document.querySelector('.assignment-head-project');
-  const titleLabelProject = document.querySelector('.title-label-project');
-  const descriptionLabelProject = document.querySelector('.description-label-project');
-  const formTitleProject = document.querySelector('.head-table-project');
-  const projectHead = document.querySelector('.project-head');
-  const projectView = document.querySelector('.project-view');
-  const headTableProject = document.querySelector('.head-table-project');
-  const formHead = document.querySelector('.head-form-project');
-  if(assignmentView){
-    assignmentView.textContent = "View Homework";
-    uploadAssignment.textContent = "Upload Homework";
-    headTable.textContent = "Homework";
-    assignmentHead.textContent = "Homework";
-    assignmentTitle.textContent = "Homework Title";
-    assignmentDescription.textContent = "Homework Description";
-    formTitle.textContent = "Upload Homework";
+  const course = document.querySelector("#course");
+  const courseName = document.querySelector(".course_name");
+  const courseHeader = document.querySelector(".schedule-title");
+  if (course) {
+    courseHeader.textContent = "Subject Managent";
+    courseName.textContent = "subject name";
+    course.textContent = "subject";
   }
-  ////////////////////////////////////////
-  if(titleLabelProject){
-    projectView.textContent = "View Activity";
-    submitBtnProject.textContent = "Upload Activity";
-    headTableProject.textContent = "Upload Activity";
-    titleLabelProject.textContent = "Activity Title";
-    descriptionLabelProject.textContent = "Activity Description";
-    formTitleProject.textContent = "Upload Activity";
-    projectHead.textContent = "Activity";
-    formHead.textContent = "Upload Activity";
-    }
+
+  // const assignmentView = document.querySelector('.assignment-view');
+  // const uploadAssignment = document.querySelector('#submitAssignment');
+  // const assignmentTitle = document.querySelector('.assignment-title');
+  // const assignmentDescription = document.querySelector('.assignment-description');
+  // const formTitle =document.querySelector('.form-title')
+  // const headTable = document.querySelector('.head-table');
+  // const assignmentHead = document.querySelector('.assignment-head');
+  // //////////////////////
+  // const submitBtnProject = document.querySelector('.submit-btn-project');
+  // const assignmentHeadProject = document.querySelector('.assignment-head-project');
+  // const titleLabelProject = document.querySelector('.title-label-project');
+  // const descriptionLabelProject = document.querySelector('.description-label-project');
+  // const formTitleProject = document.querySelector('.head-table-project');
+  // const projectHead = document.querySelector('.project-head');
+  // const projectView = document.querySelector('.project-view');
+  // const headTableProject = document.querySelector('.head-table-project');
+  // const formHead = document.querySelector('.head-form-project');
+  // if(assignmentView){
+  //   assignmentView.textContent = "View Homework";
+  //   uploadAssignment.textContent = "Upload Homework";
+  //   headTable.textContent = "Homework";
+  //   assignmentHead.textContent = "Homework";
+  //   assignmentTitle.textContent = "Homework Title";
+  //   assignmentDescription.textContent = "Homework Description";
+  //   formTitle.textContent = "Upload Homework";
+  // }
+  // ////////////////////////////////////////
+  // if(titleLabelProject){
+  //   projectView.textContent = "View Activity";
+  //   submitBtnProject.textContent = "Upload Activity";
+  //   headTableProject.textContent = "Upload Activity";
+  //   titleLabelProject.textContent = "Activity Title";
+  //   descriptionLabelProject.textContent = "Activity Description";
+  //   formTitleProject.textContent = "Upload Activity";
+  //   projectHead.textContent = "Activity";
+  //   formHead.textContent = "Upload Activity";
+  //   }
 }

@@ -158,18 +158,17 @@
 
       // API configuration
       const API_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1aXdkanRtZGVlbXBjcXhldWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTY1MDcsImV4cCI6MjA2MDMzMjUwN30.XfSmnKA8wbsXIA1qkfYaRkzxtEdudIDNYbSJu-M5Zag";
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53d3FzcWt3bWtrdXVuY3p1Y2RtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY1MzEyODIsImV4cCI6MjA2MjEwNzI4Mn0.EF6CGrpM3bjxBo4-ItU3S1BPjfVHdv2HnvoeAdfPZug";
       const STUDENT_BASE_URL =
-        "https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1/student";
+        "https://nwwqsqkwmkkuunczucdm.supabase.co/rest/v1/student";
       const INSTRUCTOR_BASE_URL =
-        "https://iuiwdjtmdeempcqxeuhf.supabase.co/rest/v1/instructor";
+        "https://nwwqsqkwmkkuunczucdm.supabase.co/rest/v1/instructor";
 
       // Sign-In Handler
       const handleSignIn = async (id, password) => {
         if (!validateInput(id, password)) return;
 
         const pwdEncoded = encodeURIComponent(password);
-
         // Try student login first
         const studentUrl = `${STUDENT_BASE_URL}?student_id=eq.${id}&student_password=eq.${pwdEncoded}`;
         try {
@@ -186,11 +185,13 @@
               statusText: studentResponse.statusText,
               url: studentUrl,
             });
+
             const errorData = await studentResponse.json();
             console.error("Student Error Details:", errorData);
             // Continue to instructor login even if student query fails
           } else {
             const studentData = await studentResponse.json();
+
             if (studentData.length > 0) {
               console.log("Student Data:", studentData[0]); // Log student data
               sessionStorage.setItem("studentId", id);

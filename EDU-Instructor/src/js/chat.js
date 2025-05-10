@@ -250,6 +250,8 @@ async function safeGetUserName(userId) {
     // Try student table first since the issue is with student names
     try {
       const studentName = await getStudentName(userId);
+      console.log(studentName);
+
       if (studentName) {
         userNameCache.set(userId, studentName);
         return studentName;
@@ -426,6 +428,7 @@ async function getEnrolledStudents(chatId) {
       .single();
 
     if (chatError) throw chatError;
+    console.log(chatData);
 
     // Find the course with this name
     const { data: courseData, error: courseError } = await supaClient
@@ -433,6 +436,7 @@ async function getEnrolledStudents(chatId) {
       .select("course_id")
       .eq("course_name", chatData.chat_name)
       .single();
+    console.log(courseData);
 
     if (courseError) throw courseError;
 
@@ -443,6 +447,7 @@ async function getEnrolledStudents(chatId) {
       .eq("course_id", courseData.course_id);
 
     if (enrollmentError) throw enrollmentError;
+    console.log(enrollmentData);
 
     return enrollmentData.map((enrollment) => enrollment.student_id);
   } catch (error) {
@@ -954,7 +959,7 @@ function scrollToBottom() {
 // function formatDateTime(date) {
 //   // Adjust for local timezone and format
 //   console.log(date);
-  
+
 //   const options = {
 //     hour: "2-digit",
 //     minute: "2-digit",
@@ -983,7 +988,11 @@ function formatDateTime(date) {
 
   // Strip time parts for accurate day comparison
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const messageDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  );
 
   const timeString = date.toLocaleTimeString("en-US", {
     hour: "2-digit",
@@ -1037,7 +1046,7 @@ async function renderChatList() {
         <div class="chat__img">
           <img src="src/images/Courses/${chat.chat_name.toUpperCase()}.png" alt="${
         chat.chat_name
-      }">
+      }" onerror="this.onerror=null; this.src='src/images/Courses/ai.png';">
         </div>
         <div class="chat__details">
           <div class="chat__name">${chat.chat_name}</div>
@@ -1178,7 +1187,7 @@ async function getLastMessage(chatId) {
   return data[0];
 }
 
-// Get the list of chats for the instructor
+// Get the list of chats for the instructor //UPDATED
 async function getInstructorChatList() {
   try {
     // First get the courses this instructor is teaching
@@ -1486,7 +1495,7 @@ async function sendMessage(chatId, messageContent) {
     messageTime.classList.add("message__time");
     messageTime.textContent = formatDateTime(timestamp);
     console.log(formatDateTime(timestamp));
-    
+
     messageEl.appendChild(messageSenderName);
     messageEl.appendChild(messageContent_el);
     messageEl.appendChild(messageTime);

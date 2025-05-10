@@ -48,7 +48,7 @@
       }
       .progress-bar {
         height: 10px;
-        background-color: #5B50C6;
+        background-color: #5b50c6;
         width: 0%;
         transition: width 0.3s ease-in-out;
       }
@@ -101,7 +101,7 @@
         margin: 10px 0;
       }
       .modal-content .close-button {
-        background-color: #5B50C6;
+        background-color: #5b50c6;
         color: white;
         padding: 10px 20px;
         border: none;
@@ -126,7 +126,7 @@
       }
       .result-bar {
         height: 10px;
-        background-color: #5B50C6;
+        background-color: #5b50c6;
         transition: width 0.3s ease-in-out;
       }
       .question-review {
@@ -272,11 +272,13 @@
       document.addEventListener("DOMContentLoaded", async () => {
         // Retrieve courseId and studentId from sessionStorage
         const courseId = sessionStorage.getItem("courseId");
-        const studentId = sessionStorage.getItem("studentId") || "demo_student_id";
-        
+        const studentId =
+          sessionStorage.getItem("studentId") || "demo_student_id";
+
         // Retrieve quizId from URL or sessionStorage (set in courses.html)
         const urlParams = new URLSearchParams(window.location.search);
-        const quizId = urlParams.get("quizId") || sessionStorage.getItem("selectedQuizId");
+        const quizId =
+          urlParams.get("quizId") || sessionStorage.getItem("selectedQuizId");
 
         const errorContainer = document.getElementById("error-container");
         const contentContainer = document.getElementById("content-container");
@@ -288,7 +290,9 @@
         const timerValue = document.getElementById("timer-value");
         const title = document.querySelector(".title");
         const modal = document.getElementById("quiz-modal");
-        const modalScoreDetails = document.getElementById("modal-score-details");
+        const modalScoreDetails = document.getElementById(
+          "modal-score-details"
+        );
         const closeModalButton = document.getElementById("close-modal");
         let quizData = null;
         let currentQuestionIndex = 0;
@@ -324,7 +328,8 @@
             .eq("quiz_id", quizId)
             .single();
 
-          if (error && error.code !== "PGRST116") { // PGRST116 means no rows found
+          if (error && error.code !== "PGRST116") {
+            // PGRST116 means no rows found
             console.error("Error checking student quiz:", error);
             return null;
           }
@@ -356,14 +361,12 @@
 
         // Save quiz results to the student_quiz table
         async function saveQuizResults(score) {
-          const { error } = await supaClient
-            .from("student_quiz")
-            .insert({
-              student_id: studentId,
-              quiz_id: quizId,
-              score: score,
-              student_answers: JSON.stringify(selectedAnswers),
-            });
+          const { error } = await supaClient.from("student_quiz").insert({
+            student_id: studentId,
+            quiz_id: quizId,
+            score: score,
+            student_answers: JSON.stringify(selectedAnswers),
+          });
 
           if (error) {
             console.error("Error saving quiz results:", error);
@@ -377,7 +380,7 @@
           if (timerStarted) return;
           timerStarted = true;
           const [hours, minutes, seconds] = duration.split(":").map(Number);
-          remainingTime = (hours * 3600) + (minutes * 60) + seconds; // Convert duration to seconds
+          remainingTime = hours * 3600 + minutes * 60 + seconds; // Convert duration to seconds
           updateTimerDisplay();
 
           clearInterval(timerInterval); // Clear any existing timer
@@ -553,8 +556,12 @@
             <div class="quiz-results">
               <h2>Quiz Review</h2>
               <div class="score-details">
-                <p class="score">Total Questions: ${quizData.quiz_questions.length}</p>
-                <p class="score">Correct Answers: ${correctAnswers}/${quizData.quiz_questions.length}</p>
+                <p class="score">Total Questions: ${
+                  quizData.quiz_questions.length
+                }</p>
+                <p class="score">Correct Answers: ${correctAnswers}/${
+            quizData.quiz_questions.length
+          }</p>
                 <p class="score">Score: ${score}/${totalPossibleScore}</p>
                 <div class="result-progress">
                 </div>
@@ -564,7 +571,8 @@
                 <h3>Question Review</h3>
                 ${quizData.quiz_questions
                   .map((question, index) => {
-                    const studentAnswer = selectedAnswers[index] || "Not answered";
+                    const studentAnswer =
+                      selectedAnswers[index] || "Not answered";
                     const correctAnswer = question.correct_answer;
                     const isCorrect = studentAnswer === correctAnswer;
                     return `
@@ -691,7 +699,6 @@
         // Start the quiz
         initQuiz();
       });
-      
     </script>
   </body>
 </html>

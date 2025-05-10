@@ -191,7 +191,6 @@ async function safeGetUserName(userId) {
   if (!userId) {
     return "Unknown User";
   }
-
   // Check cache first
   if (userNameCache.has(userId)) {
     return userNameCache.get(userId);
@@ -697,7 +696,11 @@ function formatDateTime(date) {
 
   // Strip time parts for accurate day comparison
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const messageDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  );
 
   const timeString = date.toLocaleTimeString("en-US", {
     hour: "2-digit",
@@ -749,7 +752,7 @@ async function renderChatList() {
         <div class="chat__img">
         <img src="src/images/Courses/${chat.chat_name.toUpperCase()}.png" alt="${
         chat.chat_name
-      }">
+      }" onerror="this.onerror=null; this.src='src/images/Courses/ai.png';">
         </div>
         <div class="chat__details">
           <div class="chat__name">${chat.chat_name}</div>

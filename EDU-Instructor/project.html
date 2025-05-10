@@ -87,13 +87,13 @@
           <!-- Left Section: Assignment List -->
           <div class="left-section">
             <div class="project-list-card">
-              <h2 class="head-table-project">Projects</h2>
+              <h2 class="head-table-project key-change">Projects</h2>
               <table class="project-list-table">
                 <thead>
                   <tr>
                     <th>Number</th>
                     <th>Due Date</th>
-                    <th class="project-view">View Project</th>
+                    <th class="project-view key-change">View Project</th>
                   </tr>
                 </thead>
                 <tbody id="projectListBody">
@@ -129,7 +129,7 @@
           <div class="submission-section">
             <div class="submission-list-card">
               <header class="submission-header">
-                <h2 class="head-table-project" >Student Submissions</h2>
+                <h2 class="head-table-project">Student Submissions</h2>
                 <div class="group__input">
                   <input
                     class="search__input"
@@ -143,7 +143,8 @@
                   <tr>
                     <th>Student</th>
                     <!-- <th>Student ID</th> -->
-                    <th class="project-head">Project</th>
+                    <th>Team number</th>
+                    <th class="project-head key-change">Project</th>
                     <th>View</th>
                   </tr>
                 </thead>
@@ -177,14 +178,13 @@
 
         <div class="right-section">
           <div class="upload-form-card">
-            <h2 class="head-form-project">Upload Project</h2>
+            <h2 class="head-form-project key-change">Upload Project</h2>
             <div class="form-group-special">
               <label for="course-name">Course Name</label>
-              <select name="courseName" id="course-name">
-                <option value="1">bla</option>
-                <option value="2">blaaa</option>
-              </select>
-              <label class="title-label-project" for="projectTitle">Project Title</label>
+              <select name="courseName" id="course-name"></select>
+              <label class="title-label-project key-change" for="projectTitle "
+                >Project Title</label
+              >
               <input
                 type="text"
                 id="projectTitle"
@@ -193,7 +193,11 @@
               />
             </div>
             <div class="form-group">
-              <label class="description-label-project" for="projectDescription">Project Description</label>
+              <label
+                class="description-label-project key-change"
+                for="projectDescription"
+                >Project Description</label
+              >
               <textarea
                 id="projectDescription"
                 placeholder="Enter description"
@@ -212,10 +216,16 @@
                 <!-- <i class="fi fi-rr-calendar"></i> -->
               </div>
             </div>
-            <button class="submit-button submit-btn-project" id="submitProject">
+            <button
+              class="submit-button submit-btn-project key-change"
+              id="submitProject"
+            >
               Upload Project
             </button>
-            <div class="success-message" id="successMessage">
+            <div
+              class="success-message success-message-project key-change"
+              id="successMessage"
+            >
               Project uploaded successfully!
             </div>
           </div>

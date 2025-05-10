@@ -48,7 +48,7 @@
       }
       .progress-bar {
         height: 10px;
-        background-color: #5B50C6;
+        background-color: #5b50c6;
         width: 0%;
         transition: width 0.3s ease-in-out;
       }
@@ -66,7 +66,7 @@
       }
       .result-bar {
         height: 10px;
-        background-color: #5B50C6;
+        background-color: #5b50c6;
         transition: width 0.3s ease-in-out;
       }
       .question-review {
@@ -117,7 +117,7 @@
         margin: 10px 0;
       }
       .modal-content .close-button {
-        background-color: #5B50C6;
+        background-color: #5b50c6;
         color: white;
         padding: 10px 20px;
         border: none;
@@ -237,7 +237,11 @@
         <div class="footer">
           <div class="hide"></div>
           <div class="navigation-buttons">
-            <button class="button button-secondary" id="prev-button" style="display: none;">
+            <button
+              class="button button-secondary"
+              id="prev-button"
+              style="display: none"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
                 <path
                   fill="#5B50C6"
@@ -247,7 +251,11 @@
               </svg>
               <a class="previous">Previous</a>
             </button>
-            <button class="button button-secondary" id="next-button" style="display: none;">
+            <button
+              class="button button-secondary"
+              id="next-button"
+              style="display: none"
+            >
               <a class="next">Next</a>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
                 <path
@@ -257,7 +265,11 @@
               </svg>
             </button>
           </div>
-          <button id="finish-button" class="button button-primary" style="display: none;">
+          <button
+            id="finish-button"
+            class="button button-primary"
+            style="display: none"
+          >
             Finish
           </button>
         </div>
@@ -292,7 +304,8 @@
 
       document.addEventListener("DOMContentLoaded", async () => {
         const courseId = sessionStorage.getItem("courseId");
-        const studentId = sessionStorage.getItem("studentId") || "demo_student_id";
+        const studentId =
+          sessionStorage.getItem("studentId") || "demo_student_id";
         const errorContainer = document.getElementById("error-container");
         const contentContainer = document.getElementById("content-container");
         const nextButton = document.getElementById("next-button");
@@ -302,11 +315,17 @@
         const progressPercent = document.getElementById("progress-percent");
         const timerValue = document.getElementById("timer-value");
         const title = document.querySelector(".title");
-        const quizSelectionModal = document.getElementById("quiz-selection-modal");
+        const quizSelectionModal = document.getElementById(
+          "quiz-selection-modal"
+        );
         const quizList = document.getElementById("quiz-list");
-        const closeSelectionModalButton = document.getElementById("close-selection-modal");
+        const closeSelectionModalButton = document.getElementById(
+          "close-selection-modal"
+        );
         const modal = document.getElementById("quiz-modal");
-        const modalScoreDetails = document.getElementById("modal-score-details");
+        const modalScoreDetails = document.getElementById(
+          "modal-score-details"
+        );
         const closeModalButton = document.getElementById("close-modal");
 
         async function getCourseName() {
@@ -331,18 +350,20 @@
           const { data, error } = await supaClient
             .from("student_quiz")
             .select("score, student_answers")
-            .eq("student_id", studentId)
-            
+            .eq("student_id", studentId);
 
           if (error) {
-            console.error("Error checking student quiz history:", error.message);
+            console.error(
+              "Error checking student quiz history:",
+              error.message
+            );
             return [];
           }
           console.log(data);
           return data.map((record) => ({
             quiz_id: record.quiz_id,
             score: record.score || 0,
-//            student_answers: record.student_answers ? JSON.parse(record.student_answers) : [],
+            //            student_answers: record.student_answers ? JSON.parse(record.student_answers) : [],
           }));
         }
 
@@ -366,35 +387,50 @@
           const approachingThreshold = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
           for (const quiz of quizzes) {
-            const deadline = new Date(quiz.quiz_dueDateTime);
+            const deadline = new Date(quiz.quiz_duedatetime);
             const timeUntilDeadline = deadline - currentDate;
 
-            if (timeUntilDeadline > 0 && timeUntilDeadline <= approachingThreshold && !completedQuizIds.includes(quiz.quiz_id)) {
-              const { data: existingSubmission, error: fetchError } = await supaClient
-                .from("student_quiz")
-                .select("*")
-                .eq("student_id", studentId)
-                .eq("quiz_id", quiz.quiz_id)
-                .single();
+            if (
+              timeUntilDeadline > 0 &&
+              timeUntilDeadline <= approachingThreshold &&
+              !completedQuizIds.includes(quiz.quiz_id)
+            ) {
+              const { data: existingSubmission, error: fetchError } =
+                await supaClient
+                  .from("student_quiz")
+                  .select("*")
+                  .eq("student_id", studentId)
+                  .eq("quiz_id", quiz.quiz_id)
+                  .single();
 
               if (fetchError && fetchError.code !== "PGRST116") {
-                console.error("Error checking existing submission:", fetchError.message);
+                console.error(
+                  "Error checking existing submission:",
+                  fetchError.message
+                );
                 continue;
               }
 
               if (!existingSubmission) {
-                const { error: insertError } = await supaClient.from("student_quiz").insert({
-                  student_id: studentId,
-                  quiz_id: quiz.quiz_id,
-                  score: 0,
-                  student_answers: JSON.stringify([]),
-                  
-                });
+                const { error: insertError } = await supaClient
+                  .from("student_quiz")
+                  .insert({
+                    student_id: studentId,
+                    quiz_id: quiz.quiz_id,
+                    score: 0,
+                    student_answers: JSON.stringify([]),
+                  });
 
                 if (insertError) {
-                  console.error("Error recording zero score for approaching deadline:", insertError.message);
+                  console.error(
+                    "Error recording zero score for approaching deadline:",
+                    insertError.message
+                  );
                 } else {
-                  console.log("Zero score recorded for approaching deadline quiz:", quiz.quiz_id);
+                  console.log(
+                    "Zero score recorded for approaching deadline quiz:",
+                    quiz.quiz_id
+                  );
                 }
               }
             }
@@ -402,38 +438,53 @@
         }
 
         // Record zero score for expired quizzes
-        async function recordZeroScoreForExpiredQuizzes(quizzes, completedQuizIds) {
+        async function recordZeroScoreForExpiredQuizzes(
+          quizzes,
+          completedQuizIds
+        ) {
           const currentDate = new Date();
           for (const quiz of quizzes) {
-            const deadline = new Date(quiz.quiz_dueDateTime);
+            const deadline = new Date(quiz.quiz_duedatetime);
             const isExpired = deadline < currentDate;
             const isCompleted = completedQuizIds.includes(quiz.quiz_id);
 
             if (isExpired && !isCompleted) {
-              const { data: existingSubmission, error: fetchError } = await supaClient
-                .from("student_quiz")
-                .select("*")
-                .eq("student_id", studentId)
-                .eq("quiz_id", quiz.quiz_id)
-                .single();
+              const { data: existingSubmission, error: fetchError } =
+                await supaClient
+                  .from("student_quiz")
+                  .select("*")
+                  .eq("student_id", studentId)
+                  .eq("quiz_id", quiz.quiz_id)
+                  .single();
 
               if (fetchError && fetchError.code !== "PGRST116") {
-                console.error("Error checking existing submission:", fetchError.message);
+                console.error(
+                  "Error checking existing submission:",
+                  fetchError.message
+                );
                 continue;
               }
 
               if (!existingSubmission) {
-                const { error: insertError } = await supaClient.from("student_quiz").insert({
-                  student_id: studentId,
-                  quiz_id: quiz.quiz_id,
-                  score: 0,
-                  student_answers: JSON.stringify([]),
-                });
+                const { error: insertError } = await supaClient
+                  .from("student_quiz")
+                  .insert({
+                    student_id: studentId,
+                    quiz_id: quiz.quiz_id,
+                    score: 0,
+                    student_answers: JSON.stringify([]),
+                  });
 
                 if (insertError) {
-                  console.error("Error recording zero score for expired quiz:", insertError.message);
+                  console.error(
+                    "Error recording zero score for expired quiz:",
+                    insertError.message
+                  );
                 } else {
-                  console.log("Zero score recorded for expired quiz:", quiz.quiz_id);
+                  console.log(
+                    "Zero score recorded for expired quiz:",
+                    quiz.quiz_id
+                  );
                 }
               }
             }
@@ -453,7 +504,8 @@
           await recordZeroScoreForExpiredQuizzes(allQuizzes, completedQuizIds);
 
           if (allQuizzes.length === 0) {
-            contentContainer.innerHTML = '<p class="no-quizzes">No quizzes available for this course.</p>';
+            contentContainer.innerHTML =
+              '<p class="no-quizzes">No quizzes available for this course.</p>';
             return;
           }
 
@@ -461,29 +513,40 @@
           const currentDate = new Date();
 
           allQuizzes.forEach((quiz) => {
-            const historyEntry = quizHistory.find((h) => h.quiz_id === quiz.quiz_id);
+            const historyEntry = quizHistory.find(
+              (h) => h.quiz_id === quiz.quiz_id
+            );
             const isCompleted = completedQuizIds.includes(quiz.quiz_id);
-            const deadline = new Date(quiz.quiz_dueDateTime);
+            const deadline = new Date(quiz.quiz_duedatetime);
             const isExpired = deadline < currentDate;
             let statusClass = "";
 
             if (isCompleted) {
               statusClass = "completed"; // Completed quizzes (green)
-            } else if (isExpired || (historyEntry && historyEntry.score === 0)) {
+            } else if (
+              isExpired ||
+              (historyEntry && historyEntry.score === 0)
+            ) {
               statusClass = "new"; // Untaken with score 0 or expired (red)
             } else {
               statusClass = "new"; // Untaken with no score yet (red)
             }
 
             // Format the deadline to show date and time (HH:mm)
-            const deadlineDate = new Date(quiz.quiz_dueDateTime);
+            const deadlineDate = new Date(quiz.quiz_duedatetime);
             const dateString = deadlineDate.toLocaleDateString();
-            const hours = String(deadlineDate.getUTCHours()).padStart(2, '0');
-            const minutes = String(deadlineDate.getUTCMinutes()).padStart(2, '0');
+            const hours = String(deadlineDate.getUTCHours()).padStart(2, "0");
+            const minutes = String(deadlineDate.getUTCMinutes()).padStart(
+              2,
+              "0"
+            );
             const timeString = `${hours}:${minutes}`;
 
             // Only allow clicking on new quizzes that aren't expired and have no score yet
-            const isClickable = !isCompleted && !isExpired && (!historyEntry || historyEntry.score === 0);
+            const isClickable =
+              !isCompleted &&
+              !isExpired &&
+              (!historyEntry || historyEntry.score === 0);
             html += `
               <div class="quiz-item ${statusClass}" 
                    ${isClickable ? `onclick="startQuiz(${quiz.quiz_id})"` : ""} 
@@ -494,7 +557,8 @@
           });
 
           if (html === "") {
-            contentContainer.innerHTML = '<p class="no-quizzes">No quizzes available for this course.</p>';
+            contentContainer.innerHTML =
+              '<p class="no-quizzes">No quizzes available for this course.</p>';
             return;
           }
 
@@ -510,7 +574,7 @@
         window.startQuiz = async (quizId) => {
           const allQuizzes = await fetchAllQuizzes();
           const selectedQuiz = allQuizzes.find((q) => q.quiz_id === quizId);
-          const deadline = new Date(selectedQuiz.quiz_dueDateTime);
+          const deadline = new Date(selectedQuiz.quiz_duedatetime);
           const currentDate = new Date();
 
           if (deadline < currentDate) {
@@ -538,4 +602,4 @@
       });
     </script>
   </body>
-</html>x
+</html>

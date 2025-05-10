@@ -1,6 +1,6 @@
 /////////////////////// VERSION 3 ////////////////////////
 import { supaClient } from "./main.js";
-
+import { isInstitutionSchool } from "./main.js";
 // Get instructorId from session storage
 const instructorId = sessionStorage.getItem("instructorId");
 
@@ -65,7 +65,6 @@ async function getInstructorCourses() {
     );
 
     if (!instructorCourses || instructorCourses.length === 0) {
-      console.log("No courses found for this instructor");
       return [];
     }
 
@@ -92,8 +91,6 @@ async function getInstructorCourses() {
 // Get projects for a specific course
 async function getInstructorProjects(courseId) {
   try {
-    console.log("Fetching projects for course ID:", courseId);
-
     if (!courseId) {
       const instructorCourses = await getInstructorCourses();
       if (instructorCourses && instructorCourses.length > 0) {
@@ -134,7 +131,6 @@ async function getInstructorProjects(courseId) {
     }
 
     if (!courseActivities || courseActivities.length === 0) {
-      console.log("No activities found for this course");
       return [];
     }
 
@@ -145,15 +141,13 @@ async function getInstructorProjects(courseId) {
       .in(
         "activity_id",
         courseActivities.map((ca) => ca.activity_id)
-      )
-      // .eq("instructor_id", instructorId);
+      );
+    // .eq("instructor_id", instructorId);
 
     if (error) {
       console.error("Error fetching projects:", error);
       return [];
     }
-
-    console.log("Projects fetched:", data);
     return data || [];
   } catch (error) {
     console.error("Error in getInstructorProjects:", error);
@@ -164,7 +158,6 @@ async function getInstructorProjects(courseId) {
 // Render projects in the table
 async function renderInstructorProjects(courseId) {
   try {
-    console.log("Rendering projects for course ID:", courseId);
     // Clear existing projects and show loading state
     projectListBody.innerHTML = `
       <tr>
@@ -172,7 +165,7 @@ async function renderInstructorProjects(courseId) {
       </tr>`;
     // Get projects for this course
     const projects = await getInstructorProjects(courseId);
-    
+
     // Clear existing projects after data is loaded
     projectListBody.innerHTML = "";
 
@@ -186,8 +179,6 @@ async function renderInstructorProjects(courseId) {
       renderStudentSubmissionsForCourse(courseId);
       return;
     }
-
-    console.log(`Found ${projects.length} projects for course ${courseId}`);
 
     // Create HTML for each project
     projects.forEach((project, index) => {
@@ -234,8 +225,6 @@ async function renderInstructorProjects(courseId) {
 // Show project details in a modal
 async function showProjectDetails(activityId) {
   try {
-    console.log("Showing details for project:", activityId);
-
     // Fetch project details
     const { data, error } = await supaClient
       .from("activity")
@@ -394,9 +383,9 @@ function initializeProjectPage() {
   try {
     // Original initialization code...
     courseNameSelect.innerHTML = "";
-    
+
     // Get instructor courses
-    getInstructorCourses().then(courses => {
+    getInstructorCourses().then((courses) => {
       if (!courses || courses.length === 0) {
         courseNameSelect.innerHTML = `<option value="">No courses available</option>`;
         projectListBody.innerHTML = `
@@ -438,7 +427,6 @@ function initializeProjectPage() {
       // Add event listener for course selection change
       courseNameSelect.addEventListener("change", (e) => {
         const selectedCourseId = e.target.value;
-        console.log("Course changed to:", selectedCourseId);
 
         // Clear existing data
         projectListBody.innerHTML = `<tr><td colspan="3">Loading projects...</td></tr>`;
@@ -447,7 +435,7 @@ function initializeProjectPage() {
         // Fetch and render data specific to selected course
         renderInstructorProjects(selectedCourseId);
       });
-      
+
       // Initialize search functionality for any existing submissions
       setupSearchFunctionality();
     });
@@ -475,7 +463,6 @@ async function submitProject() {
       alert("Please enter a valid date in the format mm/dd/yyyy --:-- --");
       return;
     }
-    console.log(parsedDate);
     if (parsedDate < new Date()) {
       alert("Due date cannot be in the past");
       return;
@@ -573,15 +560,13 @@ async function getActivityIDsForCourse(courseId) {
         .in(
           "activity_id",
           courseActivities.map((ca) => ca.activity_id)
-        )
-        // .eq("instructor_id", instructorId);
+        );
+      // .eq("instructor_id", instructorId);
 
       if (error) {
         console.error("Error verifying instructor's activities:", error);
         return [];
       }
-      console.log(data);
-      
 
       return data || [];
     }
@@ -609,13 +594,11 @@ async function getStudentSubmissionsForActivities(activityIds) {
       )
       .neq("activity_path", null);
 
-
     if (error) {
       console.error("Error fetching student submissions:", error);
       return [];
     }
-    console.log(data);
-    
+
     return data || [];
   } catch (error) {
     console.error("Error in getStudentSubmissionsForActivities:", error);
@@ -684,7 +667,7 @@ async function getStudentDetails(studentIds) {
 
 //     // Get activity IDs for the selected course
 //     const activityIds = await getActivityIDsForCourse(courseId);
-    
+
 //     if (!activityIds || activityIds.length === 0) {
 //       submissionListBody.innerHTML = `
 //         <tr>
@@ -698,7 +681,7 @@ async function getStudentDetails(studentIds) {
 //     // Get student submissions for these activities
 //     const submissions = await getStudentSubmissionsForActivities(activityIds);
 //     console.log(submissions);
-    
+
 //     if (!submissions || submissions.length === 0) {
 //       submissionListBody.innerHTML = `
 //         <tr>
@@ -758,8 +741,6 @@ async function getStudentDetails(studentIds) {
 // }
 async function renderStudentSubmissionsForCourse(courseId) {
   try {
-    console.log("Rendering submissions for course ID:", courseId);
-
     // Clear existing submissions and show loading state
     submissionListBody.innerHTML = `
       <tr>
@@ -768,7 +749,7 @@ async function renderStudentSubmissionsForCourse(courseId) {
 
     // Get activity IDs for the selected course
     const activityIds = await getActivityIDsForCourse(courseId);
-    
+
     if (!activityIds || activityIds.length === 0) {
       submissionListBody.innerHTML = `
         <tr>
@@ -777,12 +758,8 @@ async function renderStudentSubmissionsForCourse(courseId) {
       return;
     }
 
-    console.log("Found activity IDs:", activityIds);
-
     // Get student submissions for these activities
     const submissions = await getStudentSubmissionsForActivities(activityIds);
-    console.log(submissions);
-    
     if (!submissions || submissions.length === 0) {
       submissionListBody.innerHTML = `
         <tr>
@@ -790,8 +767,6 @@ async function renderStudentSubmissionsForCourse(courseId) {
         </tr>`;
       return;
     }
-
-    console.log("Found submissions:", submissions.length);
 
     // Get details for activities and students
     const activityDetails = await getActivityDetails([
@@ -801,9 +776,6 @@ async function renderStudentSubmissionsForCourse(courseId) {
     const studentDetails = await getStudentDetails([
       ...new Set(submissions.map((s) => s.student_id)),
     ]);
-
-    console.log("Activity details:", activityDetails.length);
-    console.log("Student details:", studentDetails.length);
 
     // Create HTML for each submission
     let markup = "";
@@ -818,6 +790,9 @@ async function renderStudentSubmissionsForCourse(courseId) {
       if (student && activity) {
         markup += `<tr>
                     <td>${student.student_name || "Unknown Student"}</td>
+                    <td class="team-number-column"><span class="team-number">${
+                      submission.team_id
+                    }</span></td>
                     <td>${activity.activity_title || "Unknown Project"}</td>
                     <td><a target="_blank" href="${
                       submission.activity_path
@@ -832,10 +807,9 @@ async function renderStudentSubmissionsForCourse(courseId) {
       <tr>
         <td colspan="3" style="text-align: center;">Could not display submissions properly</td>
       </tr>`;
-      
+
     // Setup search functionality after rendering submissions
     setupSearchFunctionality();
-    
   } catch (error) {
     console.error("Error in renderStudentSubmissionsForCourse:", error);
     submissionListBody.innerHTML = `
@@ -853,35 +827,44 @@ document.addEventListener("DOMContentLoaded", () => {
   initialized = true;
 });
 function setupSearchFunctionality() {
-  const searchInput = document.querySelector('.search__input');
-  
-  searchInput.addEventListener('input', function(e) {
+  const searchInput = document.querySelector(".search__input");
+
+  searchInput.addEventListener("input", function (e) {
     const searchTerm = e.target.value.toLowerCase();
-    
+
     // Get all rows in the submission table
-    const rows = document.querySelectorAll('#submissionListBody tr');
-    
+    const rows = document.querySelectorAll("#submissionListBody tr");
+
     // Loop through each row and hide/show based on search term
-    rows.forEach(row => {
-      const studentName = row.querySelector('td:first-child').textContent.toLowerCase();
-      const projectName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-      
+    rows.forEach((row) => {
+      const studentName = row
+        .querySelector("td:first-child")
+        .textContent.toLowerCase();
+      const projectName = row
+        .querySelector("td:nth-child(2)")
+        .textContent.toLowerCase();
+
       // If search term is found in either student name or project title, show the row
-      if (studentName.includes(searchTerm) || projectName.includes(searchTerm)) {
-        row.style.display = '';
+      if (
+        studentName.includes(searchTerm) ||
+        projectName.includes(searchTerm)
+      ) {
+        row.style.display = "";
       } else {
-        row.style.display = 'none';
+        row.style.display = "none";
       }
     });
-    
+
     // Check if no results are found
-    const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
-    
-    if (visibleRows.length === 0 && searchTerm !== '') {
+    const visibleRows = Array.from(rows).filter(
+      (row) => row.style.display !== "none"
+    );
+
+    if (visibleRows.length === 0 && searchTerm !== "") {
       // If there's already a "no results" message, don't add another one
-      if (!document.querySelector('#noResultsRow')) {
-        const noResultsRow = document.createElement('tr');
-        noResultsRow.id = 'noResultsRow';
+      if (!document.querySelector("#noResultsRow")) {
+        const noResultsRow = document.createElement("tr");
+        noResultsRow.id = "noResultsRow";
         noResultsRow.innerHTML = `
           <td colspan="3" style="text-align: center;">No matching results found</td>
         `;
@@ -889,10 +872,15 @@ function setupSearchFunctionality() {
       }
     } else {
       // Remove "no results" message if it exists
-      const noResultsRow = document.querySelector('#noResultsRow');
+      const noResultsRow = document.querySelector("#noResultsRow");
       if (noResultsRow) {
         noResultsRow.remove();
       }
     }
+  });
+}
+if (isInstitutionSchool()) {
+  document.querySelectorAll(".key-change").forEach((title) => {
+    title.textContent = title.textContent.replace("Project", "Activity");
   });
 }

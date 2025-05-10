@@ -706,7 +706,6 @@ uploadFrom.addEventListener("submit", uploadSession); // Fixed typo in "submit"
 const institutionId = sessionStorage.getItem("institution_id");
 const institutionName = sessionStorage.getItem("institution_name");
 
-
 // Toast notification function
 function showToast(message, type = "success") {
   // Create toast container if it doesn't exist
@@ -890,11 +889,13 @@ async function renderSessions(courseId) {
                 ).toLocaleDateString()}</span></p>
                 <a class="session__file" target="_blank" href="${
                   lecture.session_file_path
-                }"> ${isInstitutionSchool() ? "lesson" : "lecture"} ${lectureCount}</a>
+                }"> ${
+      isInstitutionSchool() ? "lesson" : "lecture"
+    } ${lectureCount}</a>
               </div>
       `;
   });
-  if(!isInstitutionSchool()){
+  if (!isInstitutionSchool()) {
     sections.forEach((section) => {
       sectionCount++;
       sectionMarkup += `
@@ -1156,7 +1157,7 @@ async function uploadSession(e) {
         "/",
         ""
       );
-      const filePath = `https://iuiwdjtmdeempcqxeuhf.supabase.co/storage/v1/object/public/sessions/${fileName}`;
+      const filePath = `https://nwwqsqkwmkkuunczucdm.supabase.co/storage/v1/object/public/sessions/${fileName}`;
 
       const { data, error } = await supaClient
         .from("session")

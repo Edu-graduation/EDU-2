@@ -1,6 +1,6 @@
 ////////////////////// VERSION 5 //////////////////////////////
 import { supaClient } from "./main.js";
-
+import { isInstitutionSchool } from "./main.js";
 // Get instructorId from session storage
 const instructorId = sessionStorage.getItem("instructorId");
 
@@ -67,7 +67,6 @@ async function getInstructorCourses() {
     );
 
     if (!instructorCourses || instructorCourses.length === 0) {
-      console.log("No courses found for this instructor");
       return [];
     }
 
@@ -94,8 +93,6 @@ async function getInstructorCourses() {
 // Get assignments for a specific course
 async function getInstructorAssignments(courseId) {
   try {
-    console.log("Fetching assignments for course ID:", courseId);
-
     if (!courseId) {
       const instructorCourses = await getInstructorCourses();
       if (instructorCourses && instructorCourses.length > 0) {
@@ -116,7 +113,6 @@ async function getInstructorAssignments(courseId) {
       return [];
     }
 
-    console.log("Assignments fetched:", data);
     return data || [];
   } catch (error) {
     console.error("Error in getInstructorAssignments:", error);
@@ -185,8 +181,6 @@ async function renderInstructorAssignments(courseId) {
 // Show assignment details in a modal
 async function showAssignmentDetails(assignId) {
   try {
-    console.log("Showing details for assignment:", assignId);
-
     // Fetch assignment details
     const { data, error } = await supaClient
       .from("assignment")
@@ -355,7 +349,6 @@ async function submitAssignment() {
       alert("Please enter a valid date in the format mm/dd/yyyy --:-- --");
       return;
     }
-    console.log(parsedDate);
     if (parsedDate < new Date()) {
       alert("Due date cannot be in the past");
       return;
@@ -445,7 +438,7 @@ async function getStudentSubmissionsForAssignments(assignmentIds) {
         "assign_id",
         assignmentIds.map((a) => a.assign_id)
       )
-      .neq("assignment_path", null);
+      .neq("assign_path", null);
 
     if (error) {
       console.error("Error fetching student submissions:", error);
@@ -515,7 +508,7 @@ async function renderStudentSubmissionsForCourse(courseId) {
 
     // Get assignment IDs for the selected course
     const assignmentIds = await getAssignmentIDsForCourse(courseId);
-    
+
     if (!assignmentIds || assignmentIds.length === 0) {
       submissionListBody.innerHTML = `
         <tr>
@@ -563,7 +556,7 @@ async function renderStudentSubmissionsForCourse(courseId) {
 
                     <td>${assignment.assign_title || "Unknown Assignment"}</td>
                     <td><a target="_blank" href="${
-                      submission.assignment_path
+                      submission.assign_path
                     }" class="view-submission-button">View</a></td>
                   </tr>`;
       }
@@ -603,35 +596,44 @@ document.addEventListener("DOMContentLoaded", () => {
   initialized = true;
 });
 function setupSearchFunctionality() {
-  const searchInput = document.querySelector('.search__input');
-  
-  searchInput.addEventListener('input', function(e) {
+  const searchInput = document.querySelector(".search__input");
+
+  searchInput.addEventListener("input", function (e) {
     const searchTerm = e.target.value.toLowerCase();
-    
+
     // Get all rows in the submission table
-    const rows = document.querySelectorAll('#submissionListBody tr');
-    
+    const rows = document.querySelectorAll("#submissionListBody tr");
+
     // Loop through each row and hide/show based on search term
-    rows.forEach(row => {
-      const studentName = row.querySelector('td:first-child').textContent.toLowerCase();
-      const assignmentName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-      
+    rows.forEach((row) => {
+      const studentName = row
+        .querySelector("td:first-child")
+        .textContent.toLowerCase();
+      const assignmentName = row
+        .querySelector("td:nth-child(2)")
+        .textContent.toLowerCase();
+
       // If search term is found in either student name or project title, show the row
-      if (studentName.includes(searchTerm) || assignmentName.includes(searchTerm)) {
-        row.style.display = '';
+      if (
+        studentName.includes(searchTerm) ||
+        assignmentName.includes(searchTerm)
+      ) {
+        row.style.display = "";
       } else {
-        row.style.display = 'none';
+        row.style.display = "none";
       }
     });
-    
+
     // Check if no results are found
-    const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
-    
-    if (visibleRows.length === 0 && searchTerm !== '') {
+    const visibleRows = Array.from(rows).filter(
+      (row) => row.style.display !== "none"
+    );
+
+    if (visibleRows.length === 0 && searchTerm !== "") {
       // If there's already a "no results" message, don't add another one
-      if (!document.querySelector('#noResultsRow')) {
-        const noResultsRow = document.createElement('tr');
-        noResultsRow.id = 'noResultsRow';
+      if (!document.querySelector("#noResultsRow")) {
+        const noResultsRow = document.createElement("tr");
+        noResultsRow.id = "noResultsRow";
         noResultsRow.innerHTML = `
           <td colspan="3" style="text-align: center;">No matching results found</td>
         `;
@@ -639,10 +641,15 @@ function setupSearchFunctionality() {
       }
     } else {
       // Remove "no results" message if it exists
-      const noResultsRow = document.querySelector('#noResultsRow');
+      const noResultsRow = document.querySelector("#noResultsRow");
       if (noResultsRow) {
         noResultsRow.remove();
       }
     }
+  });
+}
+if (isInstitutionSchool()) {
+  document.querySelectorAll(".key-change").forEach((title) => {
+    title.textContent = title.textContent.replace("Assignment", "Homework");
   });
 }

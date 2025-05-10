@@ -1,7 +1,12 @@
+// const { createClient } = supabase;
+// const supabaseProjectUrl = "https://iuiwdjtmdeempcqxeuhf.supabase.co";
+// const supabaseKey =
+//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1aXdkanRtZGVlbXBjcXhldWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTY1MDcsImV4cCI6MjA2MDMzMjUwN30.XfSmnKA8wbsXIA1qkfYaRkzxtEdudIDNYbSJu-M5Zag";
+// export const supaClient = createClient(supabaseProjectUrl, supabaseKey);
 const { createClient } = supabase;
-const supabaseProjectUrl = "https://iuiwdjtmdeempcqxeuhf.supabase.co";
+const supabaseProjectUrl = "https://nwwqsqkwmkkuunczucdm.supabase.co";
 const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1aXdkanRtZGVlbXBjcXhldWhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTY1MDcsImV4cCI6MjA2MDMzMjUwN30.XfSmnKA8wbsXIA1qkfYaRkzxtEdudIDNYbSJu-M5Zag";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53d3FzcWt3bWtrdXVuY3p1Y2RtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY1MzEyODIsImV4cCI6MjA2MjEwNzI4Mn0.EF6CGrpM3bjxBo4-ItU3S1BPjfVHdv2HnvoeAdfPZug";
 export const supaClient = createClient(supabaseProjectUrl, supabaseKey);
 const studentId = sessionStorage.getItem("studentId");
 const logOutButton = document.querySelector(".log-out");
