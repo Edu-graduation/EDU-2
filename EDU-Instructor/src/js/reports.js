@@ -803,7 +803,7 @@ console.log("avgQuizScore", avgQuizScore);
             yAxisID: "y",
           },
           {
-            label: "Assignment Completion Rate (%)",
+            label: `${isInstitutionSchool() ? 'Homework' : 'Assignment'} Completion Rate (%)`,
             data: completionRateData,
             backgroundColor: chartColors.dayColors[1],
             borderColor: chartColors.dayTextColors[1],
@@ -839,7 +839,7 @@ console.log("avgQuizScore", avgQuizScore);
             max: 100,
             title: {
               display: true,
-              text: "Assignment Completion Rate",
+              text: `${isInstitutionSchool() ? 'Homework': 'Assignment'} Completion Rate`,
               font: {
                 family: "'Poppins', sans-serif",
                 size: 12,
@@ -903,7 +903,7 @@ function initStudentEngagementChart(courses, enrollments, studentActivities) {
     // Prepare data for chart
     const labels = Object.keys(engagementLevels);
     const data = Object.values(engagementLevels);
-
+    
     // Create chart
     const ctx = document
       .getElementById("studentEngagementChart")
@@ -1076,107 +1076,211 @@ function initAssignmentCompletionChart(
 }
 
 // 4. Quiz Performance Chart
-function initQuizPerformanceChart(quizzes, studentQuizzes, courses) {
-  try {
-    // Group quizzes by course
-    const quizzesByCourse = {};
-    console.log("courses", courses);
-    
-    courses.forEach((course) => {
-      quizzesByCourse[course.course_id] = {
-        name: course.course_name,
-        quizzes: [],
-      };
-    });
-    console.log("quizzesByCourse", quizzesByCourse);
-    // Calculate average scores for each quiz
-    quizzes.forEach((quiz) => {
-      const quizId = quiz.quiz_id;
-      const courseId = quiz.course_id;
+  // function initQuizPerformanceChart(quizzes, studentQuizzes, courses) {
+  //   try {
+  //     // Group quizzes by course
+  //     const quizzesByCourse = {};
+  //     console.log("courses", courses);
+      
+  //     courses.forEach((course) => {
+  //       quizzesByCourse[course.course_id] = {
+  //         name: course.course_name,
+  //         quizzes: [],
+  //       };
+  //     });
+  //     console.log("quizzesByCourse", quizzesByCourse);
+  //     // Calculate average scores for each quiz
+  //     quizzes.forEach((quiz) => {
+  //       const quizId = quiz.quiz_id;
+  //       const courseId = quiz.course_id;
 
-      if (quizzesByCourse[courseId]) {
-        // Get all submissions for this quiz
-        const submissions = studentQuizzes.filter(
-          (sq) => sq.quiz_id === quizId
-        );
-        const totalScore = submissions.reduce(
-          (sum, sq) => sum + Number(sq.score),
-          0
-        );
-        const avgScore =
-          submissions.length > 0 ? totalScore / submissions.length : 0;
+  //       if (quizzesByCourse[courseId]) {
+  //         // Get all submissions for this quiz
+  //         const submissions = studentQuizzes.filter(
+  //           (sq) => sq.quiz_id === quizId
+  //         );
+  //         const totalScore = submissions.reduce(
+  //           (sum, sq) => sum + Number(sq.score),
+  //           0
+  //         );
+  //         const avgScore =
+  //           submissions.length > 0 ? totalScore / submissions.length : 0;
 
-        quizzesByCourse[courseId].quizzes.push({
-          name: quiz.quiz_title,
-          avgScore: Number.parseFloat(avgScore.toFixed(1)),
-        });
-      }
-    });
+  //         quizzesByCourse[courseId].quizzes.push({
+  //           name: quiz.quiz_title,
+  //           avgScore: Number.parseFloat(avgScore.toFixed(1)),
+  //         });
+  //       }
+  //     });
 
-    // Prepare data for chart
-    const datasets = [];
+  //     // Prepare data for chart
+  //     const datasets = [];
 
-    Object.values(quizzesByCourse).forEach((courseData, index) => {
-      if (courseData.quizzes.length > 0) {
-        datasets.push({
-          label: courseData.name,
-          data: courseData.quizzes.map((q) => q.avgScore),
-          backgroundColor:
-            chartColors.dayColors[index % chartColors.dayColors.length],
-          borderColor:
-            chartColors.dayTextColors[index % chartColors.dayTextColors.length],
-          borderWidth: 1,
-        });
-      }
-    });
-    // Get all unique quiz names
-    const allQuizNames = [];
-    Object.values(quizzesByCourse).forEach((courseData) => {
-      courseData.quizzes.forEach((quiz) => {
-        if (!allQuizNames.includes(quiz.name)) {
-          allQuizNames.push(quiz.name);
+  //     Object.values(quizzesByCourse).forEach((courseData, index) => {
+  //       if (courseData.quizzes.length > 0) {
+  //         datasets.push({
+  //           label: courseData.name,
+  //           data: courseData.quizzes.map((q) => q.avgScore),
+  //           backgroundColor:
+  //             chartColors.dayColors[index % chartColors.dayColors.length],
+  //           borderColor:
+  //             chartColors.dayTextColors[index % chartColors.dayTextColors.length],
+  //           borderWidth: 1,
+  //         });
+  //       }
+  //     });
+  //     // Get all unique quiz names
+  //     const allQuizNames = [];
+  //     Object.values(quizzesByCourse).forEach((courseData) => {
+  //       courseData.quizzes.forEach((quiz) => {
+  //         if (!allQuizNames.includes(quiz.name)) {
+  //           allQuizNames.push(quiz.name);
+  //         }
+  //       });
+  //     });
+  //     // Create chart
+  //     const ctx = document
+  //       .getElementById("quizPerformanceChart")
+  //       .getContext("2d");
+  //     charts.quizPerformance = new Chart(ctx, {
+  //       type: "line",
+  //       data: {
+  //         labels: allQuizNames,
+  //         datasets: datasets,
+  //       },
+  //       options: {
+  //         ...commonChartOptions,
+  //         scales: {
+  //           y: {
+  //             beginAtZero: true,
+  //             max: 10,
+  //             title: {
+  //               display: true,
+  //               text: "Average Score",
+  //               font: {
+  //                 family: "'Poppins', sans-serif",
+  //                 size: 12,
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //     });
+
+  //     hideLoading("quizPerformanceChart");
+  //   } catch (error) {
+  //     console.error("Error initializing quiz performance chart:", error);
+  //     showError("quizPerformanceChart", "Failed to load quiz performance data");
+  //   }
+  // }
+  function initQuizPerformanceChart(quizzes, studentQuizzes, courses) {
+    try {
+      // Group quizzes by course
+      const quizzesByCourse = {};
+      courses.forEach((course) => {
+        quizzesByCourse[course.course_id] = {
+          name: course.course_name,
+          quizzes: [],
+        };
+      });
+  
+      // Calculate average scores for each quiz
+      quizzes.forEach((quiz) => {
+        const quizId = quiz.quiz_id;
+        const courseId = quiz.course_id;
+  
+        if (quizzesByCourse[courseId]) {
+          const submissions = studentQuizzes.filter(
+            (sq) => sq.quiz_id === quizId
+          );
+          const totalScore = submissions.reduce(
+            (sum, sq) => sum + Number(sq.score),
+            0
+          );
+          const avgScore =
+            submissions.length > 0 ? totalScore / submissions.length : 0;
+  
+          quizzesByCourse[courseId].quizzes.push({
+            name: quiz.quiz_title, // Unique label
+            avgScore: Number.parseFloat(avgScore.toFixed(1)),
+          });
         }
       });
-    });
-    console.log("allQuizNames", allQuizNames);
-    console.log("datasets", datasets);
-    
-    // Create chart
-    const ctx = document
-      .getElementById("quizPerformanceChart")
-      .getContext("2d");
-    charts.quizPerformance = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: allQuizNames,
-        datasets: datasets,
-      },
-      options: {
-        ...commonChartOptions,
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 10,
-            title: {
-              display: true,
-              text: "Average Score",
-              font: {
-                family: "'Poppins', sans-serif",
-                size: 12,
+  
+      // Collect all unique quiz names
+      const allQuizNamesSet = new Set();
+      Object.values(quizzesByCourse).forEach((courseData) => {
+        courseData.quizzes.forEach((quiz) => {
+          allQuizNamesSet.add(quiz.name);          
+        });
+      });
+  
+      const allQuizNames = Array.from(allQuizNamesSet).sort();
+      
+      // Prepare datasets
+      const datasets = Object.values(quizzesByCourse)
+        .filter((courseData) => courseData.quizzes.length > 0)
+        .map((courseData, index) => {
+          // Build a data array aligned with allQuizNames
+          const scoreMap = {};
+          courseData.quizzes.forEach((quiz) => {
+            scoreMap[quiz.name] = quiz.avgScore;
+          });
+  
+          const alignedData = allQuizNames.map((name) =>
+            scoreMap.hasOwnProperty(name) ? scoreMap[name] : null
+          );
+  
+          return {
+            label: courseData.name,
+            data: alignedData,
+            backgroundColor:
+              chartColors.dayColors[index % chartColors.dayColors.length],
+            borderColor:
+              chartColors.dayTextColors[index % chartColors.dayTextColors.length],
+            borderWidth: 2,
+            fill: false,
+            tension: 0.2,
+          };
+        });
+      
+      // Create chart
+      const ctx = document
+        .getElementById("quizPerformanceChart")
+        .getContext("2d");
+  
+      charts.quizPerformance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: allQuizNames,
+          datasets: datasets,
+        },
+        options: {
+          ...commonChartOptions,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 10,
+              title: {
+                display: true,
+                text: "Average Score",
+                font: {
+                  family: "'Poppins', sans-serif",
+                  size: 12,
+                },
               },
             },
           },
         },
-      },
-    });
-
-    hideLoading("quizPerformanceChart");
-  } catch (error) {
-    console.error("Error initializing quiz performance chart:", error);
-    showError("quizPerformanceChart", "Failed to load quiz performance data");
+      });
+  
+      hideLoading("quizPerformanceChart");
+    } catch (error) {
+      console.error("Error initializing quiz performance chart:", error);
+      showError("quizPerformanceChart", "Failed to load quiz performance data");
+    }
   }
-}
-
+  
 // 5. Student Progress Chart
 // function initStudentProgressChart(
 //   courses,
@@ -1577,13 +1681,13 @@ function initAtRiskStudentsTable(
           ? totalScore / studentQuizSubmissions.length
           : 0;
       // Get last activity date (mock data since we don't have participation_date in the schema)
-      const lastActivityDate = new Date();
-      lastActivityDate.setDate(
-        lastActivityDate.getDate() - Math.floor(Math.random() * 30)
-      );
+      // const lastActivityDate = new Date();
+      // lastActivityDate.setDate(
+      //   lastActivityDate.getDate() - Math.floor(Math.random() * 30)
+      // );
 
       // Determine if student is at risk if missing more than 2 assignments or average quiz score is less than 2.5
-      const isAtRisk = missingAssignments > 2 || avgQuizScore < 2;
+      const isAtRisk = missingAssignments > 2 || avgQuizScore < 5;
 
       if (isAtRisk) {
         atRiskStudents.push({
@@ -2024,6 +2128,123 @@ let modalChartInstance = null;
 // }
 // Function to open a chart in the modal
 // Function to open a chart in the modal
+// function openChartInModal(chartId) {
+//   // Get the chart instance
+//   console.log(chartId);
+  
+//   const chart = charts[getChartInstanceName(chartId)];
+//   console.log(chart);
+  
+//   if (!chart) {
+//     console.error(`Chart with ID ${chartId} not found`);
+//     return;
+//   }
+  
+//   // Get modal elements
+//   const modal = document.getElementById("chartModal");
+//   const modalTitle = document.getElementById("modalChartTitle");
+//   const modalChartDetails = document.getElementById("modalChartDetails");
+  
+//   // Set modal title based on chart ID
+//   const chartTitle = getChartTitle(chartId);
+//   modalTitle.textContent = chartTitle;
+  
+//   // Create a new canvas for the modal chart
+//   const modalChartCanvas = document.getElementById("modalChartCanvas");
+  
+//   // Destroy previous chart instance if it exists
+//   if (modalChartInstance) {
+//     modalChartInstance.destroy();
+//     modalChartInstance = null;
+//   }
+  
+//   if (isInstitutionSchool()) {
+//     document.querySelectorAll(".card-title").forEach((title) => {
+//       title.textContent = title.textContent.replace("Assignment", "Homework");
+//       title.textContent = title.textContent.replace("Project", "Activity");
+//     });
+//     document.querySelectorAll(".key-change").forEach((title) => {
+//       title.textContent = title.textContent.replace("Assignment", "Homework");
+//     });
+//   }
+  
+//   const ctx = modalChartCanvas.getContext("2d");
+  
+//   // Clone the data properly
+//   const clonedData = JSON.parse(JSON.stringify(chart.data));
+  
+//   // Deep clone the options without functions
+//   const modalOptions = JSON.parse(JSON.stringify(chart.options));
+  
+//   // Set standard modal options
+//   modalOptions.responsive = true;
+//   modalOptions.maintainAspectRatio = false;
+  
+//   // Preserve the original tooltip callbacks by analyzing the chart type and ID
+//   let tooltipCallbacks = {};
+  
+//   // Determine chart type and apply appropriate tooltip callbacks
+//   if (chartId === "CGPADistributionChart" ) {
+//     // For CGPA distribution chart or any pie/doughnut chart
+//     tooltipCallbacks = {
+//       label: function(context) {
+//         const label = context.label || '';
+//         const value = context.raw || 0;
+//         return `${label}: ${value}%`;
+//       }
+//     };
+//   } else if (chart.config.type === "bar" || chart.config.type === "line") {
+//     // For bar/line charts - check if it's showing percentages
+//     const isPercentageChart = chartId.toLowerCase().includes("percent") || 
+//                              chartId.toLowerCase().includes("rate") ||
+//                              chartId.toLowerCase().includes("distribution");
+    
+//     tooltipCallbacks = {
+//       label: function(context) {
+//         const label = context.dataset.label || '';
+//         const value = context.raw || 0;
+//         if (isPercentageChart) {
+//           return `${label}: ${value}%`;
+//         } else {
+//           return `${label}: ${value}`;
+//         }
+//       }
+//     };
+//   } else {
+//     // Default tooltip callback - use standard format
+//     tooltipCallbacks = {
+//       label: function(context) {
+//         console.log(context.dataset.label);
+        
+//         const label = context.dataset ? context.dataset.label : '';
+//         const value = context.raw || 0;
+//         return `${label}: ${value}`;
+//       }
+//     };
+    
+//   }
+  
+//   // Make sure plugins structure exists
+//   if (!modalOptions.plugins) modalOptions.plugins = {};
+//   if (!modalOptions.plugins.tooltip) modalOptions.plugins.tooltip = {};
+  
+//   // Apply the determined tooltip callbacks
+//   modalOptions.plugins.tooltip.callbacks = tooltipCallbacks;
+  
+//   // Create the new chart instance
+//   modalChartInstance = new Chart(ctx, {
+//     type: chart.config.type,
+//     data: clonedData,
+//     options: modalOptions
+//   });
+  
+//   // Generate detailed insights based on chart type
+//   const chartDetails = generateChartInsights(chartId, chart);
+//   modalChartDetails.innerHTML = chartDetails;
+  
+//   // Show the modal
+//   modal.style.display = "block";
+// }
 function openChartInModal(chartId) {
   // Get the chart instance
   console.log(chartId);
@@ -2076,53 +2297,55 @@ function openChartInModal(chartId) {
   modalOptions.responsive = true;
   modalOptions.maintainAspectRatio = false;
   
-  // Preserve the original tooltip callbacks by analyzing the chart type and ID
-  let tooltipCallbacks = {};
-  
   // Determine chart type and apply appropriate tooltip callbacks
-  if (chartId === "CGPADistributionChart" ) {
-    // For CGPA distribution chart or any pie/doughnut chart
-    tooltipCallbacks = {
+  if (chartId === "studentEngagementChart" || chartId === "CGPADistributionChart") {
+    // For doughnut/pie charts with percentage display
+    modalOptions.plugins = modalOptions.plugins || {};
+    modalOptions.plugins.tooltip = modalOptions.plugins.tooltip || {};
+    modalOptions.plugins.tooltip.callbacks = {
       label: function(context) {
-        const label = context.label || '';
+        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+        const percentage = ((context.raw / total) * 100).toFixed(1);
+        return `${context.label}: ${context.raw} students (${percentage}%)`;
+      }
+    };
+  } else if (chartId.toLowerCase().includes("percent") || 
+             chartId.toLowerCase().includes("rate") ||
+             chartId.toLowerCase().includes("distribution")) {
+    // For percentage-based charts
+    modalOptions.plugins = modalOptions.plugins || {};
+    modalOptions.plugins.tooltip = modalOptions.plugins.tooltip || {};
+    modalOptions.plugins.tooltip.callbacks = {
+      label: function(context) {
+        const label = context.label || context.dataset.label || '';
         const value = context.raw || 0;
         return `${label}: ${value}%`;
       }
     };
   } else if (chart.config.type === "bar" || chart.config.type === "line") {
-    // For bar/line charts - check if it's showing percentages
-    const isPercentageChart = chartId.toLowerCase().includes("percent") || 
-                             chartId.toLowerCase().includes("rate") ||
-                             chartId.toLowerCase().includes("distribution");
-    
-    tooltipCallbacks = {
+    // For standard bar/line charts
+    modalOptions.plugins = modalOptions.plugins || {};
+    modalOptions.plugins.tooltip = modalOptions.plugins.tooltip || {};
+    modalOptions.plugins.tooltip.callbacks = {
       label: function(context) {
         const label = context.dataset.label || '';
         const value = context.raw || 0;
-        if (isPercentageChart) {
-          return `${label}: ${value}%`;
-        } else {
-          return `${label}: ${value}`;
-        }
+        return `${label}: ${value}`;
       }
     };
   } else {
-    // Default tooltip callback - use standard format
-    tooltipCallbacks = {
+    // Default tooltip callback
+    modalOptions.plugins = modalOptions.plugins || {};
+    modalOptions.plugins.tooltip = modalOptions.plugins.tooltip || {};
+    modalOptions.plugins.tooltip.callbacks = {
       label: function(context) {
-        const label = context.dataset ? context.dataset.label : '';
+        // Ensure we have a label, either from the datapoint or the dataset
+        const label = context.label || (context.dataset ? context.dataset.label : '') || '';
         const value = context.raw || 0;
         return `${label}: ${value}`;
       }
     };
   }
-  
-  // Make sure plugins structure exists
-  if (!modalOptions.plugins) modalOptions.plugins = {};
-  if (!modalOptions.plugins.tooltip) modalOptions.plugins.tooltip = {};
-  
-  // Apply the determined tooltip callbacks
-  modalOptions.plugins.tooltip.callbacks = tooltipCallbacks;
   
   // Create the new chart instance
   modalChartInstance = new Chart(ctx, {
