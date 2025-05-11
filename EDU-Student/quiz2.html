@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quiz</title>
+    <title>Courses</title>
     <link
       href="https://fonts.googleapis.com/css?family=Outfit"
       rel="stylesheet"
@@ -146,13 +146,15 @@
       }
       /* Color coding for quiz statuses */
       .quiz-item.new {
-        background-color: #c2beff9c; /* Light purple for untaken quizzes */
+        background-color: #c2beff9c; /* Light red for untaken quizzes with score 0 */
       }
       .quiz-item.completed {
         background-color: #beecc9; /* Light green for completed quizzes */
+        cursor: not-allowed; /* Disable clicking for completed quizzes */
       }
       .quiz-item.expired {
         background-color: #ffe6e6; /* Light red for expired quizzes */
+        cursor: not-allowed; /* Disable clicking for expired quizzes */
       }
       .no-quizzes {
         color: #721c24;
@@ -324,12 +326,13 @@
         }
         await getCourseName();
 
-        // Check student's quiz history with JSON parsing error handling
+        // Check student's quiz history
         async function checkStudentQuizHistory() {
           const { data, error } = await supaClient
             .from("student_quiz")
-            .select("quiz_id, score, student_answers")
-            .eq("student_id", studentId);
+            .select("score, student_answers")
+            .eq("student_id", studentId)
+            
 
           if (error) {
             console.error("Error checking student quiz history:", error.message);
@@ -338,14 +341,7 @@
           return data.map((record) => ({
             quiz_id: record.quiz_id,
             score: record.score || 0,
-            student_answers: record.student_answers ? (function() {
-              try {
-                return JSON.parse(record.student_answers);
-              } catch (e) {
-                console.error("Invalid JSON in student_answers:", record.student_answers, e);
-                return []; // Default to empty array if JSON parsing fails
-              }
-            })() : [],
+            student_answers: record.student_answers ? JSON.parse(record.student_answers) : [],
           }));
         }
 
@@ -361,6 +357,47 @@
             return [];
           }
           return data;
+        }
+
+        // Check and record zero score for approaching deadlines
+        async function checkApproachingDeadlines(quizzes, completedQuizIds) {
+          const currentDate = new Date();
+          const approachingThreshold = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+          for (const quiz of quizzes) {
+            const deadline = new Date(quiz.quiz_duedatetime);
+            const timeUntilDeadline = deadline - currentDate;
+
+            if (timeUntilDeadline > 0 && timeUntilDeadline <= approachingThreshold && !completedQuizIds.includes(quiz.quiz_id)) {
+              const { data: existingSubmission, error: fetchError } = await supaClient
+                .from("student_quiz")
+                .select("*")
+                .eq("student_id", studentId)
+                .eq("quiz_id", quiz.quiz_id)
+                .single();
+
+              if (fetchError && fetchError.code !== "PGRST116") {
+                console.error("Error checking existing submission:", fetchError.message);
+                continue;
+              }
+
+              if (!existingSubmission) {
+                const { error: insertError } = await supaClient.from("student_quiz").insert({
+                  student_id: studentId,
+                  quiz_id: quiz.quiz_id,
+                  score: 0,
+                  student_answers: JSON.stringify([]),
+                  
+                });
+
+                if (insertError) {
+                  console.error("Error recording zero score for approaching deadline:", insertError.message);
+                } else {
+                  console.log("Zero score recorded for approaching deadline quiz:", quiz.quiz_id);
+                }
+              }
+            }
+          }
         }
 
         // Record zero score for expired quizzes
@@ -408,6 +445,9 @@
           const completedQuizIds = quizHistory.map((q) => q.quiz_id);
           const allQuizzes = await fetchAllQuizzes();
 
+          // Check for approaching deadlines and record zero scores
+          await checkApproachingDeadlines(allQuizzes, completedQuizIds);
+
           // Record zero scores for expired quizzes
           await recordZeroScoreForExpiredQuizzes(allQuizzes, completedQuizIds);
 
@@ -429,27 +469,23 @@
             if (isCompleted) {
               statusClass = "completed"; // Completed quizzes (green)
             } else if (isExpired || (historyEntry && historyEntry.score === 0)) {
-              statusClass = "expired"; // Expired or untaken with score 0 (red)
+              statusClass = "new"; // Untaken with score 0 or expired (red)
             } else {
-              statusClass = "new"; // Untaken and deadline not passed (purple)
+              statusClass = "new"; // Untaken with no score yet (red)
             }
 
             // Format the deadline to show date and time (HH:mm)
             const deadlineDate = new Date(quiz.quiz_duedatetime);
-            const day = String(deadlineDate.getDate()).padStart(2, '0');
-            const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
-            const year = deadlineDate.getFullYear();
-            const dateString = `${day}/${month}/${year}`;
-            let hours = deadlineDate.getHours();
-            const minutes = String(deadlineDate.getMinutes()).padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12;
-            const timeString = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+            const dateString = deadlineDate.toLocaleDateString();
+            const hours = String(deadlineDate.getUTCHours()).padStart(2, '0');
+            const minutes = String(deadlineDate.getUTCMinutes()).padStart(2, '0');
+            const timeString = `${hours}:${minutes}`;
 
-            // Allow clicking on all quizzes
+            // Only allow clicking on new quizzes that aren't expired and have no score yet
+            const isClickable = !isCompleted && !isExpired && (!historyEntry || historyEntry.score === 0);
             html += `
               <div class="quiz-item ${statusClass}" 
-                   onclick="startQuiz(${quiz.quiz_id})" 
+                   ${isClickable ? `onclick="startQuiz(${quiz.quiz_id})"` : ""} 
                    data-quiz-id="${quiz.quiz_id}">
                 ${quiz.quiz_title} (Deadline: ${dateString} ${timeString})
               </div>
@@ -471,10 +507,47 @@
 
         // Start the selected quiz
         window.startQuiz = async (quizId) => {
-          quizSelectionModal.style.display = "none";
-          sessionStorage.setItem("selectedQuizId", quizId);
-          window.location.href = `quiz-details.html?quizId=${quizId}`;
-        };
+          
+  const allQuizzes = await fetchAllQuizzes();
+  const selectedQuiz = allQuizzes.find((q) => q.quiz_id === quizId);
+  const deadline = new Date(selectedQuiz.quiz_duedatetime);
+  const currentDate = new Date();
+  // Add this check at the beginning of startQuiz function
+// if (localStorage.getItem(`quiz_attempted_${quizId}`) === 'true') {
+//   alert("You've already attempted this quiz and cannot access it again.");
+//   return;
+// }
+
+
+  if (deadline < currentDate) {
+    console.log("Quiz has expired, cannot start.");
+    return;
+  }
+
+  // Check if the student has already attempted the quiz
+  const { data: quizRecord, error } = await supaClient
+    .from("student_quiz")
+    .select("*")
+    .eq("student_id", studentId)
+    .eq("quiz_id", quizId)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    console.error("Error checking quiz attempt:", error.message);
+    return;
+  }
+
+  if (quizRecord) {
+  quizSelectionModal.style.display = "none";
+  sessionStorage.setItem("selectedQuizId", quizId);
+  window.location.href = `quiz-details.html?quizId=${quizId}`;
+  return;
+}
+
+  quizSelectionModal.style.display = "none";
+  sessionStorage.setItem("selectedQuizId", quizId);
+  window.location.href = `quiz-details.html?quizId=${quizId}`;
+};
 
         // Initialize the page
         async function initPage() {

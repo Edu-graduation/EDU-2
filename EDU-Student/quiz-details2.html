@@ -73,81 +73,50 @@
       .option input {
         margin-right: 10px;
       }
-      .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-      }
-      .modal-content {
-        background-color: white;
-        padding: 20px;
-        border-radius: 10px;
-        max-width: 500px;
-        width: 90%;
-        text-align: center;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      }
-      .modal-content h2 {
-        margin-bottom: 20px;
-      }
-      .modal-content p {
-        margin: 10px 0;
-      }
-      .modal-content .close-button {
-        background-color: #5B50C6;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 20px;
-      }
-      .modal-content .close-button:hover {
-        background-color: #4a41a3;
-      }
-      .quiz-results {
-        text-align: center;
-      }
-      .score-details {
-        margin: 20px 0;
-      }
-      .result-progress {
-        width: 100%;
-        background-color: #e0e0e0;
-        border-radius: 5px;
-        overflow: hidden;
-      }
-      .result-bar {
-        height: 10px;
-        background-color: #5B50C6;
-        transition: width 0.3s ease-in-out;
-      }
-      .question-review {
-        margin-top: 20px;
-      }
-      .review-item {
-        margin: 10px 0;
-        padding: 10px;
-        border-radius: 5px;
-      }
-      .review-item.correct {
-        background-color: #d4edda;
-        color: #155724;
-      }
-      .review-item.incorrect {
-        background-color: #f8d7da;
-        color: #721c24;
-      }
-      .actions {
-        margin-top: 20px;
-      }
+      .custom-alert-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.custom-alert-content {
+  background: white;
+  padding: 20px;
+  border-radius: 20px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.alert-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.button-primary {
+  background: #4e8cce;
+  color: white;
+}
+
+.button-danger {
+  background: #ee616f;
+  color: white;
+}
     </style>
   </head>
   <body>
@@ -233,13 +202,13 @@
                   d="M10 20A10 10 0 1 0 0 10a10 10 0 0 0 10 10zM8.711 4.3l5.7 5.766L8.7 15.711l-1.4-1.422 4.289-4.242-4.3-4.347z"
                 />
               </svg>
-              <a class="previous">Previous</a>
+              <span class="previous">Previous</span>
             </button>
             <button class="button button-secondary" id="next-button">
-              <a class="next">Next</a>
+              <span class="next">Next</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
                 <path
-                  d=" M10 20A10 10 0 1 0 0 10a10 10 0 0 0 10 10zM8.711 4.3l5.7 5.766L8.7 15.711l-1.4-1.422 4.289-4.242-4.3-4.347z "
+                d=" M10 20A10 10 0 1 0 0 10a10 10 0 0 0 10 10zM8.711 4.3l5.7 5.766L8.7 15.711l-1.4-1.422 4.289-4.242-4.3-4.347z "
                   fill="#5B50C6"
                 />
               </svg>
@@ -274,7 +243,7 @@
         const courseId = sessionStorage.getItem("courseId");
         const studentId = sessionStorage.getItem("studentId") || "demo_student_id";
         
-        // Retrieve quizId from URL or sessionStorage
+        // Retrieve quizId from URL or sessionStorage (set in courses.html)
         const urlParams = new URLSearchParams(window.location.search);
         const quizId = urlParams.get("quizId") || sessionStorage.getItem("selectedQuizId");
 
@@ -296,8 +265,125 @@
         let timerInterval = null;
         let remainingTime = 0;
         let timerStarted = false;
-        let hasAnswered = false; // Track if the student has answered any question
-        let isSubmitting = false; // Flag to prevent multiple submissions
+        
+
+        
+
+// Variables to track exam status
+let quizInProgress = false;
+let blockPageLeave = false;
+let alertModal = null;
+let exitWarningShown = false;
+
+// Function to show custom alert window
+function showExitConfirmation(callback) {
+  if (alertModal) return;
+
+  alertModal = document.createElement("div");
+  alertModal.className = "custom-alert-modal";
+  alertModal.innerHTML = `
+    <div class="custom-alert-content">
+      <h3>alert!</h3>
+      <p>If you leave the exam, it will be closed and you will not be able to retake it.</p>
+      <div class="alert-buttons">
+        <button id="cancel-exit" class="button button-primary">Continue the exam</button>
+        <button id="confirm-exit" class="button button-danger">Leaving the exam</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(alertModal);
+
+  document.getElementById("cancel-exit").addEventListener("click", () => {
+    closeExitConfirmation();
+    exitWarningShown = false;
+  });
+
+  document.getElementById("confirm-exit").addEventListener("click", async () => {
+    blockPageLeave = false;
+    closeExitConfirmation();
+    await savePartialQuizResults();
+    if (callback) callback();
+    else window.location.href = "courses.html";
+  });
+
+  exitWarningShown = true;
+}
+
+// Function to close the alert window
+function closeExitConfirmation() {
+  if (alertModal && alertModal.parentNode) {
+    document.body.removeChild(alertModal);
+    alertModal = null;
+  }
+}
+
+// Function to save partial answers
+async function savePartialQuizResults() {
+  if (!quizData || !quizData.quiz_questions) return;
+
+  let score = 0;
+  let totalPossibleScore = 0;
+
+  quizData.quiz_questions.forEach((question, index) => {
+    const mark = parseFloat(question.marks) || 1;
+    totalPossibleScore += mark;
+    if (selectedAnswers[index] === question.correct_answer) {
+      score += mark;
+    }
+  });
+
+  await saveQuizResults(score);
+  localStorage.setItem(`quiz_attempted_${quizId}`, "true");
+}
+
+// مستمع لتغيير حالة الصفحة (تبديل التبويبات)
+document.addEventListener("visibilitychange", function () {
+  if (document.visibilityState === "hidden" && quizInProgress && !exitWarningShown) {
+    savePartialQuizResults();
+  }
+});
+
+// Listener trying to leave the page
+window.addEventListener("beforeunload", function (event) {
+  if (quizInProgress && blockPageLeave && !exitWarningShown) {
+    event.preventDefault();
+    event.returnValue = "Are you sure you want to leave the exam? It will be closed and you won't be able to return.";
+    savePartialQuizResults(); // Save answers before exiting
+    return event.returnValue;
+  }
+});
+
+// Listener to click on any element on the page
+document.addEventListener("click", function (e) {
+  if (!quizInProgress || exitWarningShown) return;
+
+  // Check if clicking on a link <a>
+  const target = e.target.closest("a");
+  if (target && target.getAttribute("href") && !target.getAttribute("href").startsWith("#") && !target.getAttribute("href").startsWith("javascript:")) {
+    e.preventDefault();
+    showExitConfirmation(() => {
+      window.location.href = target.getAttribute("href");
+    });
+    return;
+  }
+
+  // Check if the exit button is clicked (Logout)
+  const logoutButton = e.target.closest(".Btn");
+  if (logoutButton) {
+    e.preventDefault();
+    showExitConfirmation(() => {
+      window.location.href = "logout.html";
+    });
+    return;
+  }
+});
+
+// Function to start exam tracking
+function startQuizTracking() {
+  quizInProgress = true;
+  blockPageLeave = true;
+}
 
         // Function to get the course name and update the title
         async function getCourseName() {
@@ -319,120 +405,185 @@
 
         // Check if the student has already taken this specific quiz
         async function checkStudentQuiz() {
-          const { data, error } = await supaClient
-            .from("student_quiz")
-            .select("score, student_answers")
-            .eq("student_id", studentId)
-            .eq("quiz_id", quizId)
-            .single();
+  const { data, error } = await supaClient
+    .from("student_quiz")
+    .select("*")
+    .eq("student_id", studentId)
+    .eq("quiz_id", quizId)
+    .single();
 
-          if (error && error.code !== "PGRST116") { // PGRST116 means no rows found
-            console.error("Error checking student quiz:", error);
-            return null;
-          }
-          return data; // Returns the quiz record if found, or null if not
-        }
+  if (error && error.code !== "PGRST116") { // PGRST116 means no rows found
+    console.error("Error checking student quiz:", error);
+    return null;
+  }
+  return data; // Returns the quiz record if found, or null if not
+}
 
-        // Display quiz results (used for both previously taken quizzes and expired quizzes)
-        async function displayResults(score, studentAnswers, message = "Quiz Results") {
-          const questions = quizData.quiz_questions;
-          let totalPossibleScore = 0;
-          let correctAnswers = 0;
+        // Display previous quiz results if the student has already taken the quiz
+        function displayPreviousResults(previousResult) {
+  const studentAnswers = previousResult.student_answers ? JSON.parse(previousResult.student_answers) : [];
 
-          questions.forEach((question, index) => {
-            const mark = parseFloat(question.marks) || 1;
-            totalPossibleScore += mark;
-            const studentAnswer = studentAnswers[index];
-            const correctAnswer = question.correct_answer;
-            if (studentAnswer && studentAnswer === correctAnswer) {
-              correctAnswers++;
-            }
-          });
+  // Fetch quiz data to get questions for review
+  async function getQuizData() {
+    const { data, error } = await supaClient
+      .from("quiz")
+      .select("*")
+      .eq("quiz_id", quizId)
+      .single();
 
-          contentContainer.innerHTML = `
-            <div class="quiz-results">
-              <h2>${message}</h2>
-              <div class="score-details">
-                <p class="score">Total Questions: ${questions.length}</p>
-                <p class="score">Correct Answers: ${correctAnswers}/${questions.length}</p>
-                <p class="score">Score: ${score}/${totalPossibleScore}</p>
-              </div>
-              <div class="question-review">
-                <h3>Question Review</h3>
-                ${questions.map((question, index) => {
-                  const studentAnswer = studentAnswers[index] || "Not answered";
-                  const correctAnswer = question.correct_answer;
-                  const isCorrect = studentAnswer === correctAnswer && studentAnswer !== "Not answered";
-                  return `
-                    <div class="review-item ${isCorrect ? "correct" : "incorrect"}">
-                      <p><strong>Question ${index + 1}:</strong> ${question.question}</p>
-                      <p>Your Answer: ${studentAnswer}</p>
-                      <p>Correct Answer: ${correctAnswer}</p>
-                    </div>
-                  `;
-                }).join("")}
-              </div>
-              <div class="actions">
-                <button class="button button-primary" onclick="window.location.href='quiz.html'">
-                  Back to Quizzes
-                </button>
-              </div>
-            </div>
-          `;
-          // Hide navigation buttons
-          nextButton.style.display = "none";
-          prevButton.style.display = "none";
-          finishButton.style.display = "none";
-        }
+    if (error) {
+      console.error("Error fetching quiz data:", error.message);
+      return null;
+    }
+    return data;
+  }
 
+  // Render the review
+  async function renderReview() {
+    const quizData = await getQuizData();
+    if (!quizData || !quizData.quiz_questions) {
+      contentContainer.innerHTML = `
+        <div class="quiz-results">
+          <h2>You Have Already Taken This Quiz</h2>
+          <p>Error loading quiz questions for review.</p>
+          <div class="actions">
+            <button class="button button-primary" onclick="window.location.href='courses.html'">
+              Back to Courses
+            </button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    let totalPossibleScore = 0;
+    let correctAnswers = 0;
+    quizData.quiz_questions.forEach((question, index) => {
+      const mark = parseFloat(question.marks) || 1;
+      totalPossibleScore += mark;
+      if (studentAnswers[index] === question.correct_answer) {
+        correctAnswers++;
+      }
+    });
+
+    contentContainer.innerHTML = `
+      <div class="quiz-results">
+        <h2>You Have Already Taken This Quiz</h2>
+        <div class="score-details">
+          <p class="score">Total Questions: ${quizData.quiz_questions.length}</p>
+          <p class="score">Correct Answers: ${correctAnswers}/${quizData.quiz_questions.length}</p>
+          <p class="score">Score: ${previousResult.score}/${totalPossibleScore}</p>
+          <div class="result-progress"></div>
+        </div>
+        <div class="question-review">
+          <h3>Question Review</h3>
+          ${quizData.quiz_questions
+            .map((question, index) => {
+              const studentAnswer = studentAnswers[index] || "Not answered";
+              const correctAnswer = question.correct_answer;
+              const isCorrect = studentAnswer === correctAnswer;
+              return `
+                <div class="review-item ${isCorrect ? "correct" : "incorrect"}">
+                  <p><strong>Question ${index + 1}:</strong> ${question.question}</p>
+                  <p>Your answer: ${studentAnswer}</p>
+                  <p>Correct answer: ${correctAnswer}</p>
+                  <p>Result: ${isCorrect ? "Correct" : "Incorrect"}</p>
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+        <div class="actions">
+          <button class="button button-primary" onclick="window.location.href='courses.html'">
+            Back to Courses
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Hide navigation buttons
+  nextButton.style.display = "none";
+  prevButton.style.display = "none";
+  finishButton.style.display = "none";
+
+  // Render the review
+  renderReview();
+  quizInProgress = false;
+  blockPageLeave = false;
+}
         // Save quiz results to the student_quiz table
         async function saveQuizResults(score) {
-          const { data: existingSubmission, error: fetchError } = await supaClient
-            .from("student_quiz")
-            .select("*")
-            .eq("student_id", studentId)
-            .eq("quiz_id", quizId)
-            .single();
+  // Check if a record already exists
+  const { data: existingRecord, error: fetchError } = await supaClient
+    .from("student_quiz")
+    .select("*")
+    .eq("student_id", studentId)
+    .eq("quiz_id", quizId)
+    .single();
 
-          if (fetchError && fetchError.code !== "PGRST116") {
-            console.error("Error checking existing submission:", fetchError.message);
-            return false;
-          }
+  if (fetchError && fetchError.code !== "PGRST116") {
+    console.error("Error checking existing record:", fetchError.message);
+    return false;
+  }
 
-          if (existingSubmission) {
-            // Update existing record
-            const { error: updateError } = await supaClient
-              .from("student_quiz")
-              .update({
-                score: score,
-                student_answers: JSON.stringify(selectedAnswers),
-              })
-              .eq("student_id", studentId)
-              .eq("quiz_id", quizId);
+  if (existingRecord) {
+    // Update existing record
+    const { error: updateError } = await supaClient
+      .from("student_quiz")
+      .update({
+        score: score,
+        student_answers: JSON.stringify(selectedAnswers),
+        
+      })
+      .eq("student_id", studentId)
+      .eq("quiz_id", quizId);
 
-            if (updateError) {
-              console.error("Error updating quiz results:", updateError);
-              return false;
-            }
-          } else {
-            // Insert new record
-            const { error: insertError } = await supaClient
-              .from("student_quiz")
-              .insert({
-                student_id: studentId,
-                quiz_id: quizId,
-                score: score,
-                student_answers: JSON.stringify(selectedAnswers),
-              });
+    if (updateError) {
+      console.error("Error updating quiz results:", updateError.message);
+      return false;
+    }
+  } else {
+    // Insert new record
+    const { error: insertError } = await supaClient
+      .from("student_quiz")
+      .insert({
+        student_id: studentId,
+        quiz_id: quizId,
+        score: score,
+        student_answers: JSON.stringify(selectedAnswers),
+        
+      });
 
-            if (insertError) {
-              console.error("Error saving quiz results:", insertError);
-              return false;
-            }
-          }
-          return true;
-        }
+    if (insertError) {
+      console.error("Error saving quiz results:", insertError.message);
+      return false;
+    }
+  }
+  return true;
+}
 
+        // Add this function after the saveQuizResults function
+async function savePartialQuizResults() {
+  if (!quizData || !quizData.quiz_questions) return;
+  
+  let score = 0;
+  let totalPossibleScore = 0;
+  
+  quizData.quiz_questions.forEach((question, index) => {
+    const mark = parseFloat(question.marks) || 1;
+    totalPossibleScore += mark;
+    
+    if (selectedAnswers[index] === question.correct_answer) {
+      score += mark;
+    }
+  });
+  
+  await saveQuizResults(score);
+  
+  // Store flag in localStorage to prevent future access
+  localStorage.setItem(`quiz_attempted_${quizId}`, 'true');
+}
         // Initialize timer based on quiz_duration
         function startTimer(duration) {
           if (timerStarted) return;
@@ -515,73 +666,63 @@
 
         // Render the current question from quiz_questions
         function renderQuestion() {
-          if (
-            !quizData ||
-            !quizData.quiz_questions ||
-            quizData.quiz_questions.length === 0
-          ) {
-            contentContainer.innerHTML =
-              "<p>No questions available for this quiz.</p>";
-            return;
-          }
+  if (!quizData || !quizData.quiz_questions || quizData.quiz_questions.length === 0) {
+    contentContainer.innerHTML = "<p>No questions available for this quiz.</p>";
+    return;
+  }
 
-          const question = quizData.quiz_questions[currentQuestionIndex];
-          const questionNumber = currentQuestionIndex + 1;
+  const question = quizData.quiz_questions[currentQuestionIndex];
+  const questionNumber = currentQuestionIndex + 1;
 
-          let questionHTML = `
-            <div class="content">
-              <div class="question-number">Question ${questionNumber}</div>
-              <div class="question-text">${
-                question.question || "No question text"
-              }</div>
-              <div class="options">
-          `;
+  let questionHTML = `
+    <div class="content">
+      <div class="question-number">Question ${questionNumber}</div>
+      <div class="question-text">${question.question || "No question text"}</div>
+      <div class="options">
+  `;
 
-          if (question.options && Array.isArray(question.options)) {
-            question.options.forEach((option, optionIndex) => {
-              const isChecked =
-                selectedAnswers[currentQuestionIndex] === option;
-              questionHTML += `
-                <label class="option">
-                  <input type="radio" name="question${currentQuestionIndex}" value="${option}" 
-                    ${isChecked ? "checked" : ""} />
-                  <span class="option-text">${option}</span>
-                  <span class="radio"></span>
-                </label>
-              `;
-            });
-          } else {
-            questionHTML += "<p>No options available for this question.</p>";
-          }
+  if (question.options && Array.isArray(question.options)) {
+    question.options.forEach((option, optionIndex) => {
+      const isChecked = selectedAnswers[currentQuestionIndex] === option;
+      questionHTML += `
+        <label class="option">
+          <input type="radio" name="question${currentQuestionIndex}" value="${option}" 
+            ${isChecked ? "checked" : ""} />
+          <span class="option-text">${option}</span>
+          <span class="radio"></span>
+        </label>
+      `;
+    });
+  } else {
+    questionHTML += "<p>No options available for this question.</p>";
+  }
 
-          questionHTML += `
-              </div>
-            </div>
-          `;
+  questionHTML += `
+      </div>
+    </div>
+  `;
 
-          contentContainer.innerHTML = questionHTML;
+  contentContainer.innerHTML = questionHTML;
 
-          // Add event listeners to radio buttons
-          const radioButtons = document.querySelectorAll(
-            `input[name="question${currentQuestionIndex}"]`
-          );
-          radioButtons.forEach((radio) => {
-            radio.addEventListener("change", (e) => {
-              selectedAnswers[currentQuestionIndex] = e.target.value;
-              hasAnswered = true; // Mark that the student has answered a question
-              if (!timerStarted) {
-                const duration = quizData.quiz_duration || "00:30:00"; // Default to 30 minutes if not specified
-                startTimer(duration);
-              }
-              updateProgress();
-              updateFinishButton();
-            });
-          });
+  // Add event listeners to radio buttons
+  const radioButtons = document.querySelectorAll(`input[name="question${currentQuestionIndex}"]`);
+  radioButtons.forEach((radio) => {
+    radio.addEventListener("change", (e) => {
+      selectedAnswers[currentQuestionIndex] = e.target.value;
+      if (!timerStarted) {
+        const duration = quizData.quiz_duration || "00:30:00";
+        startTimer(duration);
+      }
+      updateProgress();
+      startQuizTracking(); 
+      updateFinishButton();
+    });
+  });
 
-          // Update navigation buttons
-          updateNavigationButtons();
-          updateProgress();
-        }
+  // Update navigation buttons
+  updateNavigationButtons();
+  updateProgress();
+}
 
         // Update the state of navigation and finish buttons
         function updateNavigationButtons() {
@@ -610,7 +751,7 @@
         }
 
         // Show question review after closing the modal
-        function showQuestionReview(score, totalPossibleScore, correctAnswers, studentAnswers) {
+        function showQuestionReview(score, totalPossibleScore, correctAnswers) {
           contentContainer.innerHTML = `
             <div class="quiz-results">
               <h2>Quiz Review</h2>
@@ -626,9 +767,9 @@
                 <h3>Question Review</h3>
                 ${quizData.quiz_questions
                   .map((question, index) => {
-                    const studentAnswer = studentAnswers[index] || "Not answered";
+                    const studentAnswer = selectedAnswers[index] || "Not answered";
                     const correctAnswer = question.correct_answer;
-                    const isCorrect = studentAnswer === correctAnswer && studentAnswer !== "Not answered";
+                    const isCorrect = studentAnswer === correctAnswer;
                     return `
                     <div class="review-item ${
                       isCorrect ? "correct" : "incorrect"
@@ -646,8 +787,8 @@
               </div>
               
               <div class="actions">
-                <button class="button button-primary" onclick="window.location.href='quiz.html'">
-                  Back to Quizzes
+                <button class="button button-primary" onclick="window.location.href='courses.html'">
+                  Back to Courses
                 </button>
               </div>
             </div>
@@ -656,14 +797,12 @@
 
         // Submit the quiz, save results, and show modal
         async function submitQuiz() {
-          if (isSubmitting) return; // Prevent multiple submissions
-          isSubmitting = true;
-
+          quizInProgress = false;
+          blockPageLeave = false;
           clearInterval(timerInterval);
 
           if (!quizData || !quizData.quiz_questions) {
             alert("No quiz data available.");
-            isSubmitting = false;
             return;
           }
 
@@ -678,13 +817,13 @@
             // Compare student's answer with the correct answer from the database
             const studentAnswer = selectedAnswers[index];
             const correctAnswer = question.correct_answer;
-            if (studentAnswer && studentAnswer === correctAnswer) {
+            if (studentAnswer === correctAnswer) {
               score += mark;
               correctAnswers++;
             }
           });
 
-          // Save the score to the student_quiz table
+          // Save only the score to the student_quiz table
           await saveQuizResults(score);
 
           // Show the modal with quiz summary
@@ -702,20 +841,57 @@
           prevButton.style.display = "none";
           finishButton.style.display = "none";
 
-          // Disable navigation prompt after submission
-          window.onbeforeunload = null;
-
           // Add event listener to close the modal and show the review
           closeModalButton.onclick = () => {
             modal.style.display = "none";
-            showQuestionReview(score, totalPossibleScore, correctAnswers, selectedAnswers);
+            showQuestionReview(score, totalPossibleScore, correctAnswers);
           };
-
-          isSubmitting = false;
         }
+
+
+        // Function to save partial quiz results
+async function savePartialQuizResults() {
+  let score = 0;
+  let totalPossibleScore = 0;
+  
+  quizData.quiz_questions.forEach((question, index) => {
+    const mark = parseFloat(question.marks) || 1;
+    totalPossibleScore += mark;
+    
+    if (selectedAnswers[index] === question.correct_answer) {
+      score += mark;
+    }
+  });
+  
+  await saveQuizResults(score);
+  
+  // Store flag in localStorage to prevent future access
+  localStorage.setItem(`quiz_attempted_${quizId}`, 'true');
+}
+
+
 
         // Initialize the quiz
         async function initQuiz() {
+          // Add to beginning of initQuiz function
+          if (localStorage.getItem(`quiz_attempted_${quizId}`) === "true") {
+    contentContainer.innerHTML = `
+      <div class="quiz-results">
+        <h2>The exam cannot be accessed.</h2>
+        <p>You have started and left this exam before. Your answers have been saved.</p>
+        <div class="actions">
+          <button class="button button-primary" onclick="window.location.href='courses.html'">
+            Back to courses
+          </button>
+        </div>
+      </div>
+    `;
+    nextButton.style.display = "none";
+    prevButton.style.display = "none";
+    finishButton.style.display = "none";
+    return;
+  }
+
           // Fetch quiz data for the specific quizId and courseId
           quizData = await fetchQuizData();
 
@@ -729,84 +905,15 @@
           // Check if the student has already taken the quiz
           const previousResult = await checkStudentQuiz();
           if (previousResult) {
-
-            
-            // Case 1: Quiz already taken - Display previous results
-            const studentAnswers = previousResult.student_answers ? (function() {
-              try {
-                return JSON.parse(previousResult.student_answers);
-              } catch (e) {
-                console.error("Invalid JSON in student_answers:", previousResult.student_answers, e);
-                return [];
-              }
-            })() : [];
-            await displayResults(previousResult.score, studentAnswers, "Quiz Results");
+            // If the student has already taken the quiz, display their results
+            displayPreviousResults(previousResult);
             return;
           }
 
-          // Check if the quiz deadline has passed
-          const deadline = new Date(quizData.quiz_duedatetime);
-          const currentDate = new Date();
-          if (deadline < currentDate) {
-
-
-            // Case 2: Deadline passed and quiz not taken - Record a zero score and display
-            selectedAnswers = Array(quizData.quiz_questions.length).fill(null);
-            await saveQuizResults(0); // Save score as 0
-            await displayResults(0, selectedAnswers, "Quiz Expired - Missed Deadline");
-            return;
-          }
-
-          // Case 3: Quiz is new or deadline hasn't passed - Start the quiz
+          // If the student hasn't taken the quiz, proceed with the quiz
           selectedAnswers = Array(quizData.quiz_questions.length).fill(null);
 
-          // Set up navigation prompt to warn if the student tries to leave
-          window.onbeforeunload = function (e) {
-            if (hasAnswered && !isSubmitting) {
-              const confirmationMessage = (
-                "If you leave now, the test will end and your grade will be calculated based only on the answers you provided. Do you want to continue?");
-              e.returnValue = confirmationMessage; // For most browsers
-              return confirmationMessage; // For some older browsers
-            }
-            return undefined; // No prompt if no answers or already submitting
-          };
-
-          // Handle browser back/forward navigation using popstate
-          window.addEventListener('popstate', async (e) => {
-            if (hasAnswered && !isSubmitting) {
-              const confirmLeave = confirm(
-                "If you leave now, the test will end and your grade will be calculated based only on the answers you provided. Do you want to continue?");
-              if (confirmLeave) {
-                await submitQuiz();
-                window.location.href = 'quiz.html'; // Redirect to quizzes page
-              } else {
-                history.pushState(null, null, window.location.href); // Prevent back navigation
-              }
-            }
-          });
-
-          // Push initial state to prevent back navigation
-          history.pushState(null, null, window.location.href);
-
-          // Add event listener to sidebar links to handle navigation
-          const sidebarLinks = document.querySelectorAll('.sidebar__list a');
-          sidebarLinks.forEach(link => {
-            link.addEventListener('click', async (e) => {
-              e.preventDefault();
-              if (hasAnswered && !isSubmitting) {
-                const confirmLeave = confirm(
-                  "If you leave now, the test will end and your grade will be calculated based only on the answers you provided. Do you want to continue?");
-                if (confirmLeave) {
-                  await submitQuiz();
-                  window.location.href = 'quiz.html'; // Redirect to quizzes page
-                }
-              } else {
-                window.location.href = link.href; // Allow navigation if no answers
-              }
-            });
-          });
-
-          // Set up event listeners for navigation buttons
+          // Set up event listeners
           nextButton.addEventListener("click", () => {
             if (currentQuestionIndex < quizData.quiz_questions.length - 1) {
               currentQuestionIndex++;
@@ -831,6 +938,8 @@
         // Start the quiz
         initQuiz();
       });
+      
+      
     </script>
   </body>
 </html>

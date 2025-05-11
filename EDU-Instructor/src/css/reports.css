@@ -248,6 +248,9 @@
   .wide-card {
     grid-column: auto;
   }
+  .wide-card:last-child{
+    grid-column: span 2;
+  }
 }
 
 @media screen and (max-width: 56.25em) {

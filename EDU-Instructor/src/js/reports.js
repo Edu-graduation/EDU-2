@@ -252,8 +252,7 @@ async function initializeReports() {
       studentAssignmentData,
       studentQuizData,
       assignmentsData,
-      quizzesData,
-      studentsData
+      quizzesData
     );
 
     initStudentEngagementChart(
@@ -271,15 +270,15 @@ async function initializeReports() {
 
     initQuizPerformanceChart(quizzesData, studentQuizData, instructorCourses);
 
-    initStudentProgressChart(
-      instructorCourses,
-      enrollmentData,
-      studentAssignmentData,
-      studentQuizData,
-      assignmentsData,
-      quizzesData,
-      studentsData
-    );
+    // initStudentProgressChart(
+    //   instructorCourses,
+    //   enrollmentData,
+    //   studentAssignmentData,
+    //   studentQuizData,
+    //   assignmentsData,
+    //   quizzesData,
+    //   studentsData
+    // );
 
     initActivityParticipationChart(
       activitiesData,
@@ -688,12 +687,11 @@ function initCoursePerformanceChart(
   studentQuizzes,
   assignments,
   quizzes,
-  students
 ) {
   try {
     // Calculate metrics for each course
     const courseIds = courses.map((course) => course.course_id);
-
+      
     const courseMetrics = courses.map((course) => {
       const courseId = course.course_id;
 
@@ -714,35 +712,58 @@ function initCoursePerformanceChart(
       const completedAssignments = courseAssignmentSubmissions.filter(
         (sa) => sa.assign_path !== null
       ).length;
+const enrollmentsInCourse = enrollments.filter(
+  (e) => e.course_id === courseId
+).length;
 
-      const assignmentCompletionRate =
-        courseAssignmentSubmissions.length > 0
-          ? (completedAssignments / students.length) * 100
-          : 0;
-      console.log(assignmentCompletionRate);
-      
+const totalExpectedSubmissions = enrollmentsInCourse * courseAssignments.length;
+
+const assignmentCompletionRate =
+  totalExpectedSubmissions > 0
+    ? (completedAssignments / totalExpectedSubmissions) * 100
+    : 0;
       // Calculate average quiz score
 
-      const courseQuizzes = quizzes.filter((q) =>
-        courseIds.includes(q.course_id)
-      );
+      // const courseQuizzes = quizzes.filter((q) =>
+      //   courseIds.includes(q.course_id)
+      // );
+      const courseQuizzes = quizzes.filter((q) => q.course_id === courseId);
+      console.log("courseQuizzes", courseQuizzes);
+      
+      // const courseQuizIds = courseQuizzes.map((q) => q.quiz_id);
 
+      // const courseQuizSubmissions = studentQuizzes.filter((sq) =>
+      //   courseQuizIds.includes(sq.quiz_id)
+      // );
+
+      // const totalScore = courseQuizSubmissions.reduce(
+      //   (sum, sq) => sum + Number(sq.score),
+      //   0
+      // );
+
+      // const avgQuizScore =
+      //   courseQuizSubmissions.length > 0
+      //     ? totalScore / courseQuizSubmissions.length
+      //     : 0;
       const courseQuizIds = courseQuizzes.map((q) => q.quiz_id);
+console.log("courseQuizIds", courseQuizIds);
 
-      const courseQuizSubmissions = studentQuizzes.filter((sq) =>
-        courseQuizIds.includes(sq.quiz_id)
-      );
+const courseQuizSubmissions = studentQuizzes.filter((sq) =>
+  courseQuizIds.includes(sq.quiz_id)
+);
+console.log("courseQuizSubmissions", courseQuizSubmissions);
 
-      const totalScore = courseQuizSubmissions.reduce(
-        (sum, sq) => sum + Number(sq.score),
-        0
-      );
+const totalScore = courseQuizSubmissions.reduce(
+  (sum, sq) => sum + Number(sq.score),
+  0
+);
+console.log("totalScore", totalScore);
 
-      const avgQuizScore =
-        courseQuizSubmissions.length > 0
-          ? totalScore / courseQuizSubmissions.length
-          : 0;
-console.log(avgQuizScore);
+const avgQuizScore =
+  courseQuizSubmissions.length > 0
+    ? totalScore / courseQuizSubmissions.length
+    : 0;
+console.log("avgQuizScore", avgQuizScore);
 
       return {
         name: course.course_name,
@@ -961,8 +982,7 @@ function initAssignmentCompletionChart(
       const completedSubmissions = submissions.filter(
         (sa) => sa.assign_path !== null
       ).length;
-      console.log(submissions);
-      console.log(completedSubmissions);
+      
       
       
       const completionRate =
@@ -1060,14 +1080,15 @@ function initQuizPerformanceChart(quizzes, studentQuizzes, courses) {
   try {
     // Group quizzes by course
     const quizzesByCourse = {};
-
+    console.log("courses", courses);
+    
     courses.forEach((course) => {
       quizzesByCourse[course.course_id] = {
         name: course.course_name,
         quizzes: [],
       };
     });
-
+    console.log("quizzesByCourse", quizzesByCourse);
     // Calculate average scores for each quiz
     quizzes.forEach((quiz) => {
       const quizId = quiz.quiz_id;
@@ -1108,7 +1129,6 @@ function initQuizPerformanceChart(quizzes, studentQuizzes, courses) {
         });
       }
     });
-
     // Get all unique quiz names
     const allQuizNames = [];
     Object.values(quizzesByCourse).forEach((courseData) => {
@@ -1118,7 +1138,9 @@ function initQuizPerformanceChart(quizzes, studentQuizzes, courses) {
         }
       });
     });
-
+    console.log("allQuizNames", allQuizNames);
+    console.log("datasets", datasets);
+    
     // Create chart
     const ctx = document
       .getElementById("quizPerformanceChart")
@@ -1156,143 +1178,139 @@ function initQuizPerformanceChart(quizzes, studentQuizzes, courses) {
 }
 
 // 5. Student Progress Chart
-function initStudentProgressChart(
-  courses,
-  enrollments,
-  studentAssignments,
-  studentQuizzes,
-  assignments,
-  quizzes,
-  students
-) {
-  try {
-    // Get course IDs taught by the instructor
-    const instructorCourseIds = courses.map((course) => course.course_id);
-    // Get students enrolled in instructor's courses
-    const enrolledStudentIds = [
-      ...new Set(enrollments.map((e) => e.student_id)),
-    ];
-    // Calculate progress categories
-    const progressCategories = {
-      "Excellent (90-100%)": 0,
-      "Good (80-89%)": 0,
-      "Average (70-79%)": 0,
-      "Below Average (60-69%)": 0,
-      "At Risk (<60%)": 0,
-    };
-    console.log(students);
+// function initStudentProgressChart(
+//   courses,
+//   enrollments,
+//   studentAssignments,
+//   studentQuizzes,
+//   assignments,
+//   quizzes,
+//   students
+// ) {
+//   try {
+//     // Get course IDs taught by the instructor
+//     const instructorCourseIds = courses.map((course) => course.course_id);
+//     // Get students enrolled in instructor's courses
+//     const enrolledStudentIds = [
+//       ...new Set(enrollments.map((e) => e.student_id)),
+//     ];
+//     // Calculate progress categories
+//     const progressCategories = {
+//       "Excellent (90-100%)": 0,
+//       "Good (80-89%)": 0,
+//       "Average (70-79%)": 0,
+//       "Below Average (60-69%)": 0,
+//       "At Risk (<60%)": 0,
+//     };
     
-    // Get instructor's assignments and quizzes
-    const instructorAssignmentIds = assignments.map((a) => a.assign_id);
-    const instructorQuizIds = quizzes.map((q) => q.quiz_id);
-    // Calculate overall progress for each student
-    enrolledStudentIds.forEach((studentId) => {
-      // Calculate assignment completion
-      const studentAssignmentSubmissions = studentAssignments.filter(
-        (sa) =>
-          sa.student_id === studentId &&
-          instructorAssignmentIds.includes(sa.assign_id)
-      );
-      const completedAssignments = studentAssignmentSubmissions.filter(
-        (sa) => sa.assign_path !== null
-      ).length;
-      console.log(completedAssignments);
+//     // Get instructor's assignments and quizzes
+//     const instructorAssignmentIds = assignments.map((a) => a.assign_id);
+//     const instructorQuizIds = quizzes.map((q) => q.quiz_id);
+    
+//     // Calculate overall progress for each student
+//     enrolledStudentIds.forEach((studentId) => {
+//       // Calculate assignment completion
+//       const studentAssignmentSubmissions = studentAssignments.filter(
+//         (sa) =>
+//           sa.student_id === studentId &&
+//           instructorAssignmentIds.includes(sa.assign_id)
+//       );
+//       const completedAssignments = studentAssignmentSubmissions.filter(
+//         (sa) => sa.assign_path !== null
+//       ).length;
       
-      const assignmentCompletionRate =
-        studentAssignmentSubmissions.length > 0
-          ? (completedAssignments / students.length) * 100
-          : 0;
-      console.log(assignmentCompletionRate);
-      // Calculate quiz performance
-      const studentQuizSubmissions = studentQuizzes.filter(
-        (sq) =>
-          sq.student_id === studentId && instructorQuizIds.includes(sq.quiz_id)
-      );
-      const totalScore = studentQuizSubmissions.reduce(
-        (sum, sq) => sum + Number(sq.score),
-        0
-      );
+//       const assignmentCompletionRate =
+//         studentAssignmentSubmissions.length > 0
+//           ? (completedAssignments / students.length) * 100
+//           : 0;
+//       // Calculate quiz performance
+//       const studentQuizSubmissions = studentQuizzes.filter(
+//         (sq) =>
+//           sq.student_id === studentId && instructorQuizIds.includes(sq.quiz_id)
+//       );
+//       const totalScore = studentQuizSubmissions.reduce(
+//         (sum, sq) => sum + Number(sq.score),
+//         0
+//       );
       
-      const avgQuizScore =
-        studentQuizSubmissions.length > 0
-          ? totalScore / studentQuizSubmissions.length
-          : 0;
-      console.log(avgQuizScore);
-      
-      // Calculate overall progress (50% assignments, 50% quizzes)
-      const overallProgress =
-        assignmentCompletionRate * 0.5 + avgQuizScore * 0.5;
+//       const avgQuizScore =
+//         studentQuizSubmissions.length > 0
+//           ? totalScore / studentQuizSubmissions.length
+//           : 0;
+//       // Calculate overall progress (50% assignments, 50% quizzes)
+//       const overallProgress =
+//         assignmentCompletionRate * 0.5 + avgQuizScore * 0.5;
 
-      // Categorize progress
-      if (overallProgress >= 90) {
-        progressCategories["Excellent (90-100%)"]++;
-      } else if (overallProgress >= 80) {
-        progressCategories["Good (80-89%)"]++;
-      } else if (overallProgress >= 70) {
-        progressCategories["Average (70-79%)"]++;
-      } else if (overallProgress >= 60) {
-        progressCategories["Below Average (60-69%)"]++;
-      } else {
-        progressCategories["At Risk (<60%)"]++;
-      }
-    });
+//       // Categorize progress
+//       if (overallProgress >= 90) {
+//         progressCategories["Excellent (90-100%)"]++;
+//       } else if (overallProgress >= 80) {
+//         progressCategories["Good (80-89%)"]++;
+//       } else if (overallProgress >= 70) {
+//         progressCategories["Average (70-79%)"]++;
+//       } else if (overallProgress >= 60) {
+//         progressCategories["Below Average (60-69%)"]++;
+//       } else {
+//         progressCategories["At Risk (<60%)"]++;
+//       }
+//     });
 
-    // Prepare data for chart
-    const labels = Object.keys(progressCategories);
-    const data = Object.values(progressCategories);
+//     // Prepare data for chart
+//     const labels = Object.keys(progressCategories);
+//     const data = Object.values(progressCategories);
 
-    // Create chart
-    const ctx = document
-      .getElementById("studentProgressChart")
-      .getContext("2d");
-    charts.studentProgress = new Chart(ctx, {
-      type: "pie",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            data: data,
-            backgroundColor: [
-              chartColors.dayColors[3], // Excellent
-              chartColors.dayColors[4], // Good
-              chartColors.dayColors[2], // Average
-              chartColors.dayColors[5], // Below Average
-              chartColors.dayColors[6], // At Risk
-            ],
-            borderColor: [
-              chartColors.dayTextColors[3],
-              chartColors.dayTextColors[4],
-              chartColors.dayTextColors[2],
-              chartColors.dayTextColors[5],
-              chartColors.dayTextColors[6],
-            ],
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        ...commonChartOptions,
-        plugins: {
-          ...commonChartOptions.plugins,
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const percentage = ((context.raw / total) * 100).toFixed(1);
-                return `${context.label}: ${context.raw} students (${percentage}%)`;
-              },
-            },
-          },
-        },
-      },
-    });
+//     // Create chart
+//     const ctx = document
+//       .getElementById("studentProgressChart")
+//       .getContext("2d");
+//     charts.studentProgress = new Chart(ctx, {
+//       type: "pie",
+//       data: {
+//         labels: labels,
+//         datasets: [
+//           {
+//             data: data,
+//             backgroundColor: [
+//               chartColors.dayColors[3], // Excellent
+//               chartColors.dayColors[4], // Good
+//               chartColors.dayColors[2], // Average
+//               chartColors.dayColors[5], // Below Average
+//               chartColors.dayColors[6], // At Risk
+//             ],
+//             borderColor: [
+//               chartColors.dayTextColors[3],
+//               chartColors.dayTextColors[4],
+//               chartColors.dayTextColors[2],
+//               chartColors.dayTextColors[5],
+//               chartColors.dayTextColors[6],
+//             ],
+//             borderWidth: 1,
+//           },
+//         ],
+//       },
+//       options: {
+//         ...commonChartOptions,
+//         plugins: {
+//           ...commonChartOptions.plugins,
+//           tooltip: {
+//             callbacks: {
+//               label: (context) => {
+//                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
+//                 const percentage = ((context.raw / total) * 100).toFixed(1);
+//                 return `${context.label}: ${context.raw} students (${percentage}%)`;
+//               },
+//             },
+//           },
+//         },
+//       },
+//     });
 
-    hideLoading("studentProgressChart");
-  } catch (error) {
-    console.error("Error initializing student progress chart:", error);
-    showError("studentProgressChart", "Failed to load student progress data");
-  }
-}
+//     hideLoading("studentProgressChart");
+//   } catch (error) {
+//     console.error("Error initializing student progress chart:", error);
+//     showError("studentProgressChart", "Failed to load student progress data");
+//   }
+// }
 
 // 6. Activity Participation Chart
 function initActivityParticipationChart(
@@ -1489,6 +1507,7 @@ function initAtRiskStudentsTable(
   studentActivities
 ) {
   try {
+    
     // Get course IDs taught by the instructor
     const instructorCourseIds = courses.map((course) => course.course_id);
     // Get students enrolled in instructor's courses
@@ -1522,7 +1541,6 @@ function initAtRiskStudentsTable(
 
     // Calculate risk factors for each student
     const atRiskStudents = [];
-
     enrolledStudents.forEach((enrollment) => {
       const studentId = enrollment.studentId;
       const courseId = enrollment.courseId;
@@ -1540,7 +1558,7 @@ function initAtRiskStudentsTable(
       //   courseAssignments.length - studentAssignmentSubmissions.filter((sa) => sa.assign_path).length
       const missingAssignments =
         courseAssignments.length - studentAssignmentSubmissions.length;
-
+      
       // Calculate average quiz score
       const courseQuizzes = quizzes.filter((q) => q.course_id === courseId);
       const studentQuizSubmissions = studentQuizzes.filter(
@@ -1548,29 +1566,24 @@ function initAtRiskStudentsTable(
           sq.student_id === studentId &&
           courseQuizzes.some((q) => q.quiz_id === sq.quiz_id)
       );
-
+      
       const totalScore = studentQuizSubmissions.reduce(
         (sum, sq) => sum + Number(sq.score),
         0
       );
-      console.log(totalScore);
-      console.log(studentQuizSubmissions);
-      
+
       const avgQuizScore =
         studentQuizSubmissions.length > 0
           ? totalScore / studentQuizSubmissions.length
           : 0;
-console.log(avgQuizScore);
-
       // Get last activity date (mock data since we don't have participation_date in the schema)
       const lastActivityDate = new Date();
       lastActivityDate.setDate(
         lastActivityDate.getDate() - Math.floor(Math.random() * 30)
       );
-console.log(missingAssignments);
 
-      // Determine if student is at risk if missing more than 2 assignments or average quiz score is less than 5
-      const isAtRisk = missingAssignments > 2 || avgQuizScore < 5;
+      // Determine if student is at risk if missing more than 2 assignments or average quiz score is less than 2.5
+      const isAtRisk = missingAssignments > 2 || avgQuizScore < 2;
 
       if (isAtRisk) {
         atRiskStudents.push({
@@ -1578,7 +1591,6 @@ console.log(missingAssignments);
           courseName: enrollment.courseName,
           missingAssignments,
           avgQuizScore: Number.parseFloat(avgQuizScore.toFixed(1)),
-          lastActivity: lastActivityDate.toLocaleDateString(),
           studentId,
           courseId,
         });
@@ -1606,7 +1618,6 @@ console.log(missingAssignments);
       tableBody.appendChild(row);
     } else {
       atRiskStudents.forEach((student) => {
-        console.log(student);
         
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -1614,7 +1625,6 @@ console.log(missingAssignments);
           <td>${student.courseName}</td>
           <td>${student.missingAssignments}</td>
           <td>${student.avgQuizScore}</td>
-          <td>${student.lastActivity}</td>
           `;
         tableBody.appendChild(row);
       });
@@ -1748,8 +1758,7 @@ function applyFilters() {
           studentAssignmentData,
           studentQuizData,
           filteredAssignments,
-          filteredQuizzes,
-          filteredEnrollments
+          filteredQuizzes
         );
 
         initStudentEngagementChart(
@@ -1771,15 +1780,15 @@ function applyFilters() {
           filteredCourses
         );
 
-        initStudentProgressChart(
-          filteredCourses,
-          filteredEnrollments,
-          studentAssignmentData,
-          studentQuizData,
-          filteredAssignments,
-          filteredQuizzes,
-          filteredEnrollments
-        );
+        // initStudentProgressChart(
+        //   filteredCourses,
+        //   filteredEnrollments,
+        //   studentAssignmentData,
+        //   studentQuizData,
+        //   filteredAssignments,
+        //   filteredQuizzes,
+        //   filteredEnrollments
+        // );
 
         initActivityParticipationChart(
           filteredActivities,
@@ -1955,33 +1964,96 @@ function addChartModalToDOM() {
 let modalChartInstance = null;
 
 // Function to open a chart in the modal
+// function openChartInModal(chartId) {
+//   // Get the chart instance
+//   console.log(chartId);
+
+//   const chart = charts[getChartInstanceName(chartId)];
+//   console.log(chart);
+
+//   if (!chart) {
+//     console.error(`Chart with ID ${chartId} not found`);
+//     return;
+//   }
+//   // Get modal elements
+//   const modal = document.getElementById("chartModal");
+//   const modalTitle = document.getElementById("modalChartTitle");
+//   const modalChartDetails = document.getElementById("modalChartDetails");
+
+//   // Set modal title based on chart ID
+//   const chartTitle = getChartTitle(chartId);
+//   modalTitle.textContent = chartTitle;
+//   // Create a new canvas for the modal chart
+//   const modalChartCanvas = document.getElementById("modalChartCanvas");
+
+//   // Destroy previous chart instance if it exists
+//   if (modalChartInstance) {
+//     modalChartInstance.destroy();
+//     modalChartInstance = null;
+//   }
+//   if (isInstitutionSchool()) {
+//     document.querySelectorAll(".card-title").forEach((title) => {
+//       title.textContent = title.textContent.replace("Assignment", "Homework");
+//       title.textContent = title.textContent.replace("Project", "Activity");
+//     });
+//     document.querySelectorAll(".key-change").forEach((title) => {
+//       title.textContent = title.textContent.replace("Assignment", "Homework");
+//     });
+//   }
+//   const ctx = modalChartCanvas.getContext("2d");
+//   console.log(chart.options);
+//   // Clone the original chart to the modal
+//   modalChartInstance = new Chart(ctx, {
+//     type: chart.config.type,
+//     data: JSON.parse(JSON.stringify(chart.data)),
+//     options: {
+//       ...JSON.parse(JSON.stringify(chart.options)),
+//       responsive: true,
+//       maintainAspectRatio: false,
+//       animation: {
+//         duration: 500,
+//       },
+//     },
+//   });
+//   // Generate detailed insights based on chart type
+//   const chartDetails = generateChartInsights(chartId, chart);
+//   modalChartDetails.innerHTML = chartDetails;
+
+//   // Show the modal
+//   modal.style.display = "block";
+// }
+// Function to open a chart in the modal
+// Function to open a chart in the modal
 function openChartInModal(chartId) {
   // Get the chart instance
   console.log(chartId);
-
+  
   const chart = charts[getChartInstanceName(chartId)];
   console.log(chart);
-
+  
   if (!chart) {
     console.error(`Chart with ID ${chartId} not found`);
     return;
   }
+  
   // Get modal elements
   const modal = document.getElementById("chartModal");
   const modalTitle = document.getElementById("modalChartTitle");
   const modalChartDetails = document.getElementById("modalChartDetails");
-
+  
   // Set modal title based on chart ID
   const chartTitle = getChartTitle(chartId);
   modalTitle.textContent = chartTitle;
+  
   // Create a new canvas for the modal chart
   const modalChartCanvas = document.getElementById("modalChartCanvas");
-
+  
   // Destroy previous chart instance if it exists
   if (modalChartInstance) {
     modalChartInstance.destroy();
     modalChartInstance = null;
   }
+  
   if (isInstitutionSchool()) {
     document.querySelectorAll(".card-title").forEach((title) => {
       title.textContent = title.textContent.replace("Assignment", "Homework");
@@ -1991,29 +2063,81 @@ function openChartInModal(chartId) {
       title.textContent = title.textContent.replace("Assignment", "Homework");
     });
   }
+  
   const ctx = modalChartCanvas.getContext("2d");
-  console.log(chart.options);
-  // Clone the original chart to the modal
+  
+  // Clone the data properly
+  const clonedData = JSON.parse(JSON.stringify(chart.data));
+  
+  // Deep clone the options without functions
+  const modalOptions = JSON.parse(JSON.stringify(chart.options));
+  
+  // Set standard modal options
+  modalOptions.responsive = true;
+  modalOptions.maintainAspectRatio = false;
+  
+  // Preserve the original tooltip callbacks by analyzing the chart type and ID
+  let tooltipCallbacks = {};
+  
+  // Determine chart type and apply appropriate tooltip callbacks
+  if (chartId === "CGPADistributionChart" ) {
+    // For CGPA distribution chart or any pie/doughnut chart
+    tooltipCallbacks = {
+      label: function(context) {
+        const label = context.label || '';
+        const value = context.raw || 0;
+        return `${label}: ${value}%`;
+      }
+    };
+  } else if (chart.config.type === "bar" || chart.config.type === "line") {
+    // For bar/line charts - check if it's showing percentages
+    const isPercentageChart = chartId.toLowerCase().includes("percent") || 
+                             chartId.toLowerCase().includes("rate") ||
+                             chartId.toLowerCase().includes("distribution");
+    
+    tooltipCallbacks = {
+      label: function(context) {
+        const label = context.dataset.label || '';
+        const value = context.raw || 0;
+        if (isPercentageChart) {
+          return `${label}: ${value}%`;
+        } else {
+          return `${label}: ${value}`;
+        }
+      }
+    };
+  } else {
+    // Default tooltip callback - use standard format
+    tooltipCallbacks = {
+      label: function(context) {
+        const label = context.dataset ? context.dataset.label : '';
+        const value = context.raw || 0;
+        return `${label}: ${value}`;
+      }
+    };
+  }
+  
+  // Make sure plugins structure exists
+  if (!modalOptions.plugins) modalOptions.plugins = {};
+  if (!modalOptions.plugins.tooltip) modalOptions.plugins.tooltip = {};
+  
+  // Apply the determined tooltip callbacks
+  modalOptions.plugins.tooltip.callbacks = tooltipCallbacks;
+  
+  // Create the new chart instance
   modalChartInstance = new Chart(ctx, {
     type: chart.config.type,
-    data: JSON.parse(JSON.stringify(chart.data)),
-    options: {
-      ...JSON.parse(JSON.stringify(chart.options)),
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: {
-        duration: 500,
-      },
-    },
+    data: clonedData,
+    options: modalOptions
   });
+  
   // Generate detailed insights based on chart type
   const chartDetails = generateChartInsights(chartId, chart);
   modalChartDetails.innerHTML = chartDetails;
-
+  
   // Show the modal
   modal.style.display = "block";
 }
-
 // Modify the close event handlers to destroy the chart when modal is closed
 function initChartModal() {
   // Add the modal to the DOM
@@ -2562,8 +2686,40 @@ function printChart(chartId) {
     printWindow.focus();
   }, 500);
 }
+// function exportChartAsImage(chartId) {
+//   // Get the chart instance
+//   const chartInstance = Chart.getChart(chartId);
+
+//   if (!chartInstance) {
+//     console.error("Chart not found:", chartId);
+//     alert("Error: Chart could not be exported as image.");
+//     return;
+//   }
+
+//   // Get chart title for the filename
+//   let chartTitle = chartId;
+//   // Try to get a more user-friendly title
+//   if (
+//     chartInstance.options &&
+//     chartInstance.options.plugins &&
+//     chartInstance.options.plugins.title
+//   ) {
+//     chartTitle = chartInstance.options.plugins.title.text || chartTitle;
+//   }
+
+//   // Create a sanitized filename
+//   const filename =
+//     chartTitle.replace(/[^a-z0-9]/gi, "_").toLowerCase() + ".png";
+
+//   // Create a download link
+//   const link = document.createElement("a");
+//   link.download = filename;
+//   link.href = chartInstance.toBase64Image('image/jpeg', 1);
+//   document.body.appendChild(link);
+//   link.click();
+//   document.body.removeChild(link);
+// }
 function exportChartAsImage(chartId) {
-  // Get the chart instance
   const chartInstance = Chart.getChart(chartId);
 
   if (!chartInstance) {
@@ -2572,9 +2728,7 @@ function exportChartAsImage(chartId) {
     return;
   }
 
-  // Get chart title for the filename
   let chartTitle = chartId;
-  // Try to get a more user-friendly title
   if (
     chartInstance.options &&
     chartInstance.options.plugins &&
@@ -2583,19 +2737,31 @@ function exportChartAsImage(chartId) {
     chartTitle = chartInstance.options.plugins.title.text || chartTitle;
   }
 
-  // Create a sanitized filename
-  const filename =
-    chartTitle.replace(/[^a-z0-9]/gi, "_").toLowerCase() + ".png";
+  const filename = chartTitle.replace(/[^a-z0-9]/gi, "_").toLowerCase() + ".png";
 
-  // Create a download link
+  // Create an offscreen canvas with white background
+  const canvas = chartInstance.canvas;
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height;
+
+  const ctx = tempCanvas.getContext("2d");
+
+  // Fill background with white
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+  // Draw the chart onto the white background
+  ctx.drawImage(canvas, 0, 0);
+
+  // Export the image
   const link = document.createElement("a");
   link.download = filename;
-  link.href = chartInstance.toBase64Image();
+  link.href = tempCanvas.toDataURL("image/png");
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 }
-
 // Update the chart modal to include the export options
 function updateChartModalActions(chartId) {
   const actionsContainer = document.querySelector(".insight-actions");
