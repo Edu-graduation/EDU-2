@@ -179,11 +179,10 @@ async function getCalendarEvents() {
     .from("calendar_event")
     .select("*")
     .eq("student_id", studentId)
-    .in("instructor_id", instructorsId)
+    // .in("instructor_id", instructorsId)
+    .or(`instructor_id.in.(${instructorsId.join(',')}),instructor_id.is.null`)
     .gte("event_startdatetime", startStr)
     .lte("event_startdatetime", endStr);
-  console.log(data);
-
   if (error) {
     console.error("Error fetching calendar events:", error);
     return null;
@@ -196,7 +195,6 @@ async function getCalendarEvents() {
 function addEventToCalendar(event) {
   const eventNameLength = event.event_name.length;
   const day = new Date(event.event_startdatetime).getDay();
-
   let targetRow;
   let dayNumber;
 
@@ -253,7 +251,7 @@ function addEventToCalendar(event) {
           <div class="event__time__duration">${eventTime}</div>
           <div class="event__type" style="font-size:${
             eventNameLength > 8 ? "12" : "16"
-          }px">${event.event_name}</div>
+          }px">${event.event_name.slice(0, 25)}</div>
         </div>`
     );
   }
@@ -266,7 +264,6 @@ function addEventToCalendar(event) {
 async function renderWeeklyEvents(eventsArray) {
   const events = await eventsArray;
   userName.textContent = await getUserName(studentId);
-  console.log("Student ID:", studentId);
   // Clear existing events
   clearAllEvents();
 

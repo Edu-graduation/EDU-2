@@ -1191,36 +1191,55 @@ async function getLastMessage(chatId) {
 async function getInstructorChatList() {
   try {
     // First get the courses this instructor is teaching
-    const { data: instructorCourses, error: coursesError } = await supaClient
-      .from("enrollment")
-      .select("course_id")
-      .eq("instructor_id", instructorId);
-    if (coursesError) throw coursesError;
-    if (!instructorCourses || instructorCourses.length === 0) return [];
+    // const { data: instructorCourses, error: coursesError } = await supaClient
+    //   .from("enrollment")
+    //   .select("course_id")
+    //   .eq("instructor_id", instructorId);
+    // if (coursesError) throw coursesError;
+    // if (!instructorCourses || instructorCourses.length === 0) return [];
 
-    // Get the course names for these courses
-    const { data: courses, error: courseNamesError } = await supaClient
-      .from("course")
-      .select("course_id, course_name")
-      .in(
-        "course_id",
-        instructorCourses.map((course) => course.course_id)
-      );
-    console.log(courses);
-    if (courseNamesError) throw courseNamesError;
-
+    // // Get the course names for these courses
+    // const { data: courses, error: courseNamesError } = await supaClient
+    //   .from("course")
+    //   .select("course_id, course_name")
+    //   .in(
+    //     "course_id",
+    //     instructorCourses.map((course) => course.course_id)
+    //   );
+    // console.log(courses);
+    // if (courseNamesError) throw courseNamesError;
+    const {data:instructorChats,error:instructorChatsError}=await supaClient
+    .from("instructor_chat")
+    .select("*")
+    .eq("instructor_id",instructorId);
+    console.log(instructorChats);
+    const chatsId = instructorChats.map((chat) => chat.chat_id);
+    console.log(chatsId);
+    if(instructorChatsError) throw instructorChatsError;
     // Get the chat IDs for these course names
     const { data: chats, error: chatsError } = await supaClient
       .from("chat")
       .select("*")
       .in(
-        "chat_name",
-        courses.map((course) => course.course_name)
+        "chat_id",
+        chatsId
       );
 
     if (chatsError) throw chatsError;
 
     return chats || [];
+    // Get the chat IDs for these course names
+    // const { data: chats, error: chatsError } = await supaClient
+    //   .from("chat")
+    //   .select("*")
+    //   .in(
+    //     "chat_name",
+    //     courses.map((course) => course.course_name)
+    //   );
+
+    // if (chatsError) throw chatsError;
+
+    // return chats || [];
   } catch (error) {
     console.error("Error fetching instructor chat list:", error);
     return [];

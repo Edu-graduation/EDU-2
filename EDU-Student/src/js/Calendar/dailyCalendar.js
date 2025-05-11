@@ -90,7 +90,8 @@ async function getDailySchedule() {
     .from("calendar_event")
     .select("*")
     .eq("student_id", studentId)
-    .in("instructor_id", instructorsId);
+    .or(`instructor_id.in.(${instructorsId.join(",")}),instructor_id.is.null`)
+    // .in("instructor_id", instructorsId);
 
   if (error) {
     console.error("Error fetching calendar events:", error);
@@ -238,7 +239,8 @@ export function attachDayClickListeners() {
         .from("calendar_event")
         .select("*")
         .eq("student_id", studentId)
-        .in("instructor_id", instructorsId);
+        .or(`instructor_id.in.(${instructorsId.join(',')}),instructor_id.is.null`);
+        // .in("instructor_id", instructorsId);
 
       if (error) {
         console.error("Error fetching events:", error);
