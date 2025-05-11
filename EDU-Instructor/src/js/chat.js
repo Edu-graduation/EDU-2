@@ -177,59 +177,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
-// async function safeGetUserName(userId) {
-//   if (!userId) {
-//     return "Unknown User";
-//   }
-
-//   // Check cache first for performance
-//   if (userNameCache.has(userId)) {
-//     return userNameCache.get(userId);
-//   }
-
-//   try {
-//     // If current user, just label as "You" but don't cache it that way
-//     if (Number(userId) === Number(instructorId)) {
-//       const name = await getInstructorName(instructorId);
-//       userNameCache.set(userId, name || "Unknown Instructor");
-//       return "You";
-//     }
-
-//     // Try student table first since the issue is with student names
-//     try {
-//       const studentName = await getStudentName(userId);
-//       console.log(studentName);
-
-//       if (studentName) {
-//         userNameCache.set(userId, studentName);
-//         return studentName;
-//       }
-//     } catch (e) {
-//       console.log(
-//         `User ${userId} not found in student table, trying instructor table`
-//       );
-//     }
-
-//     // If not a student, try instructor table
-//     try {
-//       const name = await getInstructorName(userId);
-//       if (name) {
-//         userNameCache.set(userId, name);
-//         return name;
-//       }
-//     } catch (e) {
-//       console.log(`User ${userId} not found in instructor table either`);
-//     }
-
-//     // If we got here, we couldn't find the user
-//     userNameCache.set(userId, "Unknown User");
-//     return "Unknown User";
-//   } catch (error) {
-//     console.error(`Error getting username for ID ${userId}:`, error);
-//     userNameCache.set(userId, "Unknown User");
-//     return "Unknown User";
-//   }
-// }
 async function safeGetUserName(userId) {
   if (!userId) {
     return "Unknown User";
@@ -279,27 +226,6 @@ async function safeGetUserName(userId) {
     return "Unknown User";
   }
 }
-// Batch username loading to avoid multiple sequential requests
-// async function loadUserNames(userIds) {
-//   const uniqueIds = [...new Set(userIds)].filter(
-//     (id) => id && !userNameCache.has(id)
-//   );
-
-//   if (uniqueIds.length === 0) return;
-
-//   // Load user names in parallel
-//   const promises = uniqueIds.map(async (userId) => {
-//     try {
-//       const name = await getInstructorName(userId);
-//       userNameCache.set(userId, name);
-//     } catch (error) {
-//       userNameCache.set(userId, "Unknown User");
-//     }
-//   });
-
-//   await Promise.all(promises);
-// }
-
 // Functions to handle opening and closing chats
 function openChat() {
   chats.classList.add("open");
@@ -627,63 +553,6 @@ function setupChatSubscription(chatId) {
     console.error(`Error setting up subscription for chat ${chatId}:`, error);
   }
 }
-// function handleNewMessage(payload) {
-//   if (!payload || !payload.new || !payload.new.msg_id) {
-//     console.error("Invalid message payload received:", payload);
-//     return;
-//   }
-
-//   const message = payload.new;
-//   const msgId = message.msg_id;
-
-//   // Debug message to track subscription events
-//   console.log(
-//     `Received message event for chat ${message.chat_id}, message ID: ${msgId}`
-//   );
-
-//   // Skip if we've already processed this message
-//   if (processedMessageIds.has(msgId)) {
-//     console.log(`Skipping duplicate message ${msgId}`);
-//     return;
-//   }
-
-//   console.log(`New message received in chat ${message.chat_id}:`, message);
-
-//   // Mark as processed to prevent duplicates
-//   processedMessageIds.add(msgId);
-//   const senderId = +message.sender_data.slice(0, 14);
-//   const senderName = message.sender_data.slice(15);
-//   console.log(senderName);
-//   // Always fetch the name for non-instructor senders to ensure we have student names
-//   if (
-//     Number(senderId) !== Number(instructorId) &&
-//     (!userNameCache.has(senderId) ||
-//       userNameCache.get(senderId) === "Unknown User")
-//   ) {
-//     // Try to get student name first, then instructor name as fallback
-//     safeGetUserName(senderId)
-//       .then((senderName) => {
-//         userNameCache.set(senderId, senderName);
-
-//         // Refresh display of sender name in any messages from this sender
-//         document
-//           .querySelectorAll(`[data-sender-id="${senderId}"]`)
-//           .forEach((msg) => {
-//             const senderEl = msg.querySelector(".message__sender-name");
-//             if (senderEl) {
-//               senderEl.textContent = senderName;
-//             }
-//           });
-//       })
-//       .catch((err) => {
-//         console.error("Error fetching sender name:", err);
-//         userNameCache.set(senderId, "Unknown User");
-//       });
-//   }
-
-//   // Process the message update regardless
-//   processMessageUpdate(message);
-// }
 function handleNewMessage(payload) {
   if (!payload || !payload.new || !payload.new.msg_id) {
     console.error("Invalid message payload received:", payload);
@@ -741,29 +610,6 @@ function handleNewMessage(payload) {
   // Process the message update regardless
   processMessageUpdate(message);
 }
-// Fix 6: Better detection of current chat
-// function processMessageUpdate(message) {
-//   try {
-//     console.log(
-//       `Processing message update for chat ${message.chat_id}, current chat: ${currentChatId}`
-//     );
-//     const senderId = +message.sender_data.slice(0, 14);
-//     const senderName = message.sender_data.slice(15);
-//     console.log(senderName);
-//     // If this is the current open chat, add message to chat view
-//     if (Number(currentChatId) === Number(message.chat_id)) {
-//       console.log("This is the active chat, adding message to view");
-//       addMessageToChat(message);
-//     } else {
-//       console.log("Message is for a different chat than the current one");
-//     }
-
-//     // Update the chat list item with this message regardless
-//     updateLastMessageInChatList(message.chat_id, message.msg_content, senderId, senderName);
-//   } catch (error) {
-//     console.error("Error processing message update:", error);
-//   }
-// }
 function processMessageUpdate(message) {
   try {
     console.log(`Processing message update for chat ${message.chat_id}, current chat: ${currentChatId}`);
@@ -792,16 +638,39 @@ function processMessageUpdate(message) {
     console.error("Error processing message update:", error);
   }
 }
+async function preloadInstructorName() {
+  if (!instructorId) return;
+  
+  try {
+    const name = await getInstructorName(instructorId);
+    if (name) {
+      console.log(`Preloaded instructor name: ${name}`);
+      userNameCache.set(instructorId, name);
+    } else {
+      console.warn("Could not preload instructor name");
+      userNameCache.set(instructorId, "Unknown Instructor");
+    }
+  } catch (error) {
+    console.error("Error preloading instructor name:", error);
+    userNameCache.set(instructorId, "Unknown Instructor");
+  }
+}
 // function createMessageElement(message, animate = true) {
 //   // Create the new message element
 //   const messageEl = document.createElement("div");
 //   messageEl.setAttribute("data-message-id", message.msg_id);
-//   messageEl.setAttribute(
-//     "data-timestamp",
-//     new Date(message.msg_date_time).getTime()
-//   );
-//   const senderId = +message.sender_data.slice(0, 14);
-//   const senderName = message.sender_data.slice(15);
+//   messageEl.setAttribute("data-timestamp", new Date(message.msg_date_time).getTime());
+  
+//   // FIX: Properly parse the sender_data which is in format "id+name"
+//   const parts = message.sender_data.split('+');
+//   const senderId = parts[0];  // Get just the ID part
+//   const senderName = parts.length > 1 ? parts.slice(1).join('+') : "Unknown"; // Get the name part
+  
+//   // Cache the name immediately if available and not "undefined"
+//   if (senderName && senderName !== "undefined") {
+//     userNameCache.set(senderId, senderName);
+//   }
+  
 //   messageEl.setAttribute("data-sender-id", senderId);
 
 //   const messageSenderName = document.createElement("p");
@@ -825,39 +694,14 @@ function processMessageUpdate(message) {
 //   } else {
 //     messageEl.classList.add("received");
 //     // Get sender name from cache or set a placeholder
-//     const senderName = userNameCache.get(senderId);
-//     messageSenderName.textContent = senderName;
-//     console.log(senderName);
-//     // If name isn't in cache yet, fetch it asynchronously with priority on student names
-//     if (!senderName || senderName === "Unknown User") {
-//       getStudentName(senderId)
-//         .then((studentName) => {
-//           if (studentName) {
-//             userNameCache.set(senderId, studentName);
-//             messageSenderName.textContent = studentName;
-//           } else {
-//             // Fallback to instructor name if not a student
-//             getInstructorName(senderId)
-//               .then((instructorName) => {
-//                 if (instructorName) {
-//                   userNameCache.set(senderId, instructorName);
-//                   messageSenderName.textContent = instructorName;
-//                 } else {
-//                   userNameCache.set(senderId, "Unknown User");
-//                   messageSenderName.textContent = "Unknown User";
-//                 }
-//               })
-//               .catch(() => {
-//                 userNameCache.set(senderId, "Unknown User");
-//                 messageSenderName.textContent = "Unknown User";
-//               });
-//           }
-//         })
-//         .catch(() => {
-//           safeGetUserName(senderId).then((name) => {
-//             messageSenderName.textContent = name;
-//           });
-//         });
+//     if (userNameCache.has(senderId) && userNameCache.get(senderId) !== "undefined") {
+//       messageSenderName.textContent = userNameCache.get(senderId);
+//     } else {
+//       messageSenderName.textContent = senderName !== "undefined" ? senderName : "Loading...";
+//       // Fetch name asynchronously
+//       safeGetUserName(senderId).then(name => {
+//         messageSenderName.textContent = name;
+//       });
 //     }
 //   }
 
@@ -882,23 +726,6 @@ function processMessageUpdate(message) {
 
 //   return messageEl;
 // }
-async function preloadInstructorName() {
-  if (!instructorId) return;
-  
-  try {
-    const name = await getInstructorName(instructorId);
-    if (name) {
-      console.log(`Preloaded instructor name: ${name}`);
-      userNameCache.set(instructorId, name);
-    } else {
-      console.warn("Could not preload instructor name");
-      userNameCache.set(instructorId, "Unknown Instructor");
-    }
-  } catch (error) {
-    console.error("Error preloading instructor name:", error);
-    userNameCache.set(instructorId, "Unknown Instructor");
-  }
-}
 function createMessageElement(message, animate = true) {
   // Create the new message element
   const messageEl = document.createElement("div");
@@ -1305,6 +1132,92 @@ async function retrieveChatMessages(chatId) {
 }
 
 // Render chat messages in the UI
+// function renderChatMessages(messages, animate = true) {
+//   // Get the messages container
+//   const messagesContainer = document.querySelector(".chat__messages-container");
+
+//   // Clear existing messages
+//   messagesContainer.innerHTML = "";
+
+//   if (!messages || messages.length === 0) {
+//     // Show a message when there are no messages
+//     const emptyMessage = document.createElement("div");
+//     emptyMessage.classList.add("empty-messages");
+//     emptyMessage.textContent = "No messages yet. Start the conversation!";
+//     messagesContainer.appendChild(emptyMessage);
+//     return;
+//   }
+
+//   // Modified: Ensure messages are properly sorted by timestamp (oldest to newest)
+//   messages.sort((a, b) => {
+//     const timeA = new Date(a.msg_date_time).getTime();
+//     const timeB = new Date(b.msg_date_time).getTime();
+
+//     // If timestamps are equal, sort by message_id as secondary criteria
+//     if (timeA === timeB) {
+//       return a.msg_id - b.msg_id;
+//     }
+
+//     return timeA - timeB;
+//   });
+
+//   // Performance optimization: Create a document fragment and batch render
+//   const fragment = document.createDocumentFragment();
+
+//   // For large message sets, use virtual rendering
+//   const shouldVirtualize = messages.length > 100;
+
+//   // If virtualizing, only render the last 50 messages initially
+//   const messagesToRender = shouldVirtualize ? messages.slice(-50) : messages;
+
+//   // Render messages in batches using requestAnimationFrame for better performance
+//   const renderBatch = (startIdx, endIdx) => {
+//     for (let i = startIdx; i < endIdx && i < messagesToRender.length; i++) {
+//       const message = messagesToRender[i];
+//       if (!message) continue;
+
+//       const messageEl = createMessageElement(message, false); // Don't animate batches
+//       fragment.appendChild(messageEl);
+//     }
+
+//     // Add this batch to the container
+//     messagesContainer.appendChild(fragment);
+//   };
+
+//   // For small message sets, render all at once
+//   if (!shouldVirtualize) {
+//     renderBatch(0, messagesToRender.length);
+//   } else {
+//     // For large message sets, render in chunks
+//     const BATCH_SIZE = 20;
+//     const totalBatches = Math.ceil(messagesToRender.length / BATCH_SIZE);
+
+//     let batchIndex = 0;
+
+//     const processBatch = () => {
+//       if (batchIndex >= totalBatches) {
+//         // All batches processed - scroll to bottom when done
+//         scrollToBottom();
+//         return;
+//       }
+
+//       const startIdx = batchIndex * BATCH_SIZE;
+//       const endIdx = Math.min(startIdx + BATCH_SIZE, messagesToRender.length);
+
+//       renderBatch(startIdx, endIdx);
+//       batchIndex++;
+
+//       // Process next batch on next animation frame
+//       requestAnimationFrame(processBatch);
+//     };
+
+//     // Start batch processing
+//     processBatch();
+//   }
+
+//   // Scroll to bottom when all messages are rendered
+//   scrollToBottom();
+// }
 function renderChatMessages(messages, animate = true) {
   // Get the messages container
   const messagesContainer = document.querySelector(".chat__messages-container");
@@ -1337,11 +1250,29 @@ function renderChatMessages(messages, animate = true) {
   // Performance optimization: Create a document fragment and batch render
   const fragment = document.createDocumentFragment();
 
+  // Store all messages in a data attribute for scroll loading
+  messagesContainer.setAttribute('data-total-messages', messages.length);
+  
   // For large message sets, use virtual rendering
-  const shouldVirtualize = messages.length > 100;
+  const shouldVirtualize = messages.length > 50;
 
   // If virtualizing, only render the last 50 messages initially
   const messagesToRender = shouldVirtualize ? messages.slice(-50) : messages;
+  
+  // If we're using virtual rendering, add a load-more indicator at the top
+  if (shouldVirtualize) {
+    const loadMoreIndicator = document.createElement("div");
+    loadMoreIndicator.id = "load-more-indicator";
+    loadMoreIndicator.classList.add("load-more-indicator");
+    loadMoreIndicator.innerHTML = `<span>Scroll to load ${messages.length - messagesToRender.length} older messages</span>`;
+    fragment.appendChild(loadMoreIndicator);
+    
+    // Store the remaining messages for later loading
+    messagesContainer.setAttribute('data-remaining-messages', messages.length - messagesToRender.length);
+    
+    // Store all messages as a JSON string in a data attribute (careful with large datasets)
+    messagesContainer.setAttribute('data-all-messages', JSON.stringify(messages));
+  }
 
   // Render messages in batches using requestAnimationFrame for better performance
   const renderBatch = (startIdx, endIdx) => {
@@ -1354,7 +1285,7 @@ function renderChatMessages(messages, animate = true) {
     }
 
     // Add this batch to the container
-    messagesContainer.appendChild(fragment);
+    messagesContainer.appendChild(fragment.cloneNode(true));
   };
 
   // For small message sets, render all at once
@@ -1388,60 +1319,14 @@ function renderChatMessages(messages, animate = true) {
     processBatch();
   }
 
+  // Set up scroll event listener for loading older messages
+  if (shouldVirtualize) {
+    setupScrollListener(messagesContainer, messages);
+  }
+
   // Scroll to bottom when all messages are rendered
   scrollToBottom();
 }
-// async function updateLastMessageInChatList(chatId, messageContent, senderId) {
-//   const chatItem = document.querySelector(
-//     `.chat__item[data-chat-id="${chatId}"]`
-//   );
-
-//   if (!chatItem) return;
-
-//   const lastMessageEl = chatItem.querySelector(".chat__last-message");
-//   if (!lastMessageEl) return;
-
-//   try {
-//     // Determine sender prefix based on sender ID
-//     let senderPrefix = "";
-
-//     // Handle current user case first (most efficient)
-//     if (Number(senderId) === Number(instructorId)) {
-//       senderPrefix = "You: ";
-//     }
-//     // Check cache for other users
-//     else if (userNameCache.has(senderId)) {
-//       senderPrefix = `${userNameCache.get(senderId)}: `;
-//     }
-//     // Fetch name if not in cache - prioritize student names
-//     else {
-//       const studentName = await getStudentName(senderId);
-//       if (studentName) {
-//         userNameCache.set(senderId, studentName);
-//         senderPrefix = `${studentName}: `;
-//       } else {
-//         const instructorName = await getInstructorName(senderId);
-//         userNameCache.set(senderId, instructorName || "Unknown User");
-//         senderPrefix = `${instructorName || "Unknown User"}: `;
-//       }
-//     }
-
-//     // Update the message preview
-//     const truncatedMessage = truncateText(messageContent, 30);
-//     lastMessageEl.textContent = senderPrefix + truncatedMessage;
-
-//     // Move this chat to the top of the list for better UX
-//     const parent = chatItem.parentNode;
-//     if (parent && parent.firstChild !== chatItem) {
-//       parent.insertBefore(chatItem, parent.firstChild);
-//     }
-//   } catch (error) {
-//     console.error("Error updating last message in chat list:", error);
-//     // Fallback display if there's an error
-//     const truncatedMessage = truncateText(messageContent, 30);
-//     lastMessageEl.textContent = truncatedMessage;
-//   }
-// }
 async function updateLastMessageInChatList(chatId, messageContent, senderId, senderName = null) {
   const chatItem = document.querySelector(`.chat__item[data-chat-id="${chatId}"]`);
 
@@ -1496,113 +1381,6 @@ async function updateLastMessageInChatList(chatId, messageContent, senderId, sen
     lastMessageEl.textContent = truncatedMessage;
   }
 }
-// Improved sendMessage function with better name handling
-// async function sendMessage(chatId, messageContent) {
-//   try {
-//     const timestamp = new Date();
-
-//     // Create a temporary visual placeholder for the message with a unique ID
-//     const tempMessageId = `temp-${Date.now()}`;
-//     const messagesContainer = document.querySelector(
-//       ".chat__messages-container"
-//     );
-
-//     // Remove any "empty messages" placeholder if it exists
-//     const emptyPlaceholder = messagesContainer.querySelector(".empty-messages");
-//     if (emptyPlaceholder) {
-//       emptyPlaceholder.remove();
-//     }
-
-//     // Create temporary message element
-//     const messageEl = document.createElement("div");
-//     messageEl.id = tempMessageId;
-//     messageEl.classList.add("message", "sent", "pending");
-//     // Add timestamp as data attribute for sorting
-//     messageEl.setAttribute("data-timestamp", timestamp.getTime());
-//     messageEl.setAttribute("data-sender-id", instructorId);
-
-//     const messageSenderName = document.createElement("p");
-//     messageSenderName.classList.add("message__sender-name");
-//     messageSenderName.textContent = "You"; // Always "You" for current user
-
-//     const messageContent_el = document.createElement("p");
-//     messageContent_el.classList.add("message__content");
-//     messageContent_el.textContent = messageContent;
-
-//     const messageTime = document.createElement("p");
-//     messageTime.classList.add("message__time");
-//     messageTime.textContent = formatDateTime(timestamp);
-//     console.log(formatDateTime(timestamp));
-
-//     messageEl.appendChild(messageSenderName);
-//     messageEl.appendChild(messageContent_el);
-//     messageEl.appendChild(messageTime);
-
-//     // Append message to the end for chronological order
-//     messagesContainer.appendChild(messageEl);
-
-//     // Add animation for a smoother appearance
-//     messageEl.style.opacity = "0";
-//     messageEl.style.transform = "translateY(10px)";
-
-//     // Use requestAnimationFrame for smoother animations
-//     requestAnimationFrame(() => {
-//       messageEl.style.transition = "opacity 0.2s ease, transform 0.2s ease";
-//       messageEl.style.opacity = "1";
-//       messageEl.style.transform = "translateY(0)";
-
-//       // Scroll to bottom to show the new message
-//       scrollToBottom();
-//     });
-
-//     // Send the actual message to the database
-//     const { data, error } = await supaClient
-//       .from("message")
-//       .insert({
-//         chat_id: chatId,
-//         msg_content: messageContent,
-//         sender_data: `${instructorId}+${userNameCache.get(instructorId)}`,
-//         msg_date_time: timestamp.toISOString(),
-//       })
-//       .select();
-
-//     if (error) {
-//       console.error("Error sending message:", error);
-//       messageEl.classList.add("error");
-//       messageTime.textContent = "Failed to send";
-
-//       // Add retry button
-//       const retryButton = document.createElement("button");
-//       retryButton.classList.add("retry-button");
-//       retryButton.textContent = "Retry";
-//       retryButton.addEventListener("click", () => {
-//         // Remove the failed message
-//         messageEl.remove();
-//         // Try sending again
-//         sendMessage(chatId, messageContent);
-//       });
-//       messageEl.appendChild(retryButton);
-//     } else {
-//       console.log("Message sent:", data);
-
-//       // Instead of removing the placeholder, just mark it as confirmed and add the ID
-//       messageEl.classList.remove("pending");
-//       messageEl.classList.add("confirmed");
-
-//       if (data && data[0] && data[0].msg_id) {
-//         messageEl.setAttribute("data-message-id", data[0].msg_id);
-
-//         // Add this message ID to our processed set to prevent duplication
-//         processedMessageIds.add(data[0].msg_id);
-//       }
-
-//       // Update the chat list manually in case the subscription is slow
-//       await updateLastMessageInChatList(chatId, messageContent, instructorId);
-//     }
-//   } catch (err) {
-//     console.error("Exception sending message:", err);
-//   }
-// }
 async function sendMessage(chatId, messageContent) {
   try {
     const timestamp = new Date();
@@ -1825,5 +1603,104 @@ if (
 }
 document.addEventListener("DOMContentLoaded", function() {
   preloadInstructorName();
-  // other initialization code...
 });
+
+function setupScrollListener(messagesContainer, allMessages) {
+  // Remove any existing scroll listener first
+  messagesContainer.removeEventListener('scroll', messagesContainer.scrollHandler);
+  
+  // Initialize scroll variables
+  let isLoading = false;
+  let loadedMessageCount = parseInt(messagesContainer.querySelector('.message:last-child')?.getAttribute('data-message-index') || 50);
+  let remainingToLoad = allMessages.length - loadedMessageCount;
+  
+  // Create the scroll handler function
+  messagesContainer.scrollHandler = function() {
+    // If we're near the top and not currently loading
+    if (messagesContainer.scrollTop < 100 && !isLoading && remainingToLoad > 0) {
+      isLoading = true;
+      
+      // Show loading indicator
+      let loadMoreIndicator = messagesContainer.querySelector('#load-more-indicator');
+      if (loadMoreIndicator) {
+        loadMoreIndicator.innerHTML = '<div class="loader small-loader"></div><span>Loading older messages...</span>';
+      }
+      
+      // Set a small timeout to prevent rapid firing of load events
+      setTimeout(() => {
+        // Load the next batch of messages (up to 20 more)
+        const batchSize = Math.min(20, remainingToLoad);
+        const startIndex = Math.max(0, allMessages.length - loadedMessageCount - batchSize);
+        const endIndex = allMessages.length - loadedMessageCount;
+        
+        // Get the height before adding new content
+        const scrollHeightBefore = messagesContainer.scrollHeight;
+        const scrollPosition = messagesContainer.scrollTop;
+        
+        // Create a fragment for the new messages
+        const fragment = document.createDocumentFragment();
+        
+        // Add the older messages at the top (after the load more indicator)
+        for (let i = startIndex; i < endIndex; i++) {
+          const messageEl = createMessageElement(allMessages[i], false);
+          messageEl.setAttribute('data-message-index', i);
+          fragment.appendChild(messageEl);
+        }
+        
+        // If we have a load more indicator, insert after it; otherwise prepend to container
+        if (loadMoreIndicator) {
+          loadMoreIndicator.after(fragment);
+        } else {
+          messagesContainer.prepend(fragment);
+        }
+        
+        // Update counts
+        loadedMessageCount += batchSize;
+        remainingToLoad -= batchSize;
+        
+        // Update the load more indicator
+        if (loadMoreIndicator) {
+          if (remainingToLoad > 0) {
+            loadMoreIndicator.innerHTML = `<span>Scroll to load ${remainingToLoad} older messages</span>`;
+          } else {
+            // All messages loaded, remove the indicator
+            loadMoreIndicator.remove();
+          }
+        }
+        
+        // Adjust scroll position to maintain view position
+        const scrollHeightAfter = messagesContainer.scrollHeight;
+        const scrollDiff = scrollHeightAfter - scrollHeightBefore;
+        messagesContainer.scrollTop = scrollPosition + scrollDiff;
+        
+        // Reset loading flag
+        isLoading = false;
+      }, 300);
+    }
+  };
+  
+  // Add the scroll event listener
+  messagesContainer.addEventListener('scroll', messagesContainer.scrollHandler);
+}
+
+// Add small loader CSS style
+const style = document.createElement('style');
+style.textContent = `
+  .load-more-indicator {
+    text-align: center;
+    padding: 10px;
+    color: #999aaa;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .small-loader {
+    width: 20px;
+    height: 20px;
+    border-width: 2px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+`;
+document.head.appendChild(style);

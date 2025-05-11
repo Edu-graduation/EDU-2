@@ -935,6 +935,92 @@ async function retrieveChatMessages(chatId) {
     return data;
   }
 }
+// function renderChatMessages(messages, animate = true) {
+//   // Get the messages container
+//   const messagesContainer = document.querySelector(".chat__messages-container");
+
+//   // Clear existing messages
+//   messagesContainer.innerHTML = "";
+
+//   if (!messages || messages.length === 0) {
+//     // Show a message when there are no messages
+//     const emptyMessage = document.createElement("div");
+//     emptyMessage.classList.add("empty-messages");
+//     emptyMessage.textContent = "No messages yet. Start the conversation!";
+//     messagesContainer.appendChild(emptyMessage);
+//     return;
+//   }
+
+//   // Modified: Ensure messages are properly sorted by timestamp (oldest to newest)
+//   messages.sort((a, b) => {
+//     const timeA = new Date(a.msg_date_time).getTime();
+//     const timeB = new Date(b.msg_date_time).getTime();
+
+//     // If timestamps are equal, sort by message_id as secondary criteria
+//     if (timeA === timeB) {
+//       return a.msg_id - b.msg_id;
+//     }
+
+//     return timeA - timeB;
+//   });
+
+//   // Performance optimization: Create a document fragment and batch render
+//   const fragment = document.createDocumentFragment();
+
+//   // For large message sets, use virtual rendering
+//   const shouldVirtualize = messages.length > 100;
+
+//   // If virtualizing, only render the last 50 messages initially
+//   const messagesToRender = shouldVirtualize ? messages.slice(-50) : messages;
+
+//   // Render messages in batches using requestAnimationFrame for better performance
+//   const renderBatch = (startIdx, endIdx) => {
+//     for (let i = startIdx; i < endIdx && i < messagesToRender.length; i++) {
+//       const message = messagesToRender[i];
+//       if (!message) continue;
+
+//       const messageEl = createMessageElement(message, false); // Don't animate batches
+//       fragment.appendChild(messageEl);
+//     }
+
+//     // Add this batch to the container
+//     messagesContainer.appendChild(fragment);
+//   };
+
+//   // For small message sets, render all at once
+//   if (!shouldVirtualize) {
+//     renderBatch(0, messagesToRender.length);
+//   } else {
+//     // For large message sets, render in chunks
+//     const BATCH_SIZE = 20;
+//     const totalBatches = Math.ceil(messagesToRender.length / BATCH_SIZE);
+    
+//     let batchIndex = 0;
+
+//     const processBatch = () => {
+//       if (batchIndex >= totalBatches) {
+//         // All batches processed - scroll to bottom when done
+//         scrollToBottom();
+//         return;
+//       }
+
+//       const startIdx = batchIndex * BATCH_SIZE;
+//       const endIdx = Math.min(startIdx + BATCH_SIZE, messagesToRender.length);
+
+//       renderBatch(startIdx, endIdx);
+//       batchIndex++;
+
+//       // Process next batch on next animation frame
+//       requestAnimationFrame(processBatch);
+//     };
+
+//     // Start batch processing
+//     processBatch();
+//   }
+
+//   // Scroll to bottom when all messages are rendered
+//   scrollToBottom();
+// }
 function renderChatMessages(messages, animate = true) {
   // Get the messages container
   const messagesContainer = document.querySelector(".chat__messages-container");
@@ -951,75 +1037,127 @@ function renderChatMessages(messages, animate = true) {
     return;
   }
 
-  // Modified: Ensure messages are properly sorted by timestamp (oldest to newest)
-  messages.sort((a, b) => {
-    const timeA = new Date(a.msg_date_time).getTime();
-    const timeB = new Date(b.msg_date_time).getTime();
+  // Add scroll to load more UI element if we have more than 50 messages
+  if (messages.length > 50) {
+    const loadMoreDiv = document.createElement("div");
+    loadMoreDiv.classList.add("load-more-messages");
+    loadMoreDiv.textContent = "Scroll to load older messages";
+    loadMoreDiv.setAttribute("data-total-messages", messages.length);
+    messagesContainer.appendChild(loadMoreDiv);
+  }
 
-    // If timestamps are equal, sort by message_id as secondary criteria
-    if (timeA === timeB) {
-      return a.msg_id - b.msg_id;
-    }
+  // Modified: Only render the last 50 messages initially
+  const messagesToRender = messages.slice(-50);
 
-    return timeA - timeB;
-  });
-
-  // Performance optimization: Create a document fragment and batch render
+  // Performance optimization: Create a document fragment for batch render
   const fragment = document.createDocumentFragment();
 
-  // For large message sets, use virtual rendering
-  const shouldVirtualize = messages.length > 100;
+  // Render messages in fragment
+  messagesToRender.forEach(message => {
+    const messageEl = createMessageElement(message, animate);
+    fragment.appendChild(messageEl);
+  });
 
-  // If virtualizing, only render the last 50 messages initially
-  const messagesToRender = shouldVirtualize ? messages.slice(-50) : messages;
+  // Append all messages at once
+  messagesContainer.appendChild(fragment);
 
-  // Render messages in batches using requestAnimationFrame for better performance
-  const renderBatch = (startIdx, endIdx) => {
-    for (let i = startIdx; i < endIdx && i < messagesToRender.length; i++) {
-      const message = messagesToRender[i];
-      if (!message) continue;
-
-      const messageEl = createMessageElement(message, false); // Don't animate batches
-      fragment.appendChild(messageEl);
-    }
-
-    // Add this batch to the container
-    messagesContainer.appendChild(fragment);
-  };
-
-  // For small message sets, render all at once
-  if (!shouldVirtualize) {
-    renderBatch(0, messagesToRender.length);
-  } else {
-    // For large message sets, render in chunks
-    const BATCH_SIZE = 20;
-    const totalBatches = Math.ceil(messagesToRender.length / BATCH_SIZE);
-    
-    let batchIndex = 0;
-
-    const processBatch = () => {
-      if (batchIndex >= totalBatches) {
-        // All batches processed - scroll to bottom when done
-        scrollToBottom();
-        return;
-      }
-
-      const startIdx = batchIndex * BATCH_SIZE;
-      const endIdx = Math.min(startIdx + BATCH_SIZE, messagesToRender.length);
-
-      renderBatch(startIdx, endIdx);
-      batchIndex++;
-
-      // Process next batch on next animation frame
-      requestAnimationFrame(processBatch);
-    };
-
-    // Start batch processing
-    processBatch();
-  }
+  // Store all messages in a data attribute for later lazy loading
+  messagesContainer.setAttribute("data-all-messages", JSON.stringify(messages));
+  messagesContainer.setAttribute("data-displayed-count", messagesToRender.length);
 
   // Scroll to bottom when all messages are rendered
   scrollToBottom();
+  
+  // Set up scroll event listener for lazy loading older messages
+  setupScrollListener();
+}
+function setupScrollListener() {
+  const messagesContainer = document.querySelector(".chat__messages-container");
+  
+  // Remove any existing scroll listeners first
+  messagesContainer.removeEventListener("scroll", handleScroll);
+  
+  // Add the scroll event listener
+  messagesContainer.addEventListener("scroll", handleScroll);
+}
+function handleScroll(event) {
+  const container = event.target;
+  
+  // If we're near the top (within 100px) and not currently loading
+  if (container.scrollTop < 100 && !container.classList.contains("loading-older")) {
+    loadOlderMessages();
+  }
+}
+// Add this function to load older messages
+function loadOlderMessages() {
+  const messagesContainer = document.querySelector(".chat__messages-container");
+  
+  // Get data about messages
+  const allMessagesJson = messagesContainer.getAttribute("data-all-messages");
+  const displayedCount = parseInt(messagesContainer.getAttribute("data-displayed-count"), 10);
+  
+  if (!allMessagesJson) return;
+  
+  const allMessages = JSON.parse(allMessagesJson);
+  
+  // If we've shown all messages, do nothing
+  if (displayedCount >= allMessages.length) {
+    return;
+  }
+  
+  // Remember scroll height for scroll position restoration
+  const scrollHeight = messagesContainer.scrollHeight;
+  
+  // Add loading indicator
+  messagesContainer.classList.add("loading-older");
+  const loadingIndicator = document.createElement("div");
+  loadingIndicator.className = "loading-indicator";
+  loadingIndicator.textContent = "Loading older messages...";
+  messagesContainer.insertBefore(loadingIndicator, messagesContainer.firstChild);
+  
+  // Use setTimeout to give UI time to update
+  setTimeout(() => {
+    // Determine how many more messages to load (batch of 20)
+    const batchSize = 20;
+    const newDisplayedCount = Math.min(displayedCount + batchSize, allMessages.length);
+    const newMessages = allMessages.slice(allMessages.length - newDisplayedCount, allMessages.length - displayedCount);
+    
+    // Create fragment for new messages
+    const fragment = document.createDocumentFragment();
+    
+    // Add new messages to top
+    newMessages.forEach(message => {
+      const messageEl = createMessageElement(message, false);
+      fragment.appendChild(messageEl);
+    });
+    
+    // Remove loading indicator
+    loadingIndicator.remove();
+    
+    // Add new messages to the top
+    if (messagesContainer.firstChild) {
+      messagesContainer.insertBefore(fragment, messagesContainer.firstChild);
+    } else {
+      messagesContainer.appendChild(fragment);
+    }
+    
+    // Update the displayed count
+    messagesContainer.setAttribute("data-displayed-count", newDisplayedCount);
+    
+    // Remove loading class
+    messagesContainer.classList.remove("loading-older");
+    
+    // Maintain scroll position
+    messagesContainer.scrollTop = messagesContainer.scrollHeight - scrollHeight;
+    
+    // If we've loaded all messages, remove the "Scroll to load" message
+    if (newDisplayedCount >= allMessages.length) {
+      const loadMoreDiv = messagesContainer.querySelector(".load-more-messages");
+      if (loadMoreDiv) {
+        loadMoreDiv.remove();
+      }
+    }
+  }, 500); // Short delay for better UX
 }
 // Helper function to update last message in chat list
 async function updateLastMessageInChatList(chatId, messageContent, senderId) {
@@ -1049,9 +1187,9 @@ async function updateLastMessageInChatList(chatId, messageContent, senderId) {
       const chatsList = chatItem.parentElement;
       if (chatsList && chatsList.firstChild !== chatItem) {
         // Use animation API for smoother transitions
-        // chatItem.style.transition = "none";
-        // chatItem.style.opacity = "0.7";
-
+        chatItem.style.transition = "none";
+        chatItem.style.opacity = "0.7";
+        
         // Move to top
         chatsList.insertBefore(chatItem, chatsList.firstChild);
 
@@ -1059,7 +1197,7 @@ async function updateLastMessageInChatList(chatId, messageContent, senderId) {
         void chatItem.offsetWidth;
 
         // Animate back to normal
-        chatItem.style.transition = "opacity 0.3s ease";
+        chatItem.style.transition = "all 0.3s ease";
         chatItem.style.opacity = "1";
       }
     }

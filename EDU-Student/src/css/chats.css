@@ -465,3 +465,30 @@
 .instrctor-message .message__sender-name {
   color: #3b3939 !important;
 }
+.loading-indicator {
+  padding: 10px;
+  text-align: center;
+  color: #777;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.load-more-messages {
+  padding: 10px;
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  margin: 10px 0;
+}
+
+/* Optional: Add animation for better user experience */
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.loading-indicator {
+  animation: pulse 1.5s infinite ease-in-out;
+}
