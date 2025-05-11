@@ -252,7 +252,8 @@ async function initializeReports() {
       studentAssignmentData,
       studentQuizData,
       assignmentsData,
-      quizzesData
+      quizzesData,
+      studentsData
     );
 
     initStudentEngagementChart(
@@ -276,7 +277,8 @@ async function initializeReports() {
       studentAssignmentData,
       studentQuizData,
       assignmentsData,
-      quizzesData
+      quizzesData,
+      studentsData
     );
 
     initActivityParticipationChart(
@@ -685,7 +687,8 @@ function initCoursePerformanceChart(
   studentAssignments,
   studentQuizzes,
   assignments,
-  quizzes
+  quizzes,
+  students
 ) {
   try {
     // Calculate metrics for each course
@@ -714,9 +717,10 @@ function initCoursePerformanceChart(
 
       const assignmentCompletionRate =
         courseAssignmentSubmissions.length > 0
-          ? (completedAssignments / courseAssignmentSubmissions.length) * 100
+          ? (completedAssignments / students.length) * 100
           : 0;
-
+      console.log(assignmentCompletionRate);
+      
       // Calculate average quiz score
 
       const courseQuizzes = quizzes.filter((q) =>
@@ -738,6 +742,7 @@ function initCoursePerformanceChart(
         courseQuizSubmissions.length > 0
           ? totalScore / courseQuizSubmissions.length
           : 0;
+console.log(avgQuizScore);
 
       return {
         name: course.course_name,
@@ -813,7 +818,7 @@ function initCoursePerformanceChart(
             max: 100,
             title: {
               display: true,
-              text: "Percentage (%)",
+              text: "Assignment Completion Rate",
               font: {
                 family: "'Poppins', sans-serif",
                 size: 12,
@@ -1157,7 +1162,8 @@ function initStudentProgressChart(
   studentAssignments,
   studentQuizzes,
   assignments,
-  quizzes
+  quizzes,
+  students
 ) {
   try {
     // Get course IDs taught by the instructor
@@ -1189,10 +1195,13 @@ function initStudentProgressChart(
       const completedAssignments = studentAssignmentSubmissions.filter(
         (sa) => sa.assign_path !== null
       ).length;
+      console.log(completedAssignments);
+      
       const assignmentCompletionRate =
         studentAssignmentSubmissions.length > 0
-          ? (completedAssignments / studentAssignmentSubmissions.length) * 100
+          ? (completedAssignments / students.length) * 100
           : 0;
+      console.log(assignmentCompletionRate);
       // Calculate quiz performance
       const studentQuizSubmissions = studentQuizzes.filter(
         (sq) =>
@@ -1202,11 +1211,13 @@ function initStudentProgressChart(
         (sum, sq) => sum + Number(sq.score),
         0
       );
+      
       const avgQuizScore =
         studentQuizSubmissions.length > 0
           ? totalScore / studentQuizSubmissions.length
           : 0;
-
+      console.log(avgQuizScore);
+      
       // Calculate overall progress (50% assignments, 50% quizzes)
       const overallProgress =
         assignmentCompletionRate * 0.5 + avgQuizScore * 0.5;

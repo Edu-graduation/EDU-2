@@ -75,7 +75,7 @@ async function getInstructorCourses() {
         "course_id",
         instructorCourses.map((c) => c.course_id)
       );
-
+      
     if (error) {
       console.error("Error fetching instructor courses:", error);
       return [];
@@ -91,10 +91,12 @@ async function getInstructorCourses() {
 // Get projects for a specific course
 async function getInstructorProjects(courseId) {
   try {
+    
     if (!courseId) {
       const instructorCourses = await getInstructorCourses();
       if (instructorCourses && instructorCourses.length > 0) {
         courseId = instructorCourses[0].course_id;
+        
       } else {
         return [];
       }
@@ -107,7 +109,7 @@ async function getInstructorProjects(courseId) {
       // .eq("instructor_id", instructorId)
       .eq("course_id", courseId)
       .limit(1);
-
+    
     if (courseError) {
       console.error("Error validating course access:", courseError);
       return [];
@@ -133,7 +135,7 @@ async function getInstructorProjects(courseId) {
     if (!courseActivities || courseActivities.length === 0) {
       return [];
     }
-
+    
     // Now fetch the detailed activity information for these activity IDs
     const { data, error } = await supaClient
       .from("activity")
