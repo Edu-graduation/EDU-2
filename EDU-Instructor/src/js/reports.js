@@ -1180,7 +1180,8 @@ function initStudentProgressChart(
       "Below Average (60-69%)": 0,
       "At Risk (<60%)": 0,
     };
-
+    console.log(students);
+    
     // Get instructor's assignments and quizzes
     const instructorAssignmentIds = assignments.map((a) => a.assign_id);
     const instructorQuizIds = quizzes.map((q) => q.quiz_id);
@@ -1740,7 +1741,8 @@ function applyFilters() {
           studentAssignmentData,
           studentQuizData,
           filteredAssignments,
-          filteredQuizzes
+          filteredQuizzes,
+          filteredEnrollments
         );
 
         initStudentEngagementChart(
@@ -1768,7 +1770,8 @@ function applyFilters() {
           studentAssignmentData,
           studentQuizData,
           filteredAssignments,
-          filteredQuizzes
+          filteredQuizzes,
+          filteredEnrollments
         );
 
         initActivityParticipationChart(
