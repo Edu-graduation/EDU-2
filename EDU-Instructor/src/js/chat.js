@@ -177,7 +177,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
-// Improved safeGetUserName function with better error handling and caching
 // async function safeGetUserName(userId) {
 //   if (!userId) {
 //     return "Unknown User";
@@ -196,7 +195,22 @@ document.addEventListener("DOMContentLoaded", function () {
 //       return "You";
 //     }
 
-//     // Try instructor table first
+//     // Try student table first since the issue is with student names
+//     try {
+//       const studentName = await getStudentName(userId);
+//       console.log(studentName);
+
+//       if (studentName) {
+//         userNameCache.set(userId, studentName);
+//         return studentName;
+//       }
+//     } catch (e) {
+//       console.log(
+//         `User ${userId} not found in student table, trying instructor table`
+//       );
+//     }
+
+//     // If not a student, try instructor table
 //     try {
 //       const name = await getInstructorName(userId);
 //       if (name) {
@@ -204,20 +218,7 @@ document.addEventListener("DOMContentLoaded", function () {
 //         return name;
 //       }
 //     } catch (e) {
-//       console.log(
-//         `User ${userId} not found in instructor table, trying student table`
-//       );
-//     }
-
-//     // If not an instructor, try student table
-//     try {
-//       const studentName = await getStudentName(userId);
-//       if (studentName) {
-//         userNameCache.set(userId, studentName);
-//         return studentName;
-//       }
-//     } catch (e) {
-//       console.log(`User ${userId} not found in student table either`);
+//       console.log(`User ${userId} not found in instructor table either`);
 //     }
 
 //     // If we got here, we couldn't find the user
@@ -247,19 +248,15 @@ async function safeGetUserName(userId) {
       return "You";
     }
 
-    // Try student table first since the issue is with student names
+    // Try student table first
     try {
       const studentName = await getStudentName(userId);
-      console.log(studentName);
-
       if (studentName) {
         userNameCache.set(userId, studentName);
         return studentName;
       }
     } catch (e) {
-      console.log(
-        `User ${userId} not found in student table, trying instructor table`
-      );
+      console.log(`User ${userId} not found in student table, trying instructor table`);
     }
 
     // If not a student, try instructor table
@@ -283,25 +280,25 @@ async function safeGetUserName(userId) {
   }
 }
 // Batch username loading to avoid multiple sequential requests
-async function loadUserNames(userIds) {
-  const uniqueIds = [...new Set(userIds)].filter(
-    (id) => id && !userNameCache.has(id)
-  );
+// async function loadUserNames(userIds) {
+//   const uniqueIds = [...new Set(userIds)].filter(
+//     (id) => id && !userNameCache.has(id)
+//   );
 
-  if (uniqueIds.length === 0) return;
+//   if (uniqueIds.length === 0) return;
 
-  // Load user names in parallel
-  const promises = uniqueIds.map(async (userId) => {
-    try {
-      const name = await getInstructorName(userId);
-      userNameCache.set(userId, name);
-    } catch (error) {
-      userNameCache.set(userId, "Unknown User");
-    }
-  });
+//   // Load user names in parallel
+//   const promises = uniqueIds.map(async (userId) => {
+//     try {
+//       const name = await getInstructorName(userId);
+//       userNameCache.set(userId, name);
+//     } catch (error) {
+//       userNameCache.set(userId, "Unknown User");
+//     }
+//   });
 
-  await Promise.all(promises);
-}
+//   await Promise.all(promises);
+// }
 
 // Functions to handle opening and closing chats
 function openChat() {
@@ -386,13 +383,24 @@ function attachChatClickListeners() {
         const messageUserIds = chatMessages.map(
           (msg) => +msg.sender_data.slice(0, 14)
         );
+        const messageUserNames = chatMessages.map(
+          (msg) => msg.sender_data.slice(15)
+        );
+        console.log(messageUserNames);
         const allUserIds = [
-          ...new Set([...messageUserIds, ...enrolledStudents, instructorId]),
+          ...new Set([
+            ...messageUserIds,
+            ...enrolledStudents,
+            instructorId,
+            ...messageUserNames,
+          ]),
         ];
 
         // Prefetch all user names in parallel before rendering messages
-        await loadUserNames(allUserIds);
-
+        // await loadUserNames(allUserIds);
+        allUserIds.forEach((id) => {
+          userNameCache.set(id, messageUserNames[id]);
+        });
         // Only render if this is still the current chat
         if (currentChatId === chatId) {
           // Render chat messages
@@ -426,7 +434,7 @@ async function getEnrolledStudents(chatId) {
       .select("chat_name")
       .eq("chat_id", chatId)
       .single();
-
+    console.log(chatData);
     if (chatError) throw chatError;
     console.log(chatData);
 
@@ -448,7 +456,6 @@ async function getEnrolledStudents(chatId) {
 
     if (enrollmentError) throw enrollmentError;
     console.log(enrollmentData);
-
     return enrollmentData.map((enrollment) => enrollment.student_id);
   } catch (error) {
     console.error("Error getting enrolled students:", error);
@@ -620,7 +627,6 @@ function setupChatSubscription(chatId) {
     console.error(`Error setting up subscription for chat ${chatId}:`, error);
   }
 }
-// Fix 5: Improved handler for new incoming messages with better debugging
 // function handleNewMessage(payload) {
 //   if (!payload || !payload.new || !payload.new.msg_id) {
 //     console.error("Invalid message payload received:", payload);
@@ -645,29 +651,38 @@ function setupChatSubscription(chatId) {
 
 //   // Mark as processed to prevent duplicates
 //   processedMessageIds.add(msgId);
-
-//   // Ensure the UI updates happen regardless of name fetching
-//   processMessageUpdate(message);
-
-//   // Also fetch the name if needed
-//   if (!userNameCache.has(message.senderid)) {
-//     safeGetUserName(message.senderid)
+//   const senderId = +message.sender_data.slice(0, 14);
+//   const senderName = message.sender_data.slice(15);
+//   console.log(senderName);
+//   // Always fetch the name for non-instructor senders to ensure we have student names
+//   if (
+//     Number(senderId) !== Number(instructorId) &&
+//     (!userNameCache.has(senderId) ||
+//       userNameCache.get(senderId) === "Unknown User")
+//   ) {
+//     // Try to get student name first, then instructor name as fallback
+//     safeGetUserName(senderId)
 //       .then((senderName) => {
-//         userNameCache.set(message.senderid, senderName);
+//         userNameCache.set(senderId, senderName);
+
 //         // Refresh display of sender name in any messages from this sender
 //         document
-//           .querySelectorAll(`[data-sender-id="${message.senderid}"]`)
+//           .querySelectorAll(`[data-sender-id="${senderId}"]`)
 //           .forEach((msg) => {
 //             const senderEl = msg.querySelector(".message__sender-name");
-//             if (senderEl && message.senderid != instructorId)
+//             if (senderEl) {
 //               senderEl.textContent = senderName;
+//             }
 //           });
 //       })
 //       .catch((err) => {
 //         console.error("Error fetching sender name:", err);
-//         userNameCache.set(message.senderid, "Unknown User");
+//         userNameCache.set(senderId, "Unknown User");
 //       });
 //   }
+
+//   // Process the message update regardless
+//   processMessageUpdate(message);
 // }
 function handleNewMessage(payload) {
   if (!payload || !payload.new || !payload.new.msg_id) {
@@ -679,9 +694,7 @@ function handleNewMessage(payload) {
   const msgId = message.msg_id;
 
   // Debug message to track subscription events
-  console.log(
-    `Received message event for chat ${message.chat_id}, message ID: ${msgId}`
-  );
+  console.log(`Received message event for chat ${message.chat_id}, message ID: ${msgId}`);
 
   // Skip if we've already processed this message
   if (processedMessageIds.has(msgId)) {
@@ -693,27 +706,31 @@ function handleNewMessage(payload) {
 
   // Mark as processed to prevent duplicates
   processedMessageIds.add(msgId);
-  const senderId = +message.sender_data.slice(0, 14);
+  
+  // FIX: Properly parse the sender_data which is in format "id+name"
+  const parts = message.sender_data.split('+');
+  const senderId = parts[0];  // Get just the ID part
+  const senderName = parts.length > 1 ? parts.slice(1).join('+') : "Unknown"; // Get the name part
+  
+  // Cache the name immediately if available
+  if (senderName && senderName !== "undefined") {
+    userNameCache.set(senderId, senderName);
+  }
+
   // Always fetch the name for non-instructor senders to ensure we have student names
-  if (
-    Number(senderId) !== Number(instructorId) &&
-    (!userNameCache.has(senderId) ||
-      userNameCache.get(senderId) === "Unknown User")
-  ) {
-    // Try to get student name first, then instructor name as fallback
+  if (Number(senderId) !== Number(instructorId) && 
+      (!userNameCache.has(senderId) || userNameCache.get(senderId) === "Unknown User")) {
     safeGetUserName(senderId)
-      .then((senderName) => {
-        userNameCache.set(senderId, senderName);
+      .then((name) => {
+        userNameCache.set(senderId, name);
 
         // Refresh display of sender name in any messages from this sender
-        document
-          .querySelectorAll(`[data-sender-id="${senderId}"]`)
-          .forEach((msg) => {
-            const senderEl = msg.querySelector(".message__sender-name");
-            if (senderEl) {
-              senderEl.textContent = senderName;
-            }
-          });
+        document.querySelectorAll(`[data-sender-id="${senderId}"]`).forEach((msg) => {
+          const senderEl = msg.querySelector(".message__sender-name");
+          if (senderEl) {
+            senderEl.textContent = name;
+          }
+        });
       })
       .catch((err) => {
         console.error("Error fetching sender name:", err);
@@ -725,12 +742,42 @@ function handleNewMessage(payload) {
   processMessageUpdate(message);
 }
 // Fix 6: Better detection of current chat
+// function processMessageUpdate(message) {
+//   try {
+//     console.log(
+//       `Processing message update for chat ${message.chat_id}, current chat: ${currentChatId}`
+//     );
+//     const senderId = +message.sender_data.slice(0, 14);
+//     const senderName = message.sender_data.slice(15);
+//     console.log(senderName);
+//     // If this is the current open chat, add message to chat view
+//     if (Number(currentChatId) === Number(message.chat_id)) {
+//       console.log("This is the active chat, adding message to view");
+//       addMessageToChat(message);
+//     } else {
+//       console.log("Message is for a different chat than the current one");
+//     }
+
+//     // Update the chat list item with this message regardless
+//     updateLastMessageInChatList(message.chat_id, message.msg_content, senderId, senderName);
+//   } catch (error) {
+//     console.error("Error processing message update:", error);
+//   }
+// }
 function processMessageUpdate(message) {
   try {
-    console.log(
-      `Processing message update for chat ${message.chat_id}, current chat: ${currentChatId}`
-    );
-    const senderId = +message.sender_data.slice(0, 14);
+    console.log(`Processing message update for chat ${message.chat_id}, current chat: ${currentChatId}`);
+    
+    // FIX: Properly parse the sender_data which is in format "id+name"
+    const parts = message.sender_data.split('+');
+    const senderId = parts[0];  // Get just the ID part
+    const senderName = parts.length > 1 ? parts.slice(1).join('+') : "Unknown"; // Get the name part
+    
+    // Cache the name immediately if available
+    if (senderName && senderName !== "undefined") {
+      userNameCache.set(senderId, senderName);
+    }
+
     // If this is the current open chat, add message to chat view
     if (Number(currentChatId) === Number(message.chat_id)) {
       console.log("This is the active chat, adding message to view");
@@ -740,12 +787,11 @@ function processMessageUpdate(message) {
     }
 
     // Update the chat list item with this message regardless
-    updateLastMessageInChatList(message.chat_id, message.msg_content, senderId);
+    updateLastMessageInChatList(message.chat_id, message.msg_content, senderId, senderName);
   } catch (error) {
     console.error("Error processing message update:", error);
   }
 }
-// Create a single message element for the chat with improved name handling
 // function createMessageElement(message, animate = true) {
 //   // Create the new message element
 //   const messageEl = document.createElement("div");
@@ -754,7 +800,9 @@ function processMessageUpdate(message) {
 //     "data-timestamp",
 //     new Date(message.msg_date_time).getTime()
 //   );
-//   messageEl.setAttribute("data-sender-id", message.senderid);
+//   const senderId = +message.sender_data.slice(0, 14);
+//   const senderName = message.sender_data.slice(15);
+//   messageEl.setAttribute("data-sender-id", senderId);
 
 //   const messageSenderName = document.createElement("p");
 //   const messageContent = document.createElement("p");
@@ -768,7 +816,7 @@ function processMessageUpdate(message) {
 //   messageTime.textContent = formatDateTime(new Date(message.msg_date_time));
 
 //   // Check if the message is from the current instructor
-//   const isSentByCurrentUser = Number(message.senderid) === Number(instructorId);
+//   const isSentByCurrentUser = Number(senderId) === Number(instructorId);
 
 //   // Add message classes based on sender
 //   if (isSentByCurrentUser) {
@@ -777,21 +825,39 @@ function processMessageUpdate(message) {
 //   } else {
 //     messageEl.classList.add("received");
 //     // Get sender name from cache or set a placeholder
-//     const senderName = userNameCache.get(message.senderid);
-//     messageSenderName.textContent = senderName || "Loading...";
-
-//     // If name isn't in cache yet, fetch it asynchronously
-//     if (!senderName) {
-//       safeGetUserName(message.senderid).then((name) => {
-//         // Update this message and any other pending messages from same sender
-//         userNameCache.set(message.senderid, name);
-//         document
-//           .querySelectorAll(`[data-sender-id="${message.senderid}"]`)
-//           .forEach((msg) => {
-//             const senderEl = msg.querySelector(".message__sender-name");
-//             if (senderEl) senderEl.textContent = name;
+//     const senderName = userNameCache.get(senderId);
+//     messageSenderName.textContent = senderName;
+//     console.log(senderName);
+//     // If name isn't in cache yet, fetch it asynchronously with priority on student names
+//     if (!senderName || senderName === "Unknown User") {
+//       getStudentName(senderId)
+//         .then((studentName) => {
+//           if (studentName) {
+//             userNameCache.set(senderId, studentName);
+//             messageSenderName.textContent = studentName;
+//           } else {
+//             // Fallback to instructor name if not a student
+//             getInstructorName(senderId)
+//               .then((instructorName) => {
+//                 if (instructorName) {
+//                   userNameCache.set(senderId, instructorName);
+//                   messageSenderName.textContent = instructorName;
+//                 } else {
+//                   userNameCache.set(senderId, "Unknown User");
+//                   messageSenderName.textContent = "Unknown User";
+//                 }
+//               })
+//               .catch(() => {
+//                 userNameCache.set(senderId, "Unknown User");
+//                 messageSenderName.textContent = "Unknown User";
+//               });
+//           }
+//         })
+//         .catch(() => {
+//           safeGetUserName(senderId).then((name) => {
+//             messageSenderName.textContent = name;
 //           });
-//       });
+//         });
 //     }
 //   }
 
@@ -816,15 +882,39 @@ function processMessageUpdate(message) {
 
 //   return messageEl;
 // }
+async function preloadInstructorName() {
+  if (!instructorId) return;
+  
+  try {
+    const name = await getInstructorName(instructorId);
+    if (name) {
+      console.log(`Preloaded instructor name: ${name}`);
+      userNameCache.set(instructorId, name);
+    } else {
+      console.warn("Could not preload instructor name");
+      userNameCache.set(instructorId, "Unknown Instructor");
+    }
+  } catch (error) {
+    console.error("Error preloading instructor name:", error);
+    userNameCache.set(instructorId, "Unknown Instructor");
+  }
+}
 function createMessageElement(message, animate = true) {
   // Create the new message element
   const messageEl = document.createElement("div");
   messageEl.setAttribute("data-message-id", message.msg_id);
-  messageEl.setAttribute(
-    "data-timestamp",
-    new Date(message.msg_date_time).getTime()
-  );
-  const senderId = +message.sender_data.slice(0, 14);
+  messageEl.setAttribute("data-timestamp", new Date(message.msg_date_time).getTime());
+  
+  // FIX: Properly parse the sender_data which is in format "id+name"
+  const parts = message.sender_data.split('+');
+  const senderId = parts[0];  // Get just the ID part
+  const senderName = parts.length > 1 ? parts.slice(1).join('+') : "Unknown"; // Get the name part
+  
+  // Cache the name immediately if available and not "undefined"
+  if (senderName && senderName !== "undefined") {
+    userNameCache.set(senderId, senderName);
+  }
+  
   messageEl.setAttribute("data-sender-id", senderId);
 
   const messageSenderName = document.createElement("p");
@@ -848,39 +938,14 @@ function createMessageElement(message, animate = true) {
   } else {
     messageEl.classList.add("received");
     // Get sender name from cache or set a placeholder
-    const senderName = userNameCache.get(senderId);
-    messageSenderName.textContent = senderName || "Loading...";
-
-    // If name isn't in cache yet, fetch it asynchronously with priority on student names
-    if (!senderName || senderName === "Unknown User") {
-      getStudentName(senderId)
-        .then((studentName) => {
-          if (studentName) {
-            userNameCache.set(senderId, studentName);
-            messageSenderName.textContent = studentName;
-          } else {
-            // Fallback to instructor name if not a student
-            getInstructorName(senderId)
-              .then((instructorName) => {
-                if (instructorName) {
-                  userNameCache.set(senderId, instructorName);
-                  messageSenderName.textContent = instructorName;
-                } else {
-                  userNameCache.set(senderId, "Unknown User");
-                  messageSenderName.textContent = "Unknown User";
-                }
-              })
-              .catch(() => {
-                userNameCache.set(senderId, "Unknown User");
-                messageSenderName.textContent = "Unknown User";
-              });
-          }
-        })
-        .catch(() => {
-          safeGetUserName(senderId).then((name) => {
-            messageSenderName.textContent = name;
-          });
-        });
+    if (userNameCache.has(senderId) && userNameCache.get(senderId) !== "undefined") {
+      messageSenderName.textContent = userNameCache.get(senderId);
+    } else {
+      messageSenderName.textContent = senderName !== "undefined" ? senderName : "Loading...";
+      // Fetch name asynchronously
+      safeGetUserName(senderId).then(name => {
+        messageSenderName.textContent = name;
+      });
     }
   }
 
@@ -954,35 +1019,6 @@ function scrollToBottom() {
     }
   });
 }
-
-// Format date/time for message timestamps
-// function formatDateTime(date) {
-//   // Adjust for local timezone and format
-//   console.log(date);
-
-//   const options = {
-//     hour: "2-digit",
-//     minute: "2-digit",
-//     hour12: true,
-//   };
-
-//   // Get just the time part for today's messages
-//   const today = new Date();
-//   if (
-//     date.getDate() === today.getDate() &&
-//     date.getMonth() === today.getMonth() &&
-//     date.getFullYear() === today.getFullYear()
-//   ) {
-//     return date.toLocaleTimeString("en-US", {
-//       hour: "2-digit",
-//       minute: "2-digit",
-//       hour12: true,
-//     });
-//   }
-
-//   // Show full date for older messages
-//   return date.toLocaleString("en-US", options);
-// }
 function formatDateTime(date) {
   const now = new Date();
 
@@ -1072,9 +1108,11 @@ async function renderChatList() {
       const lastMessage = await getLastMessage(chatId);
       if (lastMessage) {
         const senderId = +lastMessage.sender_data.slice(0, 14);
+        const senderName = lastMessage.sender_data.slice(15);
+        console.log(senderName);
         // Ensure we have the sender name
         if (senderId && !userNameCache.has(senderId)) {
-          await safeGetUserName(senderId);
+          userNameCache.set(senderId, senderName);
         }
         return { chatId, lastMessage };
       }
@@ -1105,33 +1143,6 @@ async function renderChatList() {
   }
 }
 
-// Helper function to update last message display
-// async function updateChatLastMessageDisplay(lastMessageEl, lastMessage) {
-//   let messageText = "No messages yet...";
-//   let senderPrefix = "";
-//   if (!lastMessage) {
-//     lastMessageEl.textContent = messageText;
-//     return;
-//   }
-//   const studentName = await getStudentName(lastMessage.senderid);
-//   if (studentName) {
-//     userNameCache.set(lastMessage.senderid, studentName);
-//   }
-//   if (lastMessage) {
-//     messageText = truncateText(lastMessage.msg_content, 30);
-//     // Properly determine the sender prefix
-//     if (+instructorId === +lastMessage.senderid) {
-//       senderPrefix = "You: ";
-//     } else if (
-//       lastMessage.senderid &&
-//       userNameCache.has(lastMessage.senderid)
-//     ) {
-//       senderPrefix = `${userNameCache.get(lastMessage.senderid)}: `;
-//     }
-//   }
-
-//   lastMessageEl.textContent = senderPrefix + messageText;
-// }
 async function updateChatLastMessageDisplay(lastMessageEl, lastMessage) {
   let messageText = "No messages yet...";
   let senderPrefix = "";
@@ -1141,12 +1152,12 @@ async function updateChatLastMessageDisplay(lastMessageEl, lastMessage) {
     return;
   }
   const senderId = +lastMessage.sender_data.slice(0, 14);
+  const senderName = lastMessage.sender_data.slice(15);
+  console.log(senderName);
   // Try to get student name first for non-instructor messages
   if (senderId && Number(senderId) !== Number(instructorId)) {
-    const studentName = await getStudentName(senderId);
-    if (studentName) {
-      userNameCache.set(senderId, studentName);
-      senderPrefix = `${studentName}: `;
+    if (userNameCache.has(senderId)) {
+      senderPrefix = `${userNameCache.get(senderId)}: `;
     } else {
       // Try instructor name as fallback
       const instructorName = await getInstructorName(senderId);
@@ -1380,7 +1391,6 @@ function renderChatMessages(messages, animate = true) {
   // Scroll to bottom when all messages are rendered
   scrollToBottom();
 }
-// Improved function to update the last message in chat list
 // async function updateLastMessageInChatList(chatId, messageContent, senderId) {
 //   const chatItem = document.querySelector(
 //     `.chat__item[data-chat-id="${chatId}"]`
@@ -1403,11 +1413,17 @@ function renderChatMessages(messages, animate = true) {
 //     else if (userNameCache.has(senderId)) {
 //       senderPrefix = `${userNameCache.get(senderId)}: `;
 //     }
-//     // Fetch name if not in cache
+//     // Fetch name if not in cache - prioritize student names
 //     else {
-//       const senderName = await safeGetUserName(senderId);
-//       userNameCache.set(senderId, senderName);
-//       senderPrefix = `${senderName}: `;
+//       const studentName = await getStudentName(senderId);
+//       if (studentName) {
+//         userNameCache.set(senderId, studentName);
+//         senderPrefix = `${studentName}: `;
+//       } else {
+//         const instructorName = await getInstructorName(senderId);
+//         userNameCache.set(senderId, instructorName || "Unknown User");
+//         senderPrefix = `${instructorName || "Unknown User"}: `;
+//       }
 //     }
 
 //     // Update the message preview
@@ -1426,10 +1442,8 @@ function renderChatMessages(messages, animate = true) {
 //     lastMessageEl.textContent = truncatedMessage;
 //   }
 // }
-async function updateLastMessageInChatList(chatId, messageContent, senderId) {
-  const chatItem = document.querySelector(
-    `.chat__item[data-chat-id="${chatId}"]`
-  );
+async function updateLastMessageInChatList(chatId, messageContent, senderId, senderName = null) {
+  const chatItem = document.querySelector(`.chat__item[data-chat-id="${chatId}"]`);
 
   if (!chatItem) return;
 
@@ -1444,8 +1458,13 @@ async function updateLastMessageInChatList(chatId, messageContent, senderId) {
     if (Number(senderId) === Number(instructorId)) {
       senderPrefix = "You: ";
     }
+    // Use provided senderName if available
+    else if (senderName && senderName !== "undefined") {
+      senderPrefix = `${senderName}: `;
+      userNameCache.set(senderId, senderName);
+    }
     // Check cache for other users
-    else if (userNameCache.has(senderId)) {
+    else if (userNameCache.has(senderId) && userNameCache.get(senderId) !== "undefined") {
       senderPrefix = `${userNameCache.get(senderId)}: `;
     }
     // Fetch name if not in cache - prioritize student names
@@ -1478,15 +1497,137 @@ async function updateLastMessageInChatList(chatId, messageContent, senderId) {
   }
 }
 // Improved sendMessage function with better name handling
+// async function sendMessage(chatId, messageContent) {
+//   try {
+//     const timestamp = new Date();
+
+//     // Create a temporary visual placeholder for the message with a unique ID
+//     const tempMessageId = `temp-${Date.now()}`;
+//     const messagesContainer = document.querySelector(
+//       ".chat__messages-container"
+//     );
+
+//     // Remove any "empty messages" placeholder if it exists
+//     const emptyPlaceholder = messagesContainer.querySelector(".empty-messages");
+//     if (emptyPlaceholder) {
+//       emptyPlaceholder.remove();
+//     }
+
+//     // Create temporary message element
+//     const messageEl = document.createElement("div");
+//     messageEl.id = tempMessageId;
+//     messageEl.classList.add("message", "sent", "pending");
+//     // Add timestamp as data attribute for sorting
+//     messageEl.setAttribute("data-timestamp", timestamp.getTime());
+//     messageEl.setAttribute("data-sender-id", instructorId);
+
+//     const messageSenderName = document.createElement("p");
+//     messageSenderName.classList.add("message__sender-name");
+//     messageSenderName.textContent = "You"; // Always "You" for current user
+
+//     const messageContent_el = document.createElement("p");
+//     messageContent_el.classList.add("message__content");
+//     messageContent_el.textContent = messageContent;
+
+//     const messageTime = document.createElement("p");
+//     messageTime.classList.add("message__time");
+//     messageTime.textContent = formatDateTime(timestamp);
+//     console.log(formatDateTime(timestamp));
+
+//     messageEl.appendChild(messageSenderName);
+//     messageEl.appendChild(messageContent_el);
+//     messageEl.appendChild(messageTime);
+
+//     // Append message to the end for chronological order
+//     messagesContainer.appendChild(messageEl);
+
+//     // Add animation for a smoother appearance
+//     messageEl.style.opacity = "0";
+//     messageEl.style.transform = "translateY(10px)";
+
+//     // Use requestAnimationFrame for smoother animations
+//     requestAnimationFrame(() => {
+//       messageEl.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+//       messageEl.style.opacity = "1";
+//       messageEl.style.transform = "translateY(0)";
+
+//       // Scroll to bottom to show the new message
+//       scrollToBottom();
+//     });
+
+//     // Send the actual message to the database
+//     const { data, error } = await supaClient
+//       .from("message")
+//       .insert({
+//         chat_id: chatId,
+//         msg_content: messageContent,
+//         sender_data: `${instructorId}+${userNameCache.get(instructorId)}`,
+//         msg_date_time: timestamp.toISOString(),
+//       })
+//       .select();
+
+//     if (error) {
+//       console.error("Error sending message:", error);
+//       messageEl.classList.add("error");
+//       messageTime.textContent = "Failed to send";
+
+//       // Add retry button
+//       const retryButton = document.createElement("button");
+//       retryButton.classList.add("retry-button");
+//       retryButton.textContent = "Retry";
+//       retryButton.addEventListener("click", () => {
+//         // Remove the failed message
+//         messageEl.remove();
+//         // Try sending again
+//         sendMessage(chatId, messageContent);
+//       });
+//       messageEl.appendChild(retryButton);
+//     } else {
+//       console.log("Message sent:", data);
+
+//       // Instead of removing the placeholder, just mark it as confirmed and add the ID
+//       messageEl.classList.remove("pending");
+//       messageEl.classList.add("confirmed");
+
+//       if (data && data[0] && data[0].msg_id) {
+//         messageEl.setAttribute("data-message-id", data[0].msg_id);
+
+//         // Add this message ID to our processed set to prevent duplication
+//         processedMessageIds.add(data[0].msg_id);
+//       }
+
+//       // Update the chat list manually in case the subscription is slow
+//       await updateLastMessageInChatList(chatId, messageContent, instructorId);
+//     }
+//   } catch (err) {
+//     console.error("Exception sending message:", err);
+//   }
+// }
 async function sendMessage(chatId, messageContent) {
   try {
     const timestamp = new Date();
+    
+    // Get instructor name from cache or fetch it
+    let instructorName = userNameCache.get(instructorId);
+    if (!instructorName || instructorName === "undefined") {
+      try {
+        instructorName = await getInstructorName(instructorId);
+        if (instructorName) {
+          userNameCache.set(instructorId, instructorName);
+        } else {
+          instructorName = "Unknown Instructor";
+          userNameCache.set(instructorId, instructorName);
+        }
+      } catch (err) {
+        console.error("Error fetching instructor name:", err);
+        instructorName = "Unknown Instructor";
+        userNameCache.set(instructorId, instructorName);
+      }
+    }
 
     // Create a temporary visual placeholder for the message with a unique ID
     const tempMessageId = `temp-${Date.now()}`;
-    const messagesContainer = document.querySelector(
-      ".chat__messages-container"
-    );
+    const messagesContainer = document.querySelector(".chat__messages-container");
 
     // Remove any "empty messages" placeholder if it exists
     const emptyPlaceholder = messagesContainer.querySelector(".empty-messages");
@@ -1513,7 +1654,6 @@ async function sendMessage(chatId, messageContent) {
     const messageTime = document.createElement("p");
     messageTime.classList.add("message__time");
     messageTime.textContent = formatDateTime(timestamp);
-    console.log(formatDateTime(timestamp));
 
     messageEl.appendChild(messageSenderName);
     messageEl.appendChild(messageContent_el);
@@ -1536,13 +1676,17 @@ async function sendMessage(chatId, messageContent) {
       scrollToBottom();
     });
 
+    // FIX: Format sender_data properly as "id+name"
+    const sender_data = `${instructorId}+${instructorName}`;
+    console.log("Sending message with sender_data:", sender_data);
+
     // Send the actual message to the database
     const { data, error } = await supaClient
       .from("message")
       .insert({
         chat_id: chatId,
         msg_content: messageContent,
-        sender_data: instructorId,
+        sender_data: sender_data,
         msg_date_time: timestamp.toISOString(),
       })
       .select();
@@ -1578,13 +1722,12 @@ async function sendMessage(chatId, messageContent) {
       }
 
       // Update the chat list manually in case the subscription is slow
-      await updateLastMessageInChatList(chatId, messageContent, instructorId);
+      await updateLastMessageInChatList(chatId, messageContent, instructorId, instructorName);
     }
   } catch (err) {
     console.error("Exception sending message:", err);
   }
 }
-
 // Fix 11: Initialize chat with explicit debugging
 export function initInstructorChat() {
   console.log("Initializing instructor chat...");
@@ -1680,3 +1823,7 @@ if (
     initInstructorChat();
   });
 }
+document.addEventListener("DOMContentLoaded", function() {
+  preloadInstructorName();
+  // other initialization code...
+});

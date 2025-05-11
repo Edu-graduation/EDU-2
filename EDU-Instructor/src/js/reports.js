@@ -1553,19 +1553,24 @@ function initAtRiskStudentsTable(
         (sum, sq) => sum + Number(sq.score),
         0
       );
+      console.log(totalScore);
+      console.log(studentQuizSubmissions);
+      
       const avgQuizScore =
         studentQuizSubmissions.length > 0
           ? totalScore / studentQuizSubmissions.length
           : 0;
+console.log(avgQuizScore);
 
       // Get last activity date (mock data since we don't have participation_date in the schema)
       const lastActivityDate = new Date();
       lastActivityDate.setDate(
         lastActivityDate.getDate() - Math.floor(Math.random() * 30)
       );
+console.log(missingAssignments);
 
-      // Determine if student is at risk
-      const isAtRisk = missingAssignments > 2 || avgQuizScore < 60;
+      // Determine if student is at risk if missing more than 2 assignments or average quiz score is less than 5
+      const isAtRisk = missingAssignments > 2 || avgQuizScore < 5;
 
       if (isAtRisk) {
         atRiskStudents.push({
@@ -1601,12 +1606,14 @@ function initAtRiskStudentsTable(
       tableBody.appendChild(row);
     } else {
       atRiskStudents.forEach((student) => {
+        console.log(student);
+        
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${student.studentName}</td>
           <td>${student.courseName}</td>
           <td>${student.missingAssignments}</td>
-          <td>${student.avgQuizScore}%</td>
+          <td>${student.avgQuizScore}</td>
           <td>${student.lastActivity}</td>
           `;
         tableBody.appendChild(row);
@@ -1985,8 +1992,7 @@ function openChartInModal(chartId) {
     });
   }
   const ctx = modalChartCanvas.getContext("2d");
-  console.log(JSON.parse(JSON.stringify(chart.options)));
-
+  console.log(chart.options);
   // Clone the original chart to the modal
   modalChartInstance = new Chart(ctx, {
     type: chart.config.type,
@@ -2000,7 +2006,6 @@ function openChartInModal(chartId) {
       },
     },
   });
-
   // Generate detailed insights based on chart type
   const chartDetails = generateChartInsights(chartId, chart);
   modalChartDetails.innerHTML = chartDetails;

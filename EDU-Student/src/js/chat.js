@@ -1,6 +1,7 @@
 //////////////////////////////// V5 ///////////////////////////////
 import { supaClient } from "./app.js";
 import { getUserName } from "./app.js";
+import { isInstitutionSchool } from "./app.js";
 const studentId = sessionStorage.getItem("studentId");
 const courseId = JSON.parse(sessionStorage.getItem("courseId"));
 const chatName = document.querySelector(".chat__name");
@@ -187,33 +188,38 @@ document.addEventListener("DOMContentLoaded", function () {
 //     return "Unknown User";
 //   }
 // }
-async function safeGetUserName(userId) {
-  if (!userId) {
-    return "Unknown User";
-  }
-  // Check cache first
-  if (userNameCache.has(userId)) {
-    return userNameCache.get(userId);
-  }
+//////////////////// NEW WAY TO KNOW USER NAME //////////////////////
+// async function safeGetUserName(userId) {
+//   if (!userId) {
+//     return "Unknown User";
+//   }
+//   console.log(userId);
+// console.log(userNameCache.has(userId));
 
-  try {
-    // First, check if it's an instructor
-    const instructorName = await getInstructorName(userId);
-    if (instructorName) {
-      userNameCache.set(userId, instructorName); // Cache the instructor name
-      return instructorName;
-    }
+//   // Check cache first
+//   if (userNameCache.has(userId)) {
+//     return userNameCache.get(userId);
+//   }
 
-    // If not an instructor, then try as a student
-    const name = await getUserName(userId);
-    userNameCache.set(userId, name); // Cache the result
-    return name;
-  } catch (error) {
-    console.error(`Error getting username for ID ${userId}:`, error);
-    userNameCache.set(userId, "Unknown User"); // Cache the fallback
-    return "Unknown User";
-  }
-}
+//   try {
+//     // First, check if it's an instructor
+//     const instructorName = await getInstructorName(userId);
+
+//     if (instructorName) {
+//       userNameCache.set(userId, instructorName); // Cache the instructor name
+//       return instructorName;
+//     }
+
+//     // If not an instructor, then try as a student
+//     const name = await getUserName(userId);
+//     userNameCache.set(userId, name); // Cache the result
+//     return name;
+//   } catch (error) {
+//     console.error(`Error getting username for ID ${userId}:`, error);
+//     userNameCache.set(userId, "Unknown User"); // Cache the fallback
+//     return "Unknown User";
+//   }
+// }
 // Batch username loading to avoid multiple sequential requests
 // async function loadUserNames(userIds) {
 //   const uniqueIds = [...new Set(userIds)].filter(
@@ -522,14 +528,14 @@ function handleNewMessage(payload) {
   processedMessageIds.add(message.msg_id);
 
   console.log(`New message received in chat ${message.chat_id}:`, message);
-  console.log(+message.sender_data);
   const senderId = +message.sender_data.slice(0, 14);
-  console.log(senderId);
+  const senderName = message.sender_data.slice(15);
+  console.log(senderName);
+  
   // Pre-load sender name if needed before processing the message
   if (senderId && !userNameCache.has(senderId)) {
-    safeGetUserName(senderId).then(() => {
-      processMessageUpdate(message);
-    });
+    userNameCache.set(senderId, senderName);
+    processMessageUpdate(message);
   } else {
     // Process immediately if sender info is available
     processMessageUpdate(message);
@@ -556,6 +562,7 @@ function processMessageUpdate(message) {
       `Processing message update for chat ${message.chat_id}, current chat: ${currentChatId}`
     );
     const senderId = +message.sender_data.slice(0, 14);
+    const senderName = message.sender_data.slice(15);
     // If this is the current open chat, add message to chat view
     if (Number(currentChatId) === Number(message.chat_id)) {
       console.log("This is the active chat, adding message to view");
@@ -565,7 +572,7 @@ function processMessageUpdate(message) {
     }
 
     // Update the chat list item with this message regardless
-    updateLastMessageInChatList(message.chat_id, message.msg_content, senderId);
+    updateLastMessageInChatList(message.chat_id, message.msg_content, senderId, senderName);
   } catch (error) {
     console.error("Error processing message update:", error);
   }
@@ -591,15 +598,16 @@ function createMessageElement(message, animate = true) {
   messageContent.textContent = message.msg_content || "";
   messageTime.textContent = formatDateTime(new Date(message.msg_date_time));
   const senderId = +message.sender_data.slice(0, 14);
+  const senderName = message.sender_data.slice(15);
   // Check if the message is from the current user
   const isSentByCurrentUser = senderId === +studentId;
   // Add message classes based on sender
   if (isSentByCurrentUser) {
     messageEl.classList.add("sent");
-    messageSenderName.textContent = userNameCache.get(studentId) || "You";
+    messageSenderName.textContent = senderName || "You";
   } else {
     messageEl.classList.add("received");
-    messageSenderName.textContent = userNameCache.get(senderId) || "User";
+    messageSenderName.textContent = senderName || "User";
     if (String(senderId).startsWith("2")) {
       messageEl.classList.add("instrctor-message");
     }
@@ -779,9 +787,10 @@ async function renderChatList() {
       const lastMessage = await getLastMessage(chatId);
       if (lastMessage) {
         const senderId = +lastMessage.sender_data.slice(0, 14);
+        const senderName = lastMessage.sender_data.slice(15);
         // Ensure we have the sender name
         if (senderId && !userNameCache.has(senderId)) {
-          await safeGetUserName(senderId);
+          userNameCache.set(senderId, senderName);
         }
         return { chatId, lastMessage };
       }
@@ -821,17 +830,18 @@ function updateChatLastMessageDisplay(lastMessageEl, lastMessage) {
   if (lastMessage) {
     messageText = truncateText(lastMessage.msg_content, 30);
     const senderId = +lastMessage.sender_data.slice(0, 14);
+    const senderName = lastMessage.sender_data.slice(15);
     // Properly determine the sender prefix
     if (+studentId === senderId) {
       senderPrefix = "You: ";
     } else if (senderId && userNameCache.has(senderId)) {
-      senderPrefix = `${userNameCache.get(senderId)}: `;
+      senderPrefix = `${senderName}: `;
     }
   }
 
   lastMessageEl.textContent = senderPrefix + messageText;
 }
-
+  
 function truncateText(text, maxLength) {
   if (!text) return "";
   if (text.length <= maxLength) return text;
@@ -903,28 +913,6 @@ function renderChatDetails(chat) {
   }
 }
 
-// async function retrieveChatMessages(chatId) {
-//   const { data, error } = await supaClient
-//     .from("message")
-//     .select("*")
-//     .eq("chat_id", chatId)
-//     .order("msg_date_time", { ascending: true }) // Primary sort by timestamp
-//     .order("msg_id", { ascending: true }); // Secondary sort by message_id for consistency
-
-//   if (error) {
-//     console.error("Error fetching chat messages:", error);
-//     return [];
-//   } else {
-//     // Build our processed message IDs set
-//     data.forEach((msg) => {
-//       if (msg.msg_id) {
-//         processedMessageIds.add(msg.msg_id);
-//       }
-//     });
-
-//     return data;
-//   }
-// }
 async function retrieveChatMessages(chatId) {
   const { data, error } = await supaClient
     .from("message")
@@ -947,87 +935,6 @@ async function retrieveChatMessages(chatId) {
     return data;
   }
 }
-// function renderChatMessages(messages, animate = true) {
-//   // Get the messages container
-//   const messagesContainer = document.querySelector(".chat__messages-container");
-
-//   // Clear existing messages
-//   messagesContainer.innerHTML = "";
-
-//   if (!messages || messages.length === 0) {
-//     // Show a message when there are no messages
-//     const emptyMessage = document.createElement("div");
-//     emptyMessage.classList.add("empty-messages");
-//     emptyMessage.textContent = "No messages yet. Start the conversation!";
-//     messagesContainer.appendChild(emptyMessage);
-//     return;
-//   }
-
-//   // Modified: Ensure messages are properly sorted by timestamp (oldest to newest)
-//   messages.sort((a, b) => {
-//     const timeA = new Date(a.msg_date_time).getTime();
-//     const timeB = new Date(b.msg_date_time).getTime();
-//     // If timestamps are equal, sort by message_id as secondary criteria
-//     if (timeA === timeB) {
-//       return a.msg_id - b.msg_id;
-//     }
-
-//     return timeA - timeB;
-//   });
-
-//   // Performance optimization: Create a document fragment and batch render
-//   const fragment = document.createDocumentFragment();
-
-//   // For large message sets, use virtual rendering
-//   const shouldVirtualize = messages.length > 100;
-//   // If virtualizing, only render the last 50 messages initially
-//   const messagesToRender = shouldVirtualize ? messages.slice(-50) : messages;
-
-//   // Render messages in batches using requestAnimationFrame for better performance
-//   const renderBatch = (startIdx, endIdx) => {
-//     for (let i = startIdx; i < endIdx && i < messagesToRender.length; i++) {
-//       const message = messagesToRender[i];
-//       if (!message) continue;
-
-//       const messageEl = createMessageElement(message, false); // Don't animate batches
-//       fragment.appendChild(messageEl);
-//     }
-
-//     // Add this batch to the container
-//     messagesContainer.appendChild(fragment);
-//   };
-
-//   // For small message sets, render all at once
-//   if (!shouldVirtualize) {
-//     renderBatch(0, messagesToRender.length);
-//   } else {
-//     // For large message sets, render in batches of 20
-//     let currentBatch = 0;
-//     const batchSize = 20;
-
-//     const processNextBatch = () => {
-//       const startIdx = currentBatch * batchSize;
-//       const endIdx = startIdx + batchSize;
-
-//       if (startIdx < messagesToRender.length) {
-//         renderBatch(startIdx, endIdx);
-//         currentBatch++;
-//         requestAnimationFrame(processNextBatch);
-//       } else {
-//         // All batches processed
-//         scrollToBottom();
-//       }
-//     };
-
-//     // Start rendering batches
-//     processNextBatch();
-//   }
-
-//   // Scroll to the bottom immediately for small message sets
-//   if (!shouldVirtualize) {
-//     scrollToBottom();
-//   }
-// }
 function renderChatMessages(messages, animate = true) {
   // Get the messages container
   const messagesContainer = document.querySelector(".chat__messages-container");
@@ -1087,7 +994,7 @@ function renderChatMessages(messages, animate = true) {
     // For large message sets, render in chunks
     const BATCH_SIZE = 20;
     const totalBatches = Math.ceil(messagesToRender.length / BATCH_SIZE);
-
+    
     let batchIndex = 0;
 
     const processBatch = () => {
@@ -1132,7 +1039,7 @@ async function updateLastMessageInChatList(chatId, messageContent, senderId) {
         prefix = `${userNameCache.get(senderId)}: `;
       } else if (senderId) {
         // If we don't have the name cached, fetch it first
-        const senderName = await safeGetUserName(senderId);
+        const senderName = userNameCache.get(senderId);
         prefix = `${senderName}: `;
       }
 
@@ -1152,121 +1059,12 @@ async function updateLastMessageInChatList(chatId, messageContent, senderId) {
         void chatItem.offsetWidth;
 
         // Animate back to normal
-        // chatItem.style.transition = "opacity 0.3s ease";
-        // chatItem.style.opacity = "1";
+        chatItem.style.transition = "opacity 0.3s ease";
+        chatItem.style.opacity = "1";
       }
     }
   }
 }
-
-// async function sendMessage(chatId, messageContent) {
-//   try {
-//     const timestamp = new Date();
-
-//     // Create a temporary visual placeholder for the message with a unique ID
-//     const tempMessageId = `temp-${Date.now()}`;
-//     const messagesContainer = document.querySelector(
-//       ".chat__messages-container"
-//     );
-
-//     // Remove any "empty messages" placeholder if it exists
-//     const emptyPlaceholder = messagesContainer.querySelector(".empty-messages");
-//     if (emptyPlaceholder) {
-//       emptyPlaceholder.remove();
-//     }
-
-//     // If we don't have the current user's name yet, get it
-//     if (!userNameCache.has(studentId)) {
-//       await safeGetUserName(studentId);
-//     }
-
-//     // Create temporary message element
-//     const messageEl = document.createElement("div");
-//     messageEl.id = tempMessageId;
-//     messageEl.classList.add("message", "sent", "pending");
-//     // Add timestamp as data attribute for sorting
-//     messageEl.setAttribute("data-timestamp", timestamp.getTime());
-
-//     const messageSenderName = document.createElement("p");
-//     messageSenderName.classList.add("message__sender-name");
-//     messageSenderName.textContent = userNameCache.get(studentId) || "You";
-//     const messageContent_el = document.createElement("p");
-//     messageContent_el.classList.add("message__content");
-//     messageContent_el.textContent = messageContent;
-
-//     const messageTime = document.createElement("p");
-//     messageTime.classList.add("message__time");
-//     messageTime.textContent = formatDateTime(timestamp);
-
-//     messageEl.appendChild(messageSenderName);
-//     messageEl.appendChild(messageContent_el);
-//     messageEl.appendChild(messageTime);
-
-//     // Append message to the end for chronological order
-//     messagesContainer.appendChild(messageEl);
-
-//     // Add animation for a smoother appearance
-//     messageEl.style.opacity = "0";
-//     messageEl.style.transform = "translateY(10px)";
-
-//     // Use requestAnimationFrame for smoother animations
-//     requestAnimationFrame(() => {
-//       messageEl.style.transition = "opacity 0.2s ease, transform 0.2s ease";
-//       messageEl.style.opacity = "1";
-//       messageEl.style.transform = "translateY(0)";
-
-//       // Scroll to bottom to show the new message
-//       scrollToBottom();
-//     });
-
-//     // Send the actual message to the database
-//     const { data, error } = await supaClient
-//       .from("message")
-//       .insert({
-//         chat_id: chatId,
-//         msg_content: messageContent,
-//         sender_data: studentId,
-//         msg_date_time: timestamp.toISOString(),
-//       })
-//       .select();
-
-//     if (error) {
-//       console.error("Error sending message:", error);
-//       messageEl.classList.add("error");
-//       messageTime.textContent = "Failed to send";
-
-//       // Add retry button
-//       const retryButton = document.createElement("button");
-//       retryButton.classList.add("retry-button");
-//       retryButton.textContent = "Retry";
-//       retryButton.addEventListener("click", () => {
-//         // Remove the failed message
-//         messageEl.remove();
-//         // Try sending again
-//         sendMessage(chatId, messageContent);
-//       });
-//       messageEl.appendChild(retryButton);
-//     } else {
-//       console.log("Message sent:", data);
-
-//       // Instead of removing the placeholder, just mark it as confirmed and add the ID
-//       messageEl.classList.remove("pending");
-//       messageEl.classList.add("confirmed");
-
-//       if (data && data[0] && data[0].msg_id) {
-//         messageEl.setAttribute("data-message-id", data[0].msg_id);
-
-//         // Add this message ID to our processed set to prevent duplication
-//         processedMessageIds.add(data[0].msg_id);
-//       }
-
-//       // Update the chat list manually in case the subscription is slow
-//       updateLastMessageInChatList(chatId, messageContent, studentId);
-//     }
-//   } catch (err) {
-//     console.error("Exception sending message:", err);
-//   }
-// }
 async function sendMessage(chatId, messageContent) {
   try {
     const timestamp = new Date();
@@ -1330,7 +1128,7 @@ async function sendMessage(chatId, messageContent) {
       .insert({
         chat_id: chatId,
         msg_content: messageContent,
-        sender_data: studentId,
+        sender_data: `${studentId}+${userNameCache.get(studentId)}`,
         msg_date_time: timestamp.toISOString(),
       })
       .select();
@@ -1657,7 +1455,6 @@ async function getCourseName() {
   }
 }
 async function getInstructorName(userId) {
-  if (String(userId).startsWith("2")) {
     try {
       const { data, error } = await supaClient
         .from("instructor")
@@ -1673,6 +1470,6 @@ async function getInstructorName(userId) {
     } catch (error) {
       console.error(`Error checking instructor ID ${userId}:`, error);
       return null;
-    }
+    
   }
 }

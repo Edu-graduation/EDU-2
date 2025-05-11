@@ -100,8 +100,7 @@ export function isInstitutionSchool() {
   const institutionName = sessionStorage.getItem("institution_name");
   const institutionId = sessionStorage.getItem("institution_id");
   if (
-    (institutionName && institutionName.toLowerCase().includes("school")) ||
-    institutionId === "school_id" // Replace with actual school institution ID if known
+    (institutionName && institutionName.toLowerCase().includes("school") || institutionName.toLowerCase().includes("college")) // Replace with actual school institution ID if known
   ) {
     console.log("Institution is a school.");
     return true;

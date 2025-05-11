@@ -126,7 +126,8 @@ async function getInstructorProjects(courseId) {
         .from("course_activity")
         .select("activity_id")
         .eq("course_id", courseId);
-
+    console.log(courseActivities);
+    
     if (courseActivitiesError) {
       console.error("Error fetching course activities:", courseActivitiesError);
       return [];
@@ -595,6 +596,7 @@ async function getStudentSubmissionsForActivities(activityIds) {
         activityIds.map((a) => a.activity_id)
       )
       .neq("activity_path", null);
+console.log(data);
 
     if (error) {
       console.error("Error fetching student submissions:", error);
