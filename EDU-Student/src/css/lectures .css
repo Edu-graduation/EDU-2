@@ -1,5 +1,5 @@
 .main-content {
-  padding: 2rem;
+  padding: 1rem;
   width: 100%;
   background-color: var(--color-grey-light-1);
   border-radius: 5rem;
@@ -10,7 +10,9 @@
   align-content: center;
   justify-content: center;
   align-items: center;
-  overflow: scroll;
+  /* overflow: scroll; */
+  /* overflow-x: scroll; */
+  overflow: hidden;
   scrollbar-width: none;
 }
 
@@ -31,12 +33,14 @@
 
 .cards-container {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
+  /* flex-direction: row; */
+  /* flex-wrap: nowrap; */
   gap: 35px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 20px;
+  /* overflow-x: auto; */
+  /* overflow-y: hidden; */
+  overflow: scroll hidden;
+  /* padding-bottom: 20px; */
+  margin-top: -4rem;
   width: 100%;
 }
 
@@ -155,17 +159,18 @@
   flex-wrap: wrap;
 }
 
-.cards-container {
+/* .cards-container {
   display: flex;
   flex-wrap: wrap;
   gap: 4%;
   justify-content: center;
-}
+} */
 
 .card-stack {
   position: relative;
-  width: 16%;
+  width: 20rem;
   height: 22.5rem;
+  flex-shrink: 0;
 }
 
 .card {
@@ -253,6 +258,7 @@
   display: flex;
   justify-content: space-between;
   width: 85%;
+  margin-top: -7rem;
 }
 
 .Title_container {

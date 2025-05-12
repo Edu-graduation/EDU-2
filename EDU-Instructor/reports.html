@@ -153,7 +153,7 @@
               </svg>
             </div>
             <div class="summary-content">
-              <h3>Pending Submissions</h3>
+              <h3 class="key-change">Pending Assignments Submissions</h3>
               <p id="pendingSubmissions">Loading...</p>
             </div>
           </div>
@@ -265,7 +265,11 @@
           </div>
           <!-- At-Risk Students Section -->
           <div class="report-card wide-card">
+            <div class="table__header">
             <h3>At-Risk Students</h3>
+            <input type="search" id="atRiskSearch" placeholder="Search students...">
+            </div>
+            
             <div class="table-container" id="atRiskStudentsTable">
               <table class="data-table">
                 <thead>

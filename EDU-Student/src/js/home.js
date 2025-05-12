@@ -1739,6 +1739,9 @@ function formatDate(dateString) {
 // Check if a date is within the next 7 days
 function isWithinNextWeek(dateString) {
   try {
+    if(!dateString){
+        return ;
+    }
     // Parse ISO 8601 date (e.g. "2025-05-08T12:00:00+00:00")
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {

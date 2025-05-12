@@ -631,6 +631,57 @@ function categorizeCGPA(cgpa) {
   return "Below 2.0";
 }
 // Update summary cards
+// function updateSummaryCards(
+//   courses,
+//   students,
+//   enrollments,
+//   assignments,
+//   studentAssignments
+// ) {
+//   // Get course IDs taught by the instructor
+//   const instructorCourseIds = courses.map((course) => course.course_id);
+//   // Count unique students enrolled in instructor's courses
+//   //   const enrolledStudents = new Set()
+//   //   enrollments.forEach((enrollment) => {
+//   //     enrolledStudents.add(enrollment.student_id)
+//   //   })
+//   // console.log(enrolledStudents);
+//   // Count active courses (courses with at least one enrolled student)
+//   const activeCourses = new Set();
+//   enrollments.forEach((enrollment) => {
+//     activeCourses.add(enrollment.course_id);
+//   });
+
+//   const enrolledStudentIds = [...new Set(enrollments.map((e) => e.student_id))];
+
+//   // Count pending submissions (assignments without a submission path)
+//   let pendingCount = 0;
+
+//   assignments.forEach((assignment) => {
+//     const assignmentId = assignment.assign_id;
+//     const totalSubmissions = studentAssignments.filter(
+//       (sa) => sa.assign_id === assignmentId
+//     ).length;
+
+//     const completedSubmissions = studentAssignments.filter(
+//       (sa) => sa.assign_id === assignmentId && sa.assign_path
+//     ).length;
+//     pendingCount += totalSubmissions - completedSubmissions;
+//     console.log(completedSubmissions);
+//   });
+  
+//   console.log(pendingCount);
+  
+//   // Calculate average response time (mock data - in a real app, this would come from message timestamps)
+//   // const avgResponseTime = "8.5 hours"
+
+//   // Update the summary cards
+
+//   document.getElementById("totalStudents").textContent = enrollments.length;
+//   document.getElementById("activeCourses").textContent = activeCourses.size;
+//   document.getElementById("pendingSubmissions").textContent = pendingCount;
+//   // document.getElementById("avgResponseTime").textContent = avgResponseTime
+// }
 function updateSummaryCards(
   courses,
   students,
@@ -640,45 +691,50 @@ function updateSummaryCards(
 ) {
   // Get course IDs taught by the instructor
   const instructorCourseIds = courses.map((course) => course.course_id);
+
   // Count unique students enrolled in instructor's courses
-  //   const enrolledStudents = new Set()
-  //   enrollments.forEach((enrollment) => {
-  //     enrolledStudents.add(enrollment.student_id)
-  //   })
-  // console.log(enrolledStudents);
+  const enrolledStudentIds = [...new Set(enrollments.map((e) => e.student_id))];
+
   // Count active courses (courses with at least one enrolled student)
   const activeCourses = new Set();
   enrollments.forEach((enrollment) => {
     activeCourses.add(enrollment.course_id);
   });
 
-  const enrolledStudentIds = [...new Set(enrollments.map((e) => e.student_id))];
-
-  // Count pending submissions (assignments without a submission path)
+  // Calculate pending submissions correctly
   let pendingCount = 0;
 
+  // Loop through each assignment
   assignments.forEach((assignment) => {
     const assignmentId = assignment.assign_id;
-    const totalSubmissions = studentAssignments.filter(
-      (sa) => sa.assign_id === assignmentId
-    ).length;
+    const courseId = assignment.course_id;
+    
+    // Find all students enrolled in this assignment's course
+    const studentsInCourse = enrollments.filter(
+      (enrollment) => enrollment.course_id === courseId
+    ).map((enrollment) => enrollment.student_id);
 
+    // Count completed submissions for this assignment
     const completedSubmissions = studentAssignments.filter(
       (sa) => sa.assign_id === assignmentId && sa.assign_path
-    ).length;
-    pendingCount += totalSubmissions - completedSubmissions;
+    );
+    
+    // Get unique student IDs who have completed this assignment
+    const completedStudentIds = [...new Set(completedSubmissions.map(
+      (submission) => submission.student_id
+    ))];
+
+    // Each enrolled student who hasn't completed is a pending submission
+    const pendingForThisAssignment = studentsInCourse.length - completedStudentIds.length;
+    
+    pendingCount += pendingForThisAssignment;
   });
-  // Calculate average response time (mock data - in a real app, this would come from message timestamps)
-  // const avgResponseTime = "8.5 hours"
 
   // Update the summary cards
-
-  document.getElementById("totalStudents").textContent = enrollments.length;
+  document.getElementById("totalStudents").textContent = enrolledStudentIds.length;
   document.getElementById("activeCourses").textContent = activeCourses.size;
   document.getElementById("pendingSubmissions").textContent = pendingCount;
-  // document.getElementById("avgResponseTime").textContent = avgResponseTime
 }
-
 // 1. Course Performance Chart
 function initCoursePerformanceChart(
   courses,
@@ -728,8 +784,6 @@ const assignmentCompletionRate =
       //   courseIds.includes(q.course_id)
       // );
       const courseQuizzes = quizzes.filter((q) => q.course_id === courseId);
-      console.log("courseQuizzes", courseQuizzes);
-      
       // const courseQuizIds = courseQuizzes.map((q) => q.quiz_id);
 
       // const courseQuizSubmissions = studentQuizzes.filter((sq) =>
@@ -746,25 +800,23 @@ const assignmentCompletionRate =
       //     ? totalScore / courseQuizSubmissions.length
       //     : 0;
       const courseQuizIds = courseQuizzes.map((q) => q.quiz_id);
-console.log("courseQuizIds", courseQuizIds);
-
 const courseQuizSubmissions = studentQuizzes.filter((sq) =>
   courseQuizIds.includes(sq.quiz_id)
 );
-console.log("courseQuizSubmissions", courseQuizSubmissions);
-
 const totalScore = courseQuizSubmissions.reduce(
   (sum, sq) => sum + Number(sq.score),
   0
 );
-console.log("totalScore", totalScore);
+console.log(totalScore);
 
 const avgQuizScore =
   courseQuizSubmissions.length > 0
     ? totalScore / courseQuizSubmissions.length
     : 0;
-console.log("avgQuizScore", avgQuizScore);
-
+    console.log(courseQuizSubmissions.length);
+    
+    console.log(avgQuizScore);
+    
       return {
         name: course.course_name,
         enrollmentCount,
@@ -1023,7 +1075,7 @@ function initAssignmentCompletionChart(
     charts.assignmentCompletion = new Chart(ctx, {
       type: "bar",
       data: {
-        labels: assignmentNames,
+        labels:isInstitutionSchool() ? assignmentNames.map((a) => a.replaceAll("Assignment", "Homework")) : assignmentNames,
         datasets: [
           {
             label: "Completed",
@@ -1173,113 +1225,567 @@ function initAssignmentCompletionChart(
   //     showError("quizPerformanceChart", "Failed to load quiz performance data");
   //   }
   // }
-  function initQuizPerformanceChart(quizzes, studentQuizzes, courses) {
-    try {
-      // Group quizzes by course
-      const quizzesByCourse = {};
-      courses.forEach((course) => {
-        quizzesByCourse[course.course_id] = {
-          name: course.course_name,
-          quizzes: [],
+// function initQuizPerformanceChart(quizzes, studentQuizzes, courses) {
+//   try {
+//     // Group quizzes by course
+//     const quizzesByCourse = {};
+//     courses.forEach((course) => {
+//       quizzesByCourse[course.course_id] = {
+//         name: course.course_name,
+//         quizzes: [],
+//       };
+//     });
+    
+//     // Calculate average scores and student count for each quiz
+//     quizzes.forEach((quiz) => {
+//       const quizId = quiz.quiz_id;
+//       const courseId = quiz.course_id;
+      
+//       if (quizzesByCourse[courseId]) {
+//         const submissions = studentQuizzes.filter(
+//           (sq) => sq.quiz_id === quizId
+//         );
+        
+//         // Count students who attempted this quiz (non-empty student_answers)
+//         const studentsAttempted = submissions.filter(
+//           (sq) => sq.student_answers && sq.student_answers.trim() !== ''
+//         ).length;
+        
+//         const totalScore = submissions.reduce(
+//           (sum, sq) => sum + Number(sq.score),
+//           0
+//         );
+//         const avgScore =
+//           submissions.length > 0 ? totalScore / submissions.length : 0;
+        
+//         quizzesByCourse[courseId].quizzes.push({
+//           name: quiz.quiz_title, // Unique label
+//           avgScore: Number.parseFloat(avgScore.toFixed(1)),
+//           studentsAttempted: studentsAttempted
+//         });
+//       }
+//     });
+    
+//     // Collect all unique quiz names
+//     const allQuizNamesSet = new Set();
+//     Object.values(quizzesByCourse).forEach((courseData) => {
+//       courseData.quizzes.forEach((quiz) => {
+//         allQuizNamesSet.add(quiz.name);
+//       });
+//     });
+    
+//     const allQuizNames = Array.from(allQuizNamesSet).sort();
+    
+//     // Prepare datasets for average scores
+//     const scoreDatasets = Object.values(quizzesByCourse)
+//       .filter((courseData) => courseData.quizzes.length > 0)
+//       .map((courseData, index) => {
+//         // Build a data array aligned with allQuizNames
+//         const scoreMap = {};
+//         courseData.quizzes.forEach((quiz) => {
+//           scoreMap[quiz.name] = quiz.avgScore;
+//         });
+        
+//         const alignedData = allQuizNames.map((name) =>
+//           scoreMap.hasOwnProperty(name) ? scoreMap[name] : null
+//         );
+        
+//         return {
+//           label: `${courseData.name} (Avg Score)`,
+//           data: alignedData,
+//           backgroundColor:
+//             chartColors.dayColors[index % chartColors.dayColors.length],
+//           borderColor:
+//             chartColors.dayTextColors[index % chartColors.dayTextColors.length],
+//           borderWidth: 2,
+//           fill: false,
+//           tension: 0.2,
+//           yAxisID: 'y',
+//         };
+//       });
+    
+//     // Get colors for student count datasets (reuse dayColors with opacity)
+//     const getStudentCountColor = (index) => {
+//       const baseColor = chartColors.dayColors[index % chartColors.dayColors.length];
+//       // Convert to rgba with opacity if it's a hex color
+//       if (baseColor.startsWith('#')) {
+//         // Convert hex to rgb
+//         const r = parseInt(baseColor.slice(1, 3), 16);
+//         const g = parseInt(baseColor.slice(3, 5), 16);
+//         const b = parseInt(baseColor.slice(5, 7), 16);
+//         return `rgba(${r}, ${g}, ${b}, 0.6)`;
+//       }
+//       // If it's already rgba, adjust opacity
+//       return baseColor.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, 'rgba($1, $2, $3, 0.6)');
+//     };
+    
+//     // Prepare datasets for student count
+//     const studentCountDatasets = Object.values(quizzesByCourse)
+//       .filter((courseData) => courseData.quizzes.length > 0)
+//       .map((courseData, index) => {
+//         // Build a data array aligned with allQuizNames
+//         const countMap = {};
+//         courseData.quizzes.forEach((quiz) => {
+//           countMap[quiz.name] = quiz.studentsAttempted;
+//         });
+        
+//         const alignedData = allQuizNames.map((name) =>
+//           countMap.hasOwnProperty(name) ? countMap[name] : null
+//         );
+        
+//         return {
+//           label: `${courseData.name} (Students)`,
+//           data: alignedData,
+//           backgroundColor: 'rgba(0, 0, 0, 0)', // Transparent background
+//           borderColor: getStudentCountColor(index),
+//           borderWidth: 2,
+//           borderDash: [5, 5], // Create a dashed line
+//           fill: false,
+//           tension: 0.2,
+//           yAxisID: 'y1', // Use second y-axis
+//           type: 'line',
+//         };
+//       });
+    
+//     // Combine datasets
+//     const allDatasets = [...scoreDatasets, ...studentCountDatasets];
+    
+//     // Create chart
+//     const ctx = document
+//       .getElementById("quizPerformanceChart")
+//       .getContext("2d");
+    
+//     // Store chart instance with the proper key format
+//     charts["quizPerformanceChart"] = new Chart(ctx, {
+//       type: "line",
+//       data: {
+//         labels: allQuizNames,
+//         datasets: allDatasets,
+//       },
+//       options: {
+//         ...commonChartOptions,
+//         scales: {
+//           y: {
+//             beginAtZero: true,
+//             max: 10,
+//             position: 'left',
+//             title: {
+//               display: true,
+//               text: "Average Score",
+//               font: {
+//                 family: "'Poppins', sans-serif",
+//                 size: 12,
+//               },
+//             },
+//           },
+//           y1: {
+//             beginAtZero: true,
+//             position: 'right',
+//             grid: {
+//               drawOnChartArea: false, // Only show grid lines for the primary y-axis
+//             },
+//             title: {
+//               display: true,
+//               text: "Students Count",
+//               font: {
+//                 family: "'Poppins', sans-serif",
+//                 size: 12,
+//               },
+//             },
+//           },
+//         },
+//         plugins: {
+//           tooltip: {
+//             callbacks: {
+//               label: function(context) {
+//                 const dataset = context.dataset;
+//                 const value = dataset.data[context.dataIndex];
+//                 const label = dataset.label || '';
+                
+//                 if (label.includes('(Avg Score)')) {
+//                   return `${label}: ${value} / 10`;
+//                 } else if (label.includes('(Students)')) {
+//                   return `${label}: ${value} students`;
+//                 }
+//                 return `${label}: ${value}`;
+//               }
+//             }
+//           }
+//         }
+//       },
+//     });
+    
+//     hideLoading("quizPerformanceChart");
+//   } catch (error) {
+//     console.error("Error initializing quiz performance chart:", error);
+//     showError("quizPerformanceChart", "Failed to load quiz performance data");
+//   }
+// }
+// Fully modified initQuizPerformanceChart function
+function initQuizPerformanceChart(quizzes, studentQuizzes, courses) {
+  try {
+    // Group quizzes by course
+    const quizzesByCourse = {};
+    courses.forEach((course) => {
+      quizzesByCourse[course.course_id] = {
+        name: course.course_name,
+        quizzes: [],
+      };
+    });
+    
+    // Calculate average scores and student count for each quiz
+    quizzes.forEach((quiz) => {
+      const quizId = quiz.quiz_id;
+      const courseId = quiz.course_id;
+      
+      if (quizzesByCourse[courseId]) {
+        const submissions = studentQuizzes.filter(
+          (sq) => sq.quiz_id === quizId
+        );
+        
+        // Count students who attempted this quiz (non-empty student_answers)
+        const studentsAttempted = submissions.filter(
+          (sq) => sq.student_answers && sq.student_answers.trim() !== ''
+        ).length;
+        
+        const totalScore = submissions.reduce(
+          (sum, sq) => sum + Number(sq.score),
+          0
+        );
+        const avgScore =
+          submissions.length > 0 ? totalScore / submissions.length : 0;
+        
+        quizzesByCourse[courseId].quizzes.push({
+          name: quiz.quiz_title, // Unique label
+          avgScore: Number.parseFloat(avgScore.toFixed(1)),
+          studentsAttempted: studentsAttempted
+        });
+      }
+    });
+    
+    // Collect all unique quiz names
+    const allQuizNamesSet = new Set();
+    Object.values(quizzesByCourse).forEach((courseData) => {
+      courseData.quizzes.forEach((quiz) => {
+        allQuizNamesSet.add(quiz.name);
+      });
+    });
+    
+    const allQuizNames = Array.from(allQuizNamesSet).sort();
+    
+    // Prepare datasets for average scores
+    const scoreDatasets = Object.values(quizzesByCourse)
+      .filter((courseData) => courseData.quizzes.length > 0)
+      .map((courseData, index) => {
+        // Build a data array aligned with allQuizNames
+        const scoreMap = {};
+        courseData.quizzes.forEach((quiz) => {
+          scoreMap[quiz.name] = quiz.avgScore;
+        });
+        
+        const alignedData = allQuizNames.map((name) =>
+          scoreMap.hasOwnProperty(name) ? scoreMap[name] : null
+        );
+        
+        return {
+          label: `${courseData.name} (Avg Score)`,
+          data: alignedData,
+          backgroundColor:
+            chartColors.dayColors[index % chartColors.dayColors.length],
+          borderColor:
+            chartColors.dayTextColors[index % chartColors.dayTextColors.length],
+          borderWidth: 2,
+          fill: false,
+          tension: 0.2,
+          yAxisID: 'y',
         };
       });
-  
-      // Calculate average scores for each quiz
-      quizzes.forEach((quiz) => {
-        const quizId = quiz.quiz_id;
-        const courseId = quiz.course_id;
-  
-        if (quizzesByCourse[courseId]) {
-          const submissions = studentQuizzes.filter(
-            (sq) => sq.quiz_id === quizId
-          );
-          const totalScore = submissions.reduce(
-            (sum, sq) => sum + Number(sq.score),
-            0
-          );
-          const avgScore =
-            submissions.length > 0 ? totalScore / submissions.length : 0;
-  
-          quizzesByCourse[courseId].quizzes.push({
-            name: quiz.quiz_title, // Unique label
-            avgScore: Number.parseFloat(avgScore.toFixed(1)),
-          });
-        }
-      });
-  
-      // Collect all unique quiz names
-      const allQuizNamesSet = new Set();
-      Object.values(quizzesByCourse).forEach((courseData) => {
+    
+    // Get colors for student count datasets (reuse dayColors with opacity)
+    const getStudentCountColor = (index) => {
+      const baseColor = chartColors.dayColors[index % chartColors.dayColors.length];
+      // Convert to rgba with opacity if it's a hex color
+      if (baseColor.startsWith('#')) {
+        // Convert hex to rgb
+        const r = parseInt(baseColor.slice(1, 3), 16);
+        const g = parseInt(baseColor.slice(3, 5), 16);
+        const b = parseInt(baseColor.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, 0.6)`;
+      }
+      // If it's already rgba, adjust opacity
+      return baseColor.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, 'rgba($1, $2, $3, 0.6)');
+    };
+    
+    // Prepare datasets for student count
+    const studentCountDatasets = Object.values(quizzesByCourse)
+      .filter((courseData) => courseData.quizzes.length > 0)
+      .map((courseData, index) => {
+        // Build a data array aligned with allQuizNames
+        const countMap = {};
         courseData.quizzes.forEach((quiz) => {
-          allQuizNamesSet.add(quiz.name);          
+          countMap[quiz.name] = quiz.studentsAttempted;
         });
+        
+        const alignedData = allQuizNames.map((name) =>
+          countMap.hasOwnProperty(name) ? countMap[name] : null
+        );
+        
+        return {
+          label: `${courseData.name} (Students)`,
+          data: alignedData,
+          backgroundColor: 'rgba(98, 74, 154, 0.9)', // Transparent background
+          borderColor: getStudentCountColor(index),
+          borderWidth: 2,
+          borderDash: [5, 5], // Create a dashed line
+          fill: false,
+          tension: 0.2,
+          yAxisID: 'y1', // Use second y-axis
+          type: 'line',
+        };
       });
-  
-      const allQuizNames = Array.from(allQuizNamesSet).sort();
-      
-      // Prepare datasets
-      const datasets = Object.values(quizzesByCourse)
-        .filter((courseData) => courseData.quizzes.length > 0)
-        .map((courseData, index) => {
-          // Build a data array aligned with allQuizNames
-          const scoreMap = {};
-          courseData.quizzes.forEach((quiz) => {
-            scoreMap[quiz.name] = quiz.avgScore;
-          });
-  
-          const alignedData = allQuizNames.map((name) =>
-            scoreMap.hasOwnProperty(name) ? scoreMap[name] : null
-          );
-  
-          return {
-            label: courseData.name,
-            data: alignedData,
-            backgroundColor:
-              chartColors.dayColors[index % chartColors.dayColors.length],
-            borderColor:
-              chartColors.dayTextColors[index % chartColors.dayTextColors.length],
-            borderWidth: 2,
-            fill: false,
-            tension: 0.2,
-          };
-        });
-      
-      // Create chart
-      const ctx = document
-        .getElementById("quizPerformanceChart")
-        .getContext("2d");
-  
-      charts.quizPerformance = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: allQuizNames,
-          datasets: datasets,
-        },
-        options: {
-          ...commonChartOptions,
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 10,
-              title: {
-                display: true,
-                text: "Average Score",
-                font: {
-                  family: "'Poppins', sans-serif",
-                  size: 12,
-                },
+    
+    // Combine datasets
+    const allDatasets = [...scoreDatasets, ...studentCountDatasets];
+    
+    // Create chart
+    const ctx = document
+      .getElementById("quizPerformanceChart")
+      .getContext("2d");
+    
+    // KEY CHANGE: Store chart instance with the transformed chart ID
+    // This ensures it uses the same key format as in openChartInModal
+    charts[getChartInstanceName("quizPerformanceChart")] = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: allQuizNames,
+        datasets: allDatasets,
+      },
+      // options: {
+      //   ...commonChartOptions,
+      //   scales: {
+      //     y: {
+      //       beginAtZero: true,
+      //       max: 10,
+      //       position: 'left',
+      //       title: {
+      //         display: true,
+      //         text: "Average Score",
+      //         font: {
+      //           family: "'Poppins', sans-serif",
+      //           size: 12,
+      //         },
+      //       },
+      //     },
+      //     y1: {
+      //       beginAtZero: true,
+      //       position: 'right',
+      //       grid: {
+      //         drawOnChartArea: false, // Only show grid lines for the primary y-axis
+      //       },
+      //       title: {
+      //         display: true,
+      //         text: "Students Count",
+      //         font: {
+      //           family: "'Poppins', sans-serif",
+      //           size: 12,
+      //         },
+      //       },
+      //     },
+      //   },
+      //   plugins: {
+      //     tooltip: {
+      //       callbacks: {
+      //         label: function(context) {
+      //           const dataset = context.dataset;
+      //           const value = dataset.data[context.dataIndex];
+      //           const label = dataset.label || '';
+                
+      //           if (label.includes('(Avg Score)')) {
+      //             return `${label}: ${value} / 10`;
+      //           } else if (label.includes('(Students)')) {
+      //             return `${label}: ${value} students`;
+      //           }
+      //           return `${label}: ${value}`;
+      //         }
+      //       }
+      //     }
+      //   }
+      // },
+      options: {
+        ...commonChartOptions,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 10,
+            position: 'left',
+            title: {
+              display: true,
+              text: "Average Score",
+              font: {
+                family: "'Poppins', sans-serif",
+                size: 12,
               },
             },
           },
+          y1: {
+            beginAtZero: true,
+            position: 'right',
+            grid: {
+              drawOnChartArea: false, // Only show grid lines for the primary y-axis
+            },
+            title: {
+              display: true,
+              text: "Students Count",
+              font: {
+                family: "'Poppins', sans-serif",
+                size: 12,
+              },
+            },
+            // Add these properties to ensure integers only
+            ticks: {
+              stepSize: 1,
+              precision: 0  // No decimal places
+            }
+          },
         },
-      });
-  
-      hideLoading("quizPerformanceChart");
-    } catch (error) {
-      console.error("Error initializing quiz performance chart:", error);
-      showError("quizPerformanceChart", "Failed to load quiz performance data");
-    }
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const dataset = context.dataset;
+                const value = dataset.data[context.dataIndex];
+                const label = dataset.label || '';
+                
+                if (label.includes('(Avg Score)')) {
+                  return `${label}: ${value} / 10`;
+                } else if (label.includes('(Students)')) {
+                  // Format student counts as integers
+                  return `${label}: ${Math.round(value)} students`;
+                }
+                return `${label}: ${value}`;
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    // Also save with direct key as fallback (optional, for backward compatibility)
+    charts["quizPerformanceChart"] = charts[getChartInstanceName("quizPerformanceChart")];
+    
+    hideLoading("quizPerformanceChart");
+  } catch (error) {
+    console.error("Error initializing quiz performance chart:", error);
+    showError("quizPerformanceChart", "Failed to load quiz performance data");
   }
+}
+  // function initQuizPerformanceChart(quizzes, studentQuizzes, courses) {
+  //   try {
+  //     // Group quizzes by course
+  //     const quizzesByCourse = {};
+  //     courses.forEach((course) => {
+  //       quizzesByCourse[course.course_id] = {
+  //         name: course.course_name,
+  //         quizzes: [],
+  //       };
+  //     });
+  
+  //     // Calculate average scores for each quiz
+  //     quizzes.forEach((quiz) => {
+  //       const quizId = quiz.quiz_id;
+  //       const courseId = quiz.course_id;
+  
+  //       if (quizzesByCourse[courseId]) {
+  //         const submissions = studentQuizzes.filter(
+  //           (sq) => sq.quiz_id === quizId
+  //         );
+  //         const totalScore = submissions.reduce(
+  //           (sum, sq) => sum + Number(sq.score),
+  //           0
+  //         );
+  //         const avgScore =
+  //           submissions.length > 0 ? totalScore / submissions.length : 0;
+  
+  //         quizzesByCourse[courseId].quizzes.push({
+  //           name: quiz.quiz_title, // Unique label
+  //           avgScore: Number.parseFloat(avgScore.toFixed(1)),
+  //         });
+  //       }
+  //     });
+  
+  //     // Collect all unique quiz names
+  //     const allQuizNamesSet = new Set();
+  //     Object.values(quizzesByCourse).forEach((courseData) => {
+  //       courseData.quizzes.forEach((quiz) => {
+  //         allQuizNamesSet.add(quiz.name);          
+  //       });
+  //     });
+  
+  //     const allQuizNames = Array.from(allQuizNamesSet).sort();
+      
+  //     // Prepare datasets
+  //     const datasets = Object.values(quizzesByCourse)
+  //       .filter((courseData) => courseData.quizzes.length > 0)
+  //       .map((courseData, index) => {
+  //         // Build a data array aligned with allQuizNames
+  //         const scoreMap = {};
+  //         courseData.quizzes.forEach((quiz) => {
+  //           scoreMap[quiz.name] = quiz.avgScore;
+  //         });
+  
+  //         const alignedData = allQuizNames.map((name) =>
+  //           scoreMap.hasOwnProperty(name) ? scoreMap[name] : null
+  //         );
+  
+  //         return {
+  //           label: courseData.name,
+  //           data: alignedData,
+  //           backgroundColor:
+  //             chartColors.dayColors[index % chartColors.dayColors.length],
+  //           borderColor:
+  //             chartColors.dayTextColors[index % chartColors.dayTextColors.length],
+  //           borderWidth: 2,
+  //           fill: false,
+  //           tension: 0.2,
+  //         };
+  //       });
+      
+  //     // Create chart
+  //     const ctx = document
+  //       .getElementById("quizPerformanceChart")
+  //       .getContext("2d");
+  
+  //     charts.quizPerformance = new Chart(ctx, {
+  //       type: "line",
+  //       data: {
+  //         labels: allQuizNames,
+  //         datasets: datasets,
+  //       },
+  //       options: {
+  //         ...commonChartOptions,
+  //         scales: {
+  //           y: {
+  //             beginAtZero: true,
+  //             max: 10,
+  //             title: {
+  //               display: true,
+  //               text: "Average Score",
+  //               font: {
+  //                 family: "'Poppins', sans-serif",
+  //                 size: 12,
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //     });
+  
+  //     hideLoading("quizPerformanceChart");
+  //   } catch (error) {
+  //     console.error("Error initializing quiz performance chart:", error);
+  //     showError("quizPerformanceChart", "Failed to load quiz performance data");
+  //   }
+  // }
   
 // 5. Student Progress Chart
 // function initStudentProgressChart(
@@ -1600,6 +2106,279 @@ function initActivityParticipationChart(
 // }
 
 // 8. At-Risk Students Table
+// function initAtRiskStudentsTable(
+//   students,
+//   courses,
+//   enrollments,
+//   assignments,
+//   studentAssignments,
+//   quizzes,
+//   studentQuizzes,
+//   studentActivities
+// ) {
+//   try {
+    
+//     // Get course IDs taught by the instructor
+//     const instructorCourseIds = courses.map((course) => course.course_id);
+//     // Get students enrolled in instructor's courses
+//     const enrolledStudents = [];
+
+//     // Create a map to avoid duplicates
+//     const processedStudents = new Map();
+
+//     enrollments.forEach((enrollment) => {
+//       const studentId = enrollment.student_id;
+//       const courseId = enrollment.course_id;
+
+//       // Only process each student-course pair once
+//       const key = `${studentId}-${courseId}`;
+//       if (!processedStudents.has(key)) {
+//         processedStudents.set(key, true);
+
+//         const student = students.find((s) => s.student_id === studentId);
+//         const course = courses.find((c) => c.course_id === courseId);
+
+//         if (student && course) {
+//           enrolledStudents.push({
+//             studentId: studentId,
+//             courseId: courseId,
+//             studentName: student.student_name,
+//             courseName: course.course_name,
+//           });
+//         }
+//       }
+//     });
+
+//     // Calculate risk factors for each student
+//     const atRiskStudents = [];
+//     enrolledStudents.forEach((enrollment) => {
+//       const studentId = enrollment.studentId;
+//       const courseId = enrollment.courseId;
+
+//       // Count missing assignments
+//       const courseAssignments = assignments.filter(
+//         (a) => a.course_id === courseId
+//       );
+//       const studentAssignmentSubmissions = studentAssignments.filter(
+//         (sa) =>
+//           sa.student_id === studentId &&
+//           courseAssignments.some((a) => a.assign_id === sa.assign_id)
+//       );
+//       // const missingAssignments =
+//       //   courseAssignments.length - studentAssignmentSubmissions.filter((sa) => sa.assign_path).length
+//       const missingAssignments =
+//         courseAssignments.length - studentAssignmentSubmissions.length;
+      
+//       // Calculate average quiz score
+//       const courseQuizzes = quizzes.filter((q) => q.course_id === courseId);
+//       const studentQuizSubmissions = studentQuizzes.filter(
+//         (sq) =>
+//           sq.student_id === studentId &&
+//           courseQuizzes.some((q) => q.quiz_id === sq.quiz_id)
+//       );
+      
+//       const totalScore = studentQuizSubmissions.reduce(
+//         (sum, sq) => sum + Number(sq.score),
+//         0
+//       );
+
+//       const avgQuizScore =
+//         studentQuizSubmissions.length > 0
+//           ? totalScore / studentQuizSubmissions.length
+//           : 0;
+//       // Get last activity date (mock data since we don't have participation_date in the schema)
+//       // const lastActivityDate = new Date();
+//       // lastActivityDate.setDate(
+//       //   lastActivityDate.getDate() - Math.floor(Math.random() * 30)
+//       // );
+
+//       // Determine if student is at risk if missing more than 2 assignments or average quiz score is less than 2.5
+//       const isAtRisk = missingAssignments > 2 || avgQuizScore < 5;
+
+//       if (isAtRisk) {
+//         atRiskStudents.push({
+//           studentName: enrollment.studentName,
+//           courseName: enrollment.courseName,
+//           missingAssignments,
+//           avgQuizScore: Number.parseFloat(avgQuizScore.toFixed(1)),
+//           studentId,
+//           courseId,
+//         });
+//       }
+//     });
+
+//     // Sort by risk level (most at risk first)
+//     atRiskStudents.sort((a, b) => {
+//       // More missing assignments = higher risk
+//       if (a.missingAssignments !== b.missingAssignments) {
+//         return b.missingAssignments - a.missingAssignments;
+//       }
+
+//       // Lower quiz score = higher risk
+//       return a.avgQuizScore - b.avgQuizScore;
+//     });
+
+//     // Populate table
+//     const tableBody = document.getElementById("atRiskStudentsBody");
+//     tableBody.innerHTML = "";
+
+//     if (atRiskStudents.length === 0) {
+//       const row = document.createElement("tr");
+//       row.innerHTML = `<td colspan="6" class="loading-text">No at-risk students found</td>`;
+//       tableBody.appendChild(row);
+//     } else {
+//       atRiskStudents.forEach((student) => {
+        
+//         const row = document.createElement("tr");
+//         row.innerHTML = `
+//           <td>${student.studentName}</td>
+//           <td>${student.courseName}</td>
+//           <td>${student.missingAssignments}</td>
+//           <td>${student.avgQuizScore}</td>
+//           `;
+//         tableBody.appendChild(row);
+//       });
+
+//       // Add event listeners to contact buttons
+//       document.querySelectorAll(".action-btn").forEach((button) => {
+//         button.addEventListener("click", function () {
+//           const studentId = this.getAttribute("data-student-id");
+//           const courseId = this.getAttribute("data-course-id");
+//           alert(
+//             `Contact functionality for student ID ${studentId} in course ID ${courseId} would be implemented here.`
+//           );
+//         });
+//       });
+//     }
+
+//     // FIXED: Use the correct element ID to hide the loading spinner
+//     hideLoading("atRiskStudents");
+//   } catch (error) {
+//     console.error("Error initializing at-risk students table:", error);
+//     showError("atRiskStudents", "Failed to load at-risk students data");
+//   }
+// }
+// function initAtRiskStudentsTable(
+//   students,
+//   courses,
+//   enrollments,
+//   assignments,
+//   studentAssignments,
+//   quizzes,
+//   studentQuizzes,
+//   studentActivities
+// ) {
+//   try {
+//     // Get course IDs taught by the instructor
+//     // const instructorCourseIds = courses.map((course) => course.course_id);
+//     // Get students enrolled in instructor's courses
+//     const enrolledStudents = [];
+    
+//     // Create a map to avoid duplicates
+//     const processedStudents = new Map();
+
+//     enrollments.forEach((enrollment) => {
+//       const studentId = enrollment.student_id;
+//       const courseId = enrollment.course_id;
+
+//       // Only process each student-course pair once
+//       const key = `${studentId}-${courseId}`;
+//       if (!processedStudents.has(key)) {
+//         processedStudents.set(key, true);
+
+//         const student = students.find((s) => s.student_id === studentId);
+//         const course = courses.find((c) => c.course_id === courseId);
+
+//         if (student && course) {
+//           enrolledStudents.push({
+//             studentId: studentId,
+//             courseId: courseId,
+//             studentName: student.student_name,
+//             courseName: course.course_name,
+//           });
+//         }
+//       }
+//     });
+    
+//     // Calculate risk factors for each student
+//     const atRiskStudents = [];
+//     enrolledStudents.forEach((enrollment) => {
+//       const studentId = enrollment.studentId;
+//       const courseId = enrollment.courseId;
+
+//       // Count missing assignments
+//       const courseAssignments = assignments.filter(
+//         (a) => a.course_id === courseId
+//       );
+      
+//       const studentAssignmentSubmissions = studentAssignments.filter(
+//         (sa) =>
+//           sa.student_id === studentId &&
+//           courseAssignments.some((a) => a.assign_id === sa.assign_id && sa.assign_path)
+//       );
+//       const missingAssignments =
+//         courseAssignments.length - studentAssignmentSubmissions.length;
+//       // Calculate average quiz score
+//       const courseQuizzes = quizzes.filter((q) => q.course_id === courseId);
+//       const studentQuizSubmissions = studentQuizzes.filter(
+//         (sq) =>
+//           sq.student_id === studentId &&
+//           courseQuizzes.some((q) => q.quiz_id === sq.quiz_id)
+//       );
+      
+//       const totalScore = studentQuizSubmissions.reduce(
+//         (sum, sq) => sum + Number(sq.score),
+//         0
+//       );
+
+//       let avgQuizScore =
+//         studentQuizSubmissions.length > 0
+//           ? totalScore / studentQuizSubmissions.length
+//           : 0;
+//       // if(quizzes.length === 0){
+//       //   avgQuizScore = 'not available';
+//       // }
+//       // Determine if student is at risk if missing more than 2 assignments or average quiz score is less than 5
+//       const isAtRisk = missingAssignments > 2 || avgQuizScore < 5 ;
+//       if (isAtRisk) {
+//         atRiskStudents.push({
+//           studentName: enrollment.studentName,
+//           courseName: enrollment.courseName,
+//           missingAssignments,
+//           avgQuizScore:quizzes.length === 0 ? 'not available' : Number.parseFloat(avgQuizScore.toFixed(1)),
+//           studentId,
+//           courseId,
+//         });
+//       }
+//     });
+
+//     // Sort by risk level (most at risk first)
+//     atRiskStudents.sort((a, b) => {
+//       // More missing assignments = higher risk
+//       if (a.missingAssignments !== b.missingAssignments) {
+//         return b.missingAssignments - a.missingAssignments;
+//       }
+
+//       // Lower quiz score = higher risk
+//       return a.avgQuizScore - b.avgQuizScore;
+//     });
+
+//     // Populate table
+//     const tableBody = document.getElementById("atRiskStudentsBody");
+    
+//     // Initial display of all at-risk students
+//     displayAtRiskStudents(atRiskStudents, tableBody);
+    
+//     // Set up search functionality
+//     setupAtRiskSearch(atRiskStudents);
+
+//     // FIXED: Use the correct element ID to hide the loading spinner
+//     hideLoading("atRiskStudents");
+//   } catch (error) {
+//     console.error("Error initializing at-risk students table:", error);
+//     showError("atRiskStudents", "Failed to load at-risk students data");
+//   }
+// }
 function initAtRiskStudentsTable(
   students,
   courses,
@@ -1611,12 +2390,9 @@ function initAtRiskStudentsTable(
   studentActivities
 ) {
   try {
-    
-    // Get course IDs taught by the instructor
-    const instructorCourseIds = courses.map((course) => course.course_id);
     // Get students enrolled in instructor's courses
     const enrolledStudents = [];
-
+    
     // Create a map to avoid duplicates
     const processedStudents = new Map();
 
@@ -1642,7 +2418,7 @@ function initAtRiskStudentsTable(
         }
       }
     });
-
+    
     // Calculate risk factors for each student
     const atRiskStudents = [];
     enrolledStudents.forEach((enrollment) => {
@@ -1653,48 +2429,52 @@ function initAtRiskStudentsTable(
       const courseAssignments = assignments.filter(
         (a) => a.course_id === courseId
       );
+      
       const studentAssignmentSubmissions = studentAssignments.filter(
         (sa) =>
           sa.student_id === studentId &&
-          courseAssignments.some((a) => a.assign_id === sa.assign_id)
+          courseAssignments.some((a) => a.assign_id === sa.assign_id && sa.assign_path)
       );
-      // const missingAssignments =
-      //   courseAssignments.length - studentAssignmentSubmissions.filter((sa) => sa.assign_path).length
       const missingAssignments =
         courseAssignments.length - studentAssignmentSubmissions.length;
       
       // Calculate average quiz score
       const courseQuizzes = quizzes.filter((q) => q.course_id === courseId);
-      const studentQuizSubmissions = studentQuizzes.filter(
-        (sq) =>
-          sq.student_id === studentId &&
-          courseQuizzes.some((q) => q.quiz_id === sq.quiz_id)
-      );
+      const hasQuizzes = courseQuizzes.length > 0;
       
-      const totalScore = studentQuizSubmissions.reduce(
-        (sum, sq) => sum + Number(sq.score),
-        0
-      );
+      let avgQuizScore = null;
+      let isQuizScoreLow = false;
+      
+      if (hasQuizzes) {
+        const studentQuizSubmissions = studentQuizzes.filter(
+          (sq) =>
+            sq.student_id === studentId &&
+            courseQuizzes.some((q) => q.quiz_id === sq.quiz_id)
+        );
+        
+        const totalScore = studentQuizSubmissions.reduce(
+          (sum, sq) => sum + Number(sq.score),
+          0
+        );
 
-      const avgQuizScore =
-        studentQuizSubmissions.length > 0
+        avgQuizScore = studentQuizSubmissions.length > 0
           ? totalScore / studentQuizSubmissions.length
           : 0;
-      // Get last activity date (mock data since we don't have participation_date in the schema)
-      // const lastActivityDate = new Date();
-      // lastActivityDate.setDate(
-      //   lastActivityDate.getDate() - Math.floor(Math.random() * 30)
-      // );
-
-      // Determine if student is at risk if missing more than 2 assignments or average quiz score is less than 2.5
-      const isAtRisk = missingAssignments > 2 || avgQuizScore < 5;
-
+          
+        isQuizScoreLow = avgQuizScore < 5;
+      }
+      
+      // Determine if student is at risk:
+      // - If there are quizzes: student is at risk if missing more than 2 assignments OR average quiz score is less than 5
+      // - If there are no quizzes: student is at risk only if missing more than 2 assignments
+      const isAtRisk = missingAssignments > 2 || (hasQuizzes && isQuizScoreLow);
+      
       if (isAtRisk) {
         atRiskStudents.push({
           studentName: enrollment.studentName,
           courseName: enrollment.courseName,
           missingAssignments,
-          avgQuizScore: Number.parseFloat(avgQuizScore.toFixed(1)),
+          avgQuizScore: hasQuizzes ? Number.parseFloat(avgQuizScore.toFixed(1)) : 'not available',
           studentId,
           courseId,
         });
@@ -1708,49 +2488,164 @@ function initAtRiskStudentsTable(
         return b.missingAssignments - a.missingAssignments;
       }
 
+      // For quiz scores, handle 'not available' case
+      if (a.avgQuizScore === 'not available' && b.avgQuizScore === 'not available') {
+        return 0;
+      } else if (a.avgQuizScore === 'not available') {
+        return 1; // Push 'not available' scores down in the sort
+      } else if (b.avgQuizScore === 'not available') {
+        return -1; // Push 'not available' scores down in the sort
+      }
+
       // Lower quiz score = higher risk
       return a.avgQuizScore - b.avgQuizScore;
     });
 
     // Populate table
     const tableBody = document.getElementById("atRiskStudentsBody");
-    tableBody.innerHTML = "";
+    
+    // Initial display of all at-risk students
+    displayAtRiskStudents(atRiskStudents, tableBody);
+    
+    // Set up search functionality
+    setupAtRiskSearch(atRiskStudents);
 
-    if (atRiskStudents.length === 0) {
-      const row = document.createElement("tr");
-      row.innerHTML = `<td colspan="6" class="loading-text">No at-risk students found</td>`;
-      tableBody.appendChild(row);
-    } else {
-      atRiskStudents.forEach((student) => {
-        
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${student.studentName}</td>
-          <td>${student.courseName}</td>
-          <td>${student.missingAssignments}</td>
-          <td>${student.avgQuizScore}</td>
-          `;
-        tableBody.appendChild(row);
-      });
-
-      // Add event listeners to contact buttons
-      document.querySelectorAll(".action-btn").forEach((button) => {
-        button.addEventListener("click", function () {
-          const studentId = this.getAttribute("data-student-id");
-          const courseId = this.getAttribute("data-course-id");
-          alert(
-            `Contact functionality for student ID ${studentId} in course ID ${courseId} would be implemented here.`
-          );
-        });
-      });
-    }
-
-    // FIXED: Use the correct element ID to hide the loading spinner
+    // Hide the loading spinner
     hideLoading("atRiskStudents");
   } catch (error) {
     console.error("Error initializing at-risk students table:", error);
     showError("atRiskStudents", "Failed to load at-risk students data");
   }
+}
+// function setupAtRiskSearch(atRiskStudents) {
+//   const searchInput = document.getElementById('atRiskSearch');
+//   const tableBody = document.getElementById('atRiskStudentsBody');
+  
+//   // Store the original table data for filtering
+//   const originalTableData = atRiskStudents;
+  
+//   searchInput.addEventListener('input', function() {
+//     const searchTerm = this.value.toLowerCase().trim();
+    
+//     // If search is empty, restore all rows
+//     if (searchTerm === '') {
+//       displayAtRiskStudents(originalTableData, tableBody);
+//       return;
+//     }
+    
+//     // Filter students based on search term
+//     const filteredStudents = originalTableData.filter(student => {
+//       return (
+//         student.studentName.toLowerCase().includes(searchTerm) ||
+//         student.courseName.toLowerCase().includes(searchTerm) ||
+//         student.missingAssignments.toString().includes(searchTerm) ||
+//         student.avgQuizScore.toString().includes(searchTerm)
+//       );
+//     });
+    
+//     // Display filtered results
+//     displayAtRiskStudents(filteredStudents, tableBody);
+//   });
+// }
+function setupAtRiskSearch(atRiskStudents) {
+  // First enhance the search input (this adds our custom clear button)
+  enhanceSearchInput();
+  
+  const searchInput = document.getElementById('atRiskSearch');
+  const tableBody = document.getElementById('atRiskStudentsBody');
+  
+  // Store the original table data for filtering
+  const originalTableData = atRiskStudents;
+  
+  searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase().trim();
+    
+    // If search is empty, restore all rows
+    if (searchTerm === '') {
+      displayAtRiskStudents(originalTableData, tableBody);
+      return;
+    }
+    
+    // Filter students based on search term
+    const filteredStudents = originalTableData.filter(student => {
+      return (
+        student.studentName.toLowerCase().includes(searchTerm) ||
+        student.courseName.toLowerCase().includes(searchTerm) ||
+        student.missingAssignments.toString().includes(searchTerm) ||
+        student.avgQuizScore.toString().includes(searchTerm)
+      );
+    });
+    
+    // Display filtered results
+    displayAtRiskStudents(filteredStudents, tableBody);
+  });
+}
+function displayAtRiskStudents(students, tableBody) {
+  tableBody.innerHTML = '';
+  
+  if (students.length === 0) {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td colspan="6" class="loading-text">No matching students found</td>`;
+    tableBody.appendChild(row);
+  } else {
+    students.forEach(student => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${student.studentName}</td>
+        <td>${student.courseName}</td>
+        <td>${student.missingAssignments}</td>
+        <td>${student.avgQuizScore}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+}
+function enhanceSearchInput() {
+  // Find the search input
+  const searchInput = document.getElementById('atRiskSearch');
+  
+  // Create a container div to wrap the search input
+  const searchContainer = document.createElement('div');
+  searchContainer.className = 'search-container';
+  
+  // Replace the search input with the container
+  searchInput.parentNode.replaceChild(searchContainer, searchInput);
+  
+  // Add the search input to the container
+  searchContainer.appendChild(searchInput);
+  
+  // Create the clear button
+  const clearButton = document.createElement('button');
+  clearButton.className = 'search-clear';
+  clearButton.type = 'button';
+  clearButton.setAttribute('aria-label', 'Clear search');
+  
+  // Add SVG icon for the clear button
+  clearButton.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  `;
+  
+  // Append the clear button to the container
+  searchContainer.appendChild(clearButton);
+  
+  // Show/hide clear button based on input content
+  searchInput.addEventListener('input', function() {
+    clearButton.style.display = this.value ? 'block' : 'none';
+  });
+  
+  // Handle clear button click
+  clearButton.addEventListener('click', function() {
+    searchInput.value = '';
+    searchInput.focus();
+    clearButton.style.display = 'none';
+    
+    // Trigger the input event to update the table filtering
+    const inputEvent = new Event('input', { bubbles: true });
+    searchInput.dispatchEvent(inputEvent);
+  });
 }
 function applyFilters() {
   const courseId = document.getElementById("courseFilter").value;
@@ -2247,10 +3142,21 @@ let modalChartInstance = null;
 // }
 function openChartInModal(chartId) {
   // Get the chart instance
-  console.log(chartId);
+  console.log("Opening chart:", chartId);
   
-  const chart = charts[getChartInstanceName(chartId)];
-  console.log(chart);
+  // Try to get chart using transformed name, then fall back to direct name
+  let chart = charts[getChartInstanceName(chartId)];
+  
+  // Add debugging to see what's happening
+  console.log("Transformed chart ID:", getChartInstanceName(chartId));
+  console.log("Charts object keys:", Object.keys(charts));
+  
+  if (!chart) {
+    console.log("Chart not found with transformed ID, trying direct ID");
+    chart = charts[chartId];
+  }
+  
+  console.log("Retrieved chart:", chart);
   
   if (!chart) {
     console.error(`Chart with ID ${chartId} not found`);
@@ -2361,6 +3267,122 @@ function openChartInModal(chartId) {
   // Show the modal
   modal.style.display = "block";
 }
+// function openChartInModal(chartId) {
+//   // Get the chart instance
+//   console.log(chartId);
+  
+//   const chart = charts[getChartInstanceName(chartId)];
+//   console.log(chart);
+  
+//   if (!chart) {
+//     console.error(`Chart with ID ${chartId} not found`);
+//     return;
+//   }
+  
+//   // Get modal elements
+//   const modal = document.getElementById("chartModal");
+//   const modalTitle = document.getElementById("modalChartTitle");
+//   const modalChartDetails = document.getElementById("modalChartDetails");
+  
+//   // Set modal title based on chart ID
+//   const chartTitle = getChartTitle(chartId);
+//   modalTitle.textContent = chartTitle;
+  
+//   // Create a new canvas for the modal chart
+//   const modalChartCanvas = document.getElementById("modalChartCanvas");
+  
+//   // Destroy previous chart instance if it exists
+//   if (modalChartInstance) {
+//     modalChartInstance.destroy();
+//     modalChartInstance = null;
+//   }
+  
+//   if (isInstitutionSchool()) {
+//     document.querySelectorAll(".card-title").forEach((title) => {
+//       title.textContent = title.textContent.replace("Assignment", "Homework");
+//       title.textContent = title.textContent.replace("Project", "Activity");
+//     });
+//     document.querySelectorAll(".key-change").forEach((title) => {
+//       title.textContent = title.textContent.replace("Assignment", "Homework");
+//     });
+//   }
+  
+//   const ctx = modalChartCanvas.getContext("2d");
+  
+//   // Clone the data properly
+//   const clonedData = JSON.parse(JSON.stringify(chart.data));
+  
+//   // Deep clone the options without functions
+//   const modalOptions = JSON.parse(JSON.stringify(chart.options));
+  
+//   // Set standard modal options
+//   modalOptions.responsive = true;
+//   modalOptions.maintainAspectRatio = false;
+  
+//   // Determine chart type and apply appropriate tooltip callbacks
+//   if (chartId === "studentEngagementChart" || chartId === "CGPADistributionChart") {
+//     // For doughnut/pie charts with percentage display
+//     modalOptions.plugins = modalOptions.plugins || {};
+//     modalOptions.plugins.tooltip = modalOptions.plugins.tooltip || {};
+//     modalOptions.plugins.tooltip.callbacks = {
+//       label: function(context) {
+//         const total = context.dataset.data.reduce((a, b) => a + b, 0);
+//         const percentage = ((context.raw / total) * 100).toFixed(1);
+//         return `${context.label}: ${context.raw} students (${percentage}%)`;
+//       }
+//     };
+//   } else if (chartId.toLowerCase().includes("percent") || 
+//              chartId.toLowerCase().includes("rate") ||
+//              chartId.toLowerCase().includes("distribution")) {
+//     // For percentage-based charts
+//     modalOptions.plugins = modalOptions.plugins || {};
+//     modalOptions.plugins.tooltip = modalOptions.plugins.tooltip || {};
+//     modalOptions.plugins.tooltip.callbacks = {
+//       label: function(context) {
+//         const label = context.label || context.dataset.label || '';
+//         const value = context.raw || 0;
+//         return `${label}: ${value}%`;
+//       }
+//     };
+//   } else if (chart.config.type === "bar" || chart.config.type === "line") {
+//     // For standard bar/line charts
+//     modalOptions.plugins = modalOptions.plugins || {};
+//     modalOptions.plugins.tooltip = modalOptions.plugins.tooltip || {};
+//     modalOptions.plugins.tooltip.callbacks = {
+//       label: function(context) {
+//         const label = context.dataset.label || '';
+//         const value = context.raw || 0;
+//         return `${label}: ${value}`;
+//       }
+//     };
+//   } else {
+//     // Default tooltip callback
+//     modalOptions.plugins = modalOptions.plugins || {};
+//     modalOptions.plugins.tooltip = modalOptions.plugins.tooltip || {};
+//     modalOptions.plugins.tooltip.callbacks = {
+//       label: function(context) {
+//         // Ensure we have a label, either from the datapoint or the dataset
+//         const label = context.label || (context.dataset ? context.dataset.label : '') || '';
+//         const value = context.raw || 0;
+//         return `${label}: ${value}`;
+//       }
+//     };
+//   }
+  
+//   // Create the new chart instance
+//   modalChartInstance = new Chart(ctx, {
+//     type: chart.config.type,
+//     data: clonedData,
+//     options: modalOptions
+//   });
+  
+//   // Generate detailed insights based on chart type
+//   const chartDetails = generateChartInsights(chartId, chart);
+//   modalChartDetails.innerHTML = chartDetails;
+  
+//   // Show the modal
+//   modal.style.display = "block";
+// }
 // Modify the close event handlers to destroy the chart when modal is closed
 function initChartModal() {
   // Add the modal to the DOM
@@ -2405,8 +3427,6 @@ function initChartModal() {
 
 // 4. Helper function to get chart instance name from DOM ID
 function getChartInstanceName(chartId) {
-  console.log(chartId);
-
   const chartNameMap = {
     coursePerformanceChart: "coursePerformance",
     studentEngagementChart: "studentEngagement",
@@ -2416,8 +3436,6 @@ function getChartInstanceName(chartId) {
     activityParticipationChart: "activityParticipation",
     CGPADistributionChart: "CGPADistribution",
   };
-  console.log(chartNameMap[chartId]);
-
   return chartNameMap[chartId];
 }
 
@@ -2432,8 +3450,6 @@ function getChartTitle(chartId) {
     activityParticipationChart: "Activity Participation Analysis",
     CGPADistributionChart: "CGPA Distribution Analysis",
   };
-  console.log(chartTitleMap[chartId]);
-
   return chartTitleMap[chartId] || "Chart Details";
 }
 
@@ -2505,9 +3521,9 @@ function generateCoursePerformanceInsights(chart) {
     completionRateData.length;
 
   insights += `<li><strong>Highest Enrollment:</strong> ${labels[maxEnrollmentIdx]} (${enrollmentData[maxEnrollmentIdx]} students)</li>`;
-  insights += `<li><strong>Best Assignment Completion:</strong> ${labels[maxCompletionIdx]} (${completionRateData[maxCompletionIdx]}%)</li>`;
+  insights += `<li><strong>Best ${isInstitutionSchool() ? "Homework" : "Assignment"} Completion:</strong> ${labels[maxCompletionIdx]} (${completionRateData[maxCompletionIdx]}%)</li>`;
   insights += `<li><strong>Best Quiz Performance:</strong> ${labels[maxQuizScoreIdx]} (${quizScoreData[maxQuizScoreIdx]} avg. score)</li>`;
-  insights += `<li><strong>Average Assignment Completion Rate:</strong> ${avgCompletionRate.toFixed(
+  insights += `<li><strong>Average ${isInstitutionSchool() ? "Homework" : "Assignment"} Completion Rate:</strong> ${avgCompletionRate.toFixed(
     1
   )}%</li>`;
   insights += `<li><strong>Average Quiz Score:</strong> ${avgQuizScore.toFixed(
@@ -2584,7 +3600,7 @@ function generateAssignmentCompletionInsights(chart) {
   );
 
   if (lowCompletionAssignments.length > 0) {
-    insights += `<li><strong>Assignments with <50% Completion:</strong> ${lowCompletionAssignments.length} assignments</li>`;
+    insights += `<li><strong>${isInstitutionSchool() ? "Homework" : "Assignment"} with <50% Completion:</strong> ${lowCompletionAssignments.length} assignments</li>`;
   }
 
   insights += "</ul>";
@@ -2628,9 +3644,11 @@ function generateQuizPerformanceInsights(chart) {
       validScores.reduce((sum, score) => sum + score, 0) / validScores.length;
     return {
       course: dataset.label,
-      average: avg.toFixed(1),
+      average: avg ? avg.toFixed(1) : 'not available yet',
     };
   });
+  console.log(datasets);
+  
 
   insights += `<li><strong>Highest Quiz Score:</strong> ${highestQuiz} in ${highestCourse} (${highestScore.toFixed(
     1
@@ -2641,6 +3659,8 @@ function generateQuizPerformanceInsights(chart) {
 
   insights += "<li><strong>Average Scores by Course:</strong><ul>";
   courseAverages.forEach((item) => {
+    console.log(item);
+    
     insights += `<li>${item.course}: ${item.average}</li>`;
   });
   insights += "</ul></li>";
@@ -2710,7 +3730,8 @@ function generateActivityParticipationInsights(chart) {
   const avgParticipation =
     participationData.reduce((sum, count) => sum + count, 0) /
     participationData.length;
-
+  console.log(avgParticipation);
+  
   // Calculate total participants
   const totalParticipants = participationData.reduce(
     (sum, count) => sum + count,
@@ -2722,7 +3743,7 @@ function generateActivityParticipationInsights(chart) {
   insights += `<li><strong>Average Participation per Activity:</strong> ${avgParticipation.toFixed(
     1
   )} students</li>`;
-  insights += `<li><strong>Total Activity Participations:</strong> ${totalParticipants}</li>`;
+  insights += `<li><strong>Total ${isInstitutionSchool() ? "Activity" : "Project"} Participations:</strong> ${totalParticipants}</li>`;
 
   insights += "</ul>";
   return insights;
