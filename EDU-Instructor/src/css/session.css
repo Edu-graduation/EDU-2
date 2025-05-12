@@ -17,9 +17,16 @@
   justify-content: space-between;
   gap: 2rem;
   overflow: hidden;
-  min-height: 50rem;
+  /* min-height: 50rem; */
   /* padding: 2rem; */
 }
+/* .quiz-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  overflow: hidden;
+  min-height: auto;
+} */
 .page-title {
   margin-top: 2rem;
   margin-left: 2rem;

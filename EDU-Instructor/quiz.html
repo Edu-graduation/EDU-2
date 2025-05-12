@@ -275,9 +275,14 @@
       }
 
       .sessions-side {
-        flex: 1;
+        /* flex: 1;
         height: 45rem;
-        overflow-y: auto;
+        overflow-y: auto; */
+        width: 60%;
+  gap: 1rem;
+  overflow: hidden scroll;
+  display: flex;
+  flex-direction: column;
       }
 
       .sessions-container {
@@ -450,7 +455,7 @@
 
       <div class="main-content">
         <h1 class="page-title">Quiz Management</h1>
-        <section class="session-section">
+        <section class="session-section quiz-section">
           <div class="sessions-side">
             <header class="sessions-header">
               <p class="sessions-header__number">Quiz number</p>
