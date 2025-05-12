@@ -99,99 +99,6 @@ function showError(elementId, message) {
   hideLoading(elementId);
 }
 
-// Initialize all charts and data
-// async function initializeReports() {
-//   try {
-//     // Show loading indicators for all charts
-//     showLoading("coursePerformanceChart")
-//     showLoading("studentEngagementChart")
-//     showLoading("assignmentCompletionChart")
-//     showLoading("quizPerformanceChart")
-//     showLoading("studentProgressChart")
-//     showLoading("activityParticipationChart")
-//     showLoading("performanceTrendChart")
-//     showLoading("atRiskStudents")
-
-//     // Fetch all necessary data for the instructor
-//     const [
-//       instructorData,
-//       instructorCourses,
-//       studentsData,
-//       enrollmentData,
-//       assignmentsData,
-//       studentAssignmentData,
-//       quizzesData,
-//       studentQuizData,
-//       activitiesData,
-//       courseActivityData,
-//       studentActivityData,
-//       sessionsData,
-//     ] = await Promise.all([
-//       fetchInstructorData(instructorId),
-//       fetchInstructorCourses(instructorId),
-//       fetchStudents(),
-//       fetchEnrollments(instructorId),
-//       fetchInstructorAssignments(instructorId),
-//       fetchStudentAssignments(),
-//       fetchInstructorQuizzes(instructorId),
-//       fetchStudentQuizzes(),
-//       fetchInstructorActivities(instructorId),
-//       fetchCourseActivities(),
-//       fetchStudentActivities(),
-//       fetchInstructorSessions(instructorId),
-//     ])
-
-//     console.log(studentActivityData);
-//     console.log(activitiesData);
-//     console.log(courseActivityData);
-
-//     // Populate course filter
-//     populateCourseFilter(instructorCourses)
-//     // Update summary cards
-//     updateSummaryCards(instructorCourses, studentsData, enrollmentData, assignmentsData, studentAssignmentData)
-//     // Initialize each chart
-//     initCoursePerformanceChart(
-//       instructorCourses,
-//       enrollmentData,
-//       studentAssignmentData,
-//       studentQuizData,
-//       assignmentsData,
-//       quizzesData,
-//     )
-
-//     initStudentEngagementChart(instructorCourses, enrollmentData, studentActivityData)
-
-//     initAssignmentCompletionChart(assignmentsData, studentAssignmentData, instructorCourses)
-
-//     initQuizPerformanceChart(quizzesData, studentQuizData, instructorCourses)
-
-//     initStudentProgressChart(
-//       instructorCourses,
-//       enrollmentData,
-//       studentAssignmentData,
-//       studentQuizData,
-//       assignmentsData,
-//       quizzesData,
-//     )
-//     initActivityParticipationChart(activitiesData, studentActivityData, instructorCourses, courseActivityData)
-
-//     initPerformanceTrendChart(instructorCourses, studentAssignmentData, studentQuizData, assignmentsData, quizzesData)
-
-//     // Initialize at-risk students table
-//     initAtRiskStudentsTable(
-//       studentsData,
-//       instructorCourses,
-//       enrollmentData,
-//       assignmentsData,
-//       studentAssignmentData,
-//       quizzesData,
-//       studentQuizData,
-//       studentActivityData,
-//     )
-//   } catch (error) {
-//     console.error("Error initializing reports:", error)
-//   }
-// }
 async function initializeReports() {
   try {
     // Show loading indicators for all charts
@@ -258,7 +165,12 @@ async function initializeReports() {
     initStudentEngagementChart(
       instructorCourses,
       enrollmentData,
-      studentActivityData
+      studentActivityData,
+      studentAssignmentData,
+      studentQuizData,
+      assignmentsData,
+      quizzesData,
+      sessionsData
     );
 
     initAssignmentCompletionChart(
@@ -398,12 +310,19 @@ async function fetchInstructorQuizzes(instructorId) {
 async function fetchStudentQuizzes() {
   const enrolledStudents = await fetchEnrollments(instructorId);
   const studentIds = enrolledStudents.map((student) => student.student_id);
+  const courseIds = enrolledStudents.map((student) => student.course_id);
+  const courseQuizzes = await fetchCourseQuizzes(courseIds);
+  const quizIds = courseQuizzes.map((quiz) => quiz.quiz_id);
   const { data, error } = await supaClient
     .from("student_quiz")
     .select("*")
-    .in("student_id", studentIds);
+    .in("student_id", studentIds)
+    .in("quiz_id", quizIds);
   if (error) throw error;
-  return data;
+  if(data){
+
+    return data;
+  }
 }
 
 async function fetchInstructorActivities(instructorId) {
@@ -429,6 +348,16 @@ async function fetchStudentActivities() {
   if (error) throw error;
   return data;
 }
+async function fetchCourseQuizzes(courseId) {
+  const { data, error } = await supaClient
+    .from("quiz")
+    .select("*")
+    .in("course_id", courseId);
+  if (error) throw error;
+  console.log(data);
+  
+  return data;
+}
 
 async function fetchInstructorSessions(instructorId) {
   // Since sessions are linked to courses, we need to get the instructor's courses first
@@ -444,7 +373,254 @@ async function fetchInstructorSessions(instructorId) {
   if (error) throw error;
   return data;
 }
+// function initStudentEngagementChart(courses, enrollments, studentActivities) {
+//   try {
+//     // Get course IDs taught by the instructor
+//     const instructorCourseIds = courses.map((course) => course.course_id);
+    
+//     // Get students enrolled in instructor's courses
+//     const enrolledStudentIds = enrollments.map((e) => e.student_id);
+    
+//     // Remove duplicates
+//     const uniqueStudentIds = [...new Set(enrolledStudentIds)];
+    
+//     // Calculate engagement levels
+//     const engagementLevels = {
+//       High: 0,
+//       Medium: 0,
+//       Low: 0,
+//       Inactive: 0,
+//     };
 
+//     // Process student engagement considering team activities
+//     uniqueStudentIds.forEach((studentId) => {
+//       // Get all activities this student participated in
+//       const studentActivityEntries = studentActivities.filter(
+//         (sa) => sa.student_id === studentId
+//       );
+      
+//       // Count unique activities (by activity_id) to avoid double-counting team activities
+//       // This assumes each activity has a unique activity_id even if multiple students participate
+//       const uniqueActivityIds = new Set(
+//         studentActivityEntries.map((activity) => activity.activity_id)
+//       );
+      
+//       const engagementCount = uniqueActivityIds.size;      
+//       // Categorize engagement level based on unique activities
+//       if (engagementCount >= 5) {
+//         engagementLevels["High"]++;
+//       } else if (engagementCount >= 3) {
+//         engagementLevels["Medium"]++;
+//       } else if (engagementCount >= 1) {
+//         engagementLevels["Low"]++;
+//       } else {
+//         engagementLevels["Inactive"]++;
+//       }
+//     });
+    
+//     // Prepare data for chart
+//     const labels = Object.keys(engagementLevels);
+//     const data = Object.values(engagementLevels);
+        
+//     // Create chart
+//     const ctx = document
+//       .getElementById("studentEngagementChart")
+//       .getContext("2d");
+//     charts.studentEngagement = new Chart(ctx, {
+//       type: "doughnut",
+//       data: {
+//         labels: labels,
+//         datasets: [
+//           {
+//             data: data,
+//             backgroundColor: [
+//               chartColors.dayColors[3], // High
+//               chartColors.dayColors[4], // Medium
+//               chartColors.dayColors[5], // Low
+//               chartColors.dayColors[6], // Inactive
+//             ],
+//             borderColor: [
+//               chartColors.dayTextColors[3],
+//               chartColors.dayTextColors[4],
+//               chartColors.dayTextColors[5],
+//               chartColors.dayTextColors[6],
+//             ],
+//             borderWidth: 1,
+//           },
+//         ],
+//       },
+//       options: {
+//         ...commonChartOptions,
+//         plugins: {
+//           ...commonChartOptions.plugins,
+//           tooltip: {
+//             callbacks: {
+//               label: (context) => {
+//                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
+//                 const percentage = ((context.raw / total) * 100).toFixed(1);
+//                 return `${context.label}: ${context.raw} students (${percentage}%)`;
+//               },
+//             },
+//           },
+//         },
+//       },
+//     });
+    
+//     hideLoading("studentEngagementChart");
+//   } catch (error) {
+//     console.error("Error initializing student engagement chart:", error);
+//     showError(
+//       "studentEngagementChart",
+//       "Failed to load student engagement data"
+//     );
+//   }
+// }
+function initStudentEngagementChart(
+  courses,
+  enrollments,
+  studentActivities,
+  studentAssignments,
+  studentQuizzes,
+  assignments,
+  quizzes,
+  sessions
+) {
+  try {
+    // Get course IDs taught by the instructor
+    const instructorCourseIds = courses.map((course) => course.course_id);
+    
+    // Get students enrolled in instructor's courses
+    const enrolledStudentIds = enrollments.map((e) => e.student_id);
+    
+    // Remove duplicates
+    const uniqueStudentIds = [...new Set(enrolledStudentIds)];
+
+    // Calculate total available activities, assignments, and quizzes
+    const totalActivities = new Set(studentActivities.map(a => a.activity_id)).size;
+    const totalAssignments = assignments.length;
+    const totalQuizzes = quizzes.length;
+    
+    // Prepare engagement metrics
+    const engagementMetrics = {
+      High: 0,
+      Medium: 0,
+      Low: 0,
+      Inactive: 0,
+    };
+    
+
+    // Process each student's engagement using multiple factors
+    uniqueStudentIds.forEach((studentId) => {
+      // Calculate activity engagement score (0-100%)
+      const studentActivityEntries = studentActivities.filter(
+        (sa) => sa.student_id === studentId
+      );
+      const uniqueActivityIds = new Set(
+        studentActivityEntries.map((activity) => activity.activity_id)
+      );
+      const activityScore = totalActivities > 0 
+        ? (uniqueActivityIds.size / totalActivities) * 100 
+        : 0;
+      
+      // Calculate assignment completion score (0-100%)
+      const completedAssignments = studentAssignments.filter(
+        (sa) => sa.student_id === studentId && sa.assign_path
+      ).length;
+      const assignmentScore = totalAssignments > 0 
+        ? (completedAssignments / totalAssignments) * 100 
+        : 0;
+      
+      
+      
+      // Calculate quiz participation score (0-100%)
+      const attemptedQuizzes = studentQuizzes.filter(
+        (sq) => sq.student_id === studentId
+      ).length;
+      const quizScore = totalQuizzes > 0 
+        ? (attemptedQuizzes / totalQuizzes) * 100 
+        : 0;
+      // Calculate weighted engagement score (customize weights as needed)
+      const weights = {
+        activity: 0.4,   // 40% weight for activities
+        assignment: 0.3, // 30% weight for assignments
+        quiz: 0.3        // 30% weight for quizzes
+      };
+      
+      const totalEngagementScore = 
+        (activityScore * weights.activity) +
+        (assignmentScore * weights.assignment) +
+        (quizScore * weights.quiz);
+        
+      // Categorize based on overall engagement score
+      if (totalEngagementScore >= 75) {
+        engagementMetrics.High++;
+      } else if (totalEngagementScore >= 50) {
+        engagementMetrics.Medium++;
+      } else if (totalEngagementScore >= 25) {
+        engagementMetrics.Low++;
+      } else {
+        engagementMetrics.Inactive++;
+      }
+    });
+    console.log(engagementMetrics);
+
+    // Prepare data for chart
+    const labels = Object.keys(engagementMetrics);
+    const data = Object.values(engagementMetrics);// Create chart
+    console.log(data);
+    
+    const ctx = document
+      .getElementById("studentEngagementChart")
+      .getContext("2d");
+    charts.studentEngagement = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            data: data,
+            backgroundColor: [
+              chartColors.dayColors[3], // High
+              chartColors.dayColors[4], // Medium
+              chartColors.dayColors[5], // Low
+              chartColors.dayColors[6], // Inactive
+            ],
+            borderColor: [
+              chartColors.dayTextColors[3],
+              chartColors.dayTextColors[4],
+              chartColors.dayTextColors[5],
+              chartColors.dayTextColors[6],
+            ],
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        ...commonChartOptions,
+        plugins: {
+          ...commonChartOptions.plugins,
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = ((context.raw / total) * 100).toFixed(1);
+                return `${context.label}: ${context.raw} students (${percentage}%)`;
+              },
+            },
+          },
+        },
+      },
+    });
+    
+    hideLoading("studentEngagementChart");
+  } catch (error) {
+    console.error("Error initializing student engagement chart:", error);
+    showError(
+      "studentEngagementChart",
+      "Failed to load student engagement data"
+    );
+  }
+}
 // Populate course filter
 function populateCourseFilter(courses) {
   const filter = document.getElementById("courseFilter");
@@ -917,98 +1093,98 @@ const avgQuizScore =
 }
 
 // 2. Student Engagement Chart
-function initStudentEngagementChart(courses, enrollments, studentActivities) {
-  try {
-    // Get course IDs taught by the instructor
-    const instructorCourseIds = courses.map((course) => course.course_id);
+// function initStudentEngagementChart(courses, enrollments, studentActivities) {
+//   try {
+//     // Get course IDs taught by the instructor
+//     const instructorCourseIds = courses.map((course) => course.course_id);
 
-    // Get students enrolled in instructor's courses
-    const enrolledStudentIds = enrollments.map((e) => e.student_id);
+//     // Get students enrolled in instructor's courses
+//     const enrolledStudentIds = enrollments.map((e) => e.student_id);
 
-    // Remove duplicates
-    const uniqueStudentIds = [...new Set(enrolledStudentIds)];
+//     // Remove duplicates
+//     const uniqueStudentIds = [...new Set(enrolledStudentIds)];
 
-    // Calculate engagement levels
-    const engagementLevels = {
-      High: 0,
-      Medium: 0,
-      Low: 0,
-      Inactive: 0,
-    };
-    // Count activities per student
-    uniqueStudentIds.forEach((studentId) => {
-      const activities = studentActivities.filter(
-        (sa) => sa.student_id === studentId
-      );
-      // Categorize engagement level
-      if (activities.length >= 5) {
-        engagementLevels["High"]++;
-      } else if (activities.length >= 3) {
-        engagementLevels["Medium"]++;
-      } else if (activities.length >= 1) {
-        engagementLevels["Low"]++;
-      } else {
-        engagementLevels["Inactive"]++;
-      }
-    });
+//     // Calculate engagement levels
+//     const engagementLevels = {
+//       High: 0,
+//       Medium: 0,
+//       Low: 0,
+//       Inactive: 0,
+//     };
+//     // Count activities per student
+//     uniqueStudentIds.forEach((studentId) => {
+//       const activities = studentActivities.filter(
+//         (sa) => sa.student_id === studentId
+//       );
+//       // Categorize engagement level
+//       if (activities.length >= 5) {
+//         engagementLevels["High"]++;
+//       } else if (activities.length >= 3) {
+//         engagementLevels["Medium"]++;
+//       } else if (activities.length >= 1) {
+//         engagementLevels["Low"]++;
+//       } else {
+//         engagementLevels["Inactive"]++;
+//       }
+//     });
 
-    // Prepare data for chart
-    const labels = Object.keys(engagementLevels);
-    const data = Object.values(engagementLevels);
+//     // Prepare data for chart
+//     const labels = Object.keys(engagementLevels);
+//     const data = Object.values(engagementLevels);
     
-    // Create chart
-    const ctx = document
-      .getElementById("studentEngagementChart")
-      .getContext("2d");
-    charts.studentEngagement = new Chart(ctx, {
-      type: "doughnut",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            data: data,
-            backgroundColor: [
-              chartColors.dayColors[3], // High
-              chartColors.dayColors[4], // Medium
-              chartColors.dayColors[5], // Low
-              chartColors.dayColors[6], // Inactive
-            ],
-            borderColor: [
-              chartColors.dayTextColors[3],
-              chartColors.dayTextColors[4],
-              chartColors.dayTextColors[5],
-              chartColors.dayTextColors[6],
-            ],
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        ...commonChartOptions,
-        plugins: {
-          ...commonChartOptions.plugins,
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const percentage = ((context.raw / total) * 100).toFixed(1);
-                return `${context.label}: ${context.raw} students (${percentage}%)`;
-              },
-            },
-          },
-        },
-      },
-    });
+//     // Create chart
+//     const ctx = document
+//       .getElementById("studentEngagementChart")
+//       .getContext("2d");
+//     charts.studentEngagement = new Chart(ctx, {
+//       type: "doughnut",
+//       data: {
+//         labels: labels,
+//         datasets: [
+//           {
+//             data: data,
+//             backgroundColor: [
+//               chartColors.dayColors[3], // High
+//               chartColors.dayColors[4], // Medium
+//               chartColors.dayColors[5], // Low
+//               chartColors.dayColors[6], // Inactive
+//             ],
+//             borderColor: [
+//               chartColors.dayTextColors[3],
+//               chartColors.dayTextColors[4],
+//               chartColors.dayTextColors[5],
+//               chartColors.dayTextColors[6],
+//             ],
+//             borderWidth: 1,
+//           },
+//         ],
+//       },
+//       options: {
+//         ...commonChartOptions,
+//         plugins: {
+//           ...commonChartOptions.plugins,
+//           tooltip: {
+//             callbacks: {
+//               label: (context) => {
+//                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
+//                 const percentage = ((context.raw / total) * 100).toFixed(1);
+//                 return `${context.label}: ${context.raw} students (${percentage}%)`;
+//               },
+//             },
+//           },
+//         },
+//       },
+//     });
 
-    hideLoading("studentEngagementChart");
-  } catch (error) {
-    console.error("Error initializing student engagement chart:", error);
-    showError(
-      "studentEngagementChart",
-      "Failed to load student engagement data"
-    );
-  }
-}
+//     hideLoading("studentEngagementChart");
+//   } catch (error) {
+//     console.error("Error initializing student engagement chart:", error);
+//     showError(
+//       "studentEngagementChart",
+//       "Failed to load student engagement data"
+//     );
+//   }
+// }
 
 // 3. Assignment Completion Chart
 function initAssignmentCompletionChart(
@@ -2763,7 +2939,12 @@ function applyFilters() {
         initStudentEngagementChart(
           filteredCourses,
           filteredEnrollments,
-          studentActivityData
+          studentActivityData,
+          studentAssignmentData,
+          studentQuizData,
+          filteredAssignments,
+          filteredQuizzes,
+          sessionsData
         );
 
         initAssignmentCompletionChart(
