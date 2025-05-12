@@ -243,8 +243,8 @@
 .submission-section {
   width: 100%;
   overflow: hidden scroll;
-  /* min-height: 30rem;
-  max-height: 28rem; */
+  min-height: 30rem;
+  max-height: 28rem;
 }
 
 /* Responsive design */
