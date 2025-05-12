@@ -30,8 +30,11 @@
             <br />
             <h2 class="form__title">Sign In</h2>
             <p class="form__subtitle">
-              Don't have an account? <a href="#" id="signUp">Sign up</a>
+              Start your journey with us.
             </p>
+            <!-- <p class="form__subtitle">
+              Don't have an account? <a href="#" id="signUp">Sign up</a>
+            </p> -->
             <br /><br />
             <form id="signInForm">
               <label class="form__label" for="id">ID</label>
@@ -116,18 +119,18 @@
     </main>
     <script>
       // Form switching
-      const signUpBtn = document.getElementById("signUp");
+      // const signUpBtn = document.getElementById("signUp");
       const signInBtn = document.getElementById("signIn");
       const imageSection = document.querySelector(".image-section");
-      const signupForm = document.querySelector(".sign-up-form");
+      // const signupForm = document.querySelector(".sign-up-form");
       const signinForm = document.querySelector(".sign-in-form");
 
-      signUpBtn.addEventListener("click", function (event) {
-        event.preventDefault();
-        imageSection.classList.add("slide-left");
-        signinForm.classList.add("hidden");
-        signupForm.classList.remove("hidden");
-      });
+      // signUpBtn.addEventListener("click", function (event) {
+      //   event.preventDefault();
+      //   imageSection.classList.add("slide-left");
+      //   signinForm.classList.add("hidden");
+      //   signupForm.classList.remove("hidden");
+      // });
 
       signInBtn.addEventListener("click", function (event) {
         event.preventDefault();
@@ -252,29 +255,29 @@
       });
 
       // Sign-Up Form Submission
-      const signUpForm = document.getElementById("signUpForm");
-      signUpForm.addEventListener("submit", function (event) {
-        event.preventDefault();
-        const id = document.getElementById("signup-id").value.trim();
-        const password = document
-          .getElementById("signup-password")
-          .value.trim();
-        const rePassword = document
-          .getElementById("signup-repass")
-          .value.trim();
+      // const signUpForm = document.getElementById("signUpForm");
+      // signUpForm.addEventListener("submit", function (event) {
+      //   event.preventDefault();
+      //   const id = document.getElementById("signup-id").value.trim();
+      //   const password = document
+      //     .getElementById("signup-password")
+      //     .value.trim();
+      //   const rePassword = document
+      //     .getElementById("signup-repass")
+      //     .value.trim();
 
-        if (!validateInput(id, password)) {
-          return;
-        }
+      //   if (!validateInput(id, password)) {
+      //     return;
+      //   }
 
-        if (password !== rePassword) {
-          alert("Passwords do not match.");
-          return;
-        }
+      //   if (password !== rePassword) {
+      //     alert("Passwords do not match.");
+      //     return;
+      //   }
 
-        alert("Sign Up successful!");
-        // TODO: Add API call to store new student in the database if needed
-      });
+      //   alert("Sign Up successful!");
+      //   // TODO: Add API call to store new student in the database if needed
+      // });
     </script>
   </body>
 </html>
