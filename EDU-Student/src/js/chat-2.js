@@ -509,6 +509,189 @@ function processMessageUpdate(message) {
   }
 }
 // Create a single message element for faster DOM operations
+// function createMessageElement(message, animate = true) {
+//   // Create the new message element
+//   const messageEl = document.createElement("div");
+//   messageEl.setAttribute("data-message-id", message.msg_id);
+//   messageEl.setAttribute(
+//     "data-timestamp",
+//     new Date(message.msg_date_time).getTime()
+//   );
+
+//   const messageSenderName = document.createElement("p");
+//   const messageContent = document.createElement("p");
+//   const messageTime = document.createElement("p");
+
+//   messageSenderName.classList.add("message__sender-name");
+//   messageContent.classList.add("message__content");
+//   messageTime.classList.add("message__time");
+
+//   messageContent.textContent = message.msg_content || "";
+//   messageTime.textContent = formatDateTime(new Date(message.msg_date_time));
+//   const senderId = +message.sender_data.slice(0, 14);
+//   const senderName = message.sender_data.slice(15);
+//   // Check if the message is from the current user
+//   const isSentByCurrentUser = senderId === +studentId;
+//   // Add message classes based on sender
+//   if (isSentByCurrentUser) {
+//     messageEl.classList.add("sent");
+//     messageSenderName.textContent = "You";
+//   } else {
+//     messageEl.classList.add("received");
+//     messageSenderName.textContent = senderName || "User";
+//     if (String(senderId).startsWith("2")) {
+//       messageEl.classList.add("instrctor-message");
+//     }
+//   }
+
+//   messageEl.classList.add("message");
+
+//   messageEl.appendChild(messageSenderName);
+//   messageEl.appendChild(messageContent);
+//   messageEl.appendChild(messageTime);
+
+//   // Add animation if needed
+//   if (animate) {
+//     messageEl.style.opacity = "0";
+//     messageEl.style.transform = "translateY(10px)";
+
+//     // Use requestAnimationFrame for smoother animations
+//     requestAnimationFrame(() => {
+//       messageEl.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+//       messageEl.style.opacity = "1";
+//       messageEl.style.transform = "translateY(0)";
+//     });
+//   }
+
+//   return messageEl;
+// }
+// function createMessageElement(message, animate = true) {
+//   // Create the new message element
+//   const messageEl = document.createElement("div");
+//   messageEl.setAttribute("data-message-id", message.msg_id);
+//   messageEl.setAttribute(
+//     "data-timestamp",
+//     new Date(message.msg_date_time).getTime()
+//   );
+
+//   const messageSenderName = document.createElement("p");
+//   const messageContent = document.createElement("p");
+//   const messageTime = document.createElement("p");
+
+//   messageSenderName.classList.add("message__sender-name");
+//   messageContent.classList.add("message__content");
+//   messageTime.classList.add("message__time");
+
+//   messageTime.textContent = formatDateTime(new Date(message.msg_date_time));
+//   const senderId = +message.sender_data.slice(0, 14);
+//   const senderName = message.sender_data.slice(15);
+  
+//   // Check if the message is from the current user
+//   const isSentByCurrentUser = senderId === +studentId;
+  
+//   // Add message classes based on sender
+//   if (isSentByCurrentUser) {
+//     messageEl.classList.add("sent");
+//     messageSenderName.textContent = "You";
+//   } else {
+//     messageEl.classList.add("received");
+//     messageSenderName.textContent = senderName || "User";
+//     if (String(senderId).startsWith("2")) {
+//       messageEl.classList.add("instrctor-message");
+//     }
+//   }
+
+//   messageEl.classList.add("message");
+  
+//   // Check if this is a file or image message
+//   if (message.msg_content.includes('|IMAGE|')) {
+//     // This is an image message
+//     const parts = message.msg_content.split('|IMAGE|');
+//     const caption = parts[0];
+//     const imageUrl = parts[1];
+    
+//     // Create an image element
+//     const imgElement = document.createElement('img');
+//     imgElement.className = 'message-image';
+//     imgElement.src = imageUrl;
+//     imgElement.alt = caption;
+//     imgElement.loading = 'lazy';
+    
+//     // Add click to view full size
+//     imgElement.addEventListener('click', () => {
+//       openImageViewer(imageUrl, caption);
+//     });
+    
+//     // Add caption if not just the default [Image: filename]
+//     if (caption && !caption.startsWith('[Image:')) {
+//       messageContent.textContent = caption;
+//     }
+    
+//     // Append image after text content
+//     messageEl.appendChild(messageSenderName);
+//     messageEl.appendChild(messageContent);
+//     messageEl.appendChild(imgElement);
+//     messageEl.appendChild(messageTime);
+//   } 
+//   else if (message.msg_content.includes('|FILE|')) {
+//     // This is a file message
+//     const parts = message.msg_content.split('|FILE|');
+//     const fileName = parts[0].replace('[File: ', '').replace(']', '');
+//     const fileUrl = parts[1];
+//     const fileType = parts[2] || 'application/octet-stream';
+//     const fileSize = parts[3] ? formatFileSize(parseInt(parts[3])) : 'Unknown size';
+    
+//     // Create a file attachment element
+//     const fileElement = document.createElement('div');
+//     fileElement.className = 'file-attachment';
+    
+//     // Set icon based on file type
+//     let fileIcon = 'document';
+//     if (fileType.includes('pdf')) fileIcon = 'pdf';
+//     else if (fileType.includes('word') || fileType.includes('doc')) fileIcon = 'doc';
+//     else if (fileType.includes('spreadsheet') || fileType.includes('excel')) fileIcon = 'xls';
+    
+//     fileElement.innerHTML = `
+//       <div class="file-icon ${fileIcon}-icon"></div>
+//       <div class="file-info">
+//         <div class="file-name">${fileName}</div>
+//         <div class="file-meta">${fileSize}</div>
+//       </div>
+//     `;
+    
+//     // Add click to download
+//     fileElement.addEventListener('click', () => {
+//       window.open(fileUrl, '_blank');
+//     });
+    
+//     messageEl.appendChild(messageSenderName);
+//     messageEl.appendChild(fileElement);
+//     messageEl.appendChild(messageTime);
+//   }
+//   else {
+//     // Regular text message
+//     messageContent.textContent = message.msg_content || "";
+    
+//     messageEl.appendChild(messageSenderName);
+//     messageEl.appendChild(messageContent);
+//     messageEl.appendChild(messageTime);
+//   }
+
+//   // Add animation if needed
+//   if (animate) {
+//     messageEl.style.opacity = "0";
+//     messageEl.style.transform = "translateY(10px)";
+
+//     // Use requestAnimationFrame for smoother animations
+//     requestAnimationFrame(() => {
+//       messageEl.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+//       messageEl.style.opacity = "1";
+//       messageEl.style.transform = "translateY(0)";
+//     });
+//   }
+
+//   return messageEl;
+// }
 function createMessageElement(message, animate = true) {
   // Create the new message element
   const messageEl = document.createElement("div");
@@ -526,12 +709,13 @@ function createMessageElement(message, animate = true) {
   messageContent.classList.add("message__content");
   messageTime.classList.add("message__time");
 
-  messageContent.textContent = message.msg_content || "";
   messageTime.textContent = formatDateTime(new Date(message.msg_date_time));
   const senderId = +message.sender_data.slice(0, 14);
   const senderName = message.sender_data.slice(15);
+  
   // Check if the message is from the current user
   const isSentByCurrentUser = senderId === +studentId;
+  
   // Add message classes based on sender
   if (isSentByCurrentUser) {
     messageEl.classList.add("sent");
@@ -545,10 +729,94 @@ function createMessageElement(message, animate = true) {
   }
 
   messageEl.classList.add("message");
-
-  messageEl.appendChild(messageSenderName);
-  messageEl.appendChild(messageContent);
-  messageEl.appendChild(messageTime);
+  
+  // Fix: Parse message content correctly - check if it contains the markers
+  // Debug: Add logging to see the message content
+  console.log("Message content:", message.msg_content);
+  
+  // Check if this is a file or image message - make the check more robust
+  if (message.msg_content && message.msg_content.includes('|IMAGE|')) {
+    // This is an image message
+    const parts = message.msg_content.split('|IMAGE|');
+    const caption = parts[0];
+    const imageUrl = parts[1];
+    
+    console.log("Image detected:", { caption, imageUrl });
+    
+    // Create an image element
+    const imgElement = document.createElement('img');
+    imgElement.className = 'message-image';
+    imgElement.src = imageUrl;
+    imgElement.alt = caption;
+    imgElement.loading = 'lazy';
+    
+    // Add click to view full size
+    imgElement.addEventListener('click', () => {
+      openImageViewer(imageUrl, caption);
+    });
+    
+    // Add caption if not just the default [Image: filename]
+    if (caption && !caption.startsWith('[Image:')) {
+      messageContent.textContent = caption;
+    }
+    
+    // Append image after text content
+    messageEl.appendChild(messageSenderName);
+    messageEl.appendChild(messageContent);
+    messageEl.appendChild(imgElement);
+    messageEl.appendChild(messageTime);
+  } 
+  else if (message.msg_content && message.msg_content.includes('|FILE|')) {
+    // This is a file message
+    const parts = message.msg_content.split('|FILE|');
+    const fileCaption = parts[0];
+    const fileUrl = parts[1];
+    const fileType = parts[2] || 'application/octet-stream';
+    const fileSize = parts[3] ? formatFileSize(parseInt(parts[3])) : 'Unknown size';
+    
+    console.log("File detected:", { fileCaption, fileUrl, fileType, fileSize });
+    
+    // Extract filename from caption
+    let fileName = fileCaption;
+    if (fileCaption.startsWith('[File: ') && fileCaption.includes(']')) {
+      fileName = fileCaption.replace('[File: ', '').replace(']', '');
+    }
+    
+    // Create a file attachment element
+    const fileElement = document.createElement('div');
+    fileElement.className = 'file-attachment';
+    
+    // Set icon based on file type
+    let fileIcon = 'document';
+    if (fileType.includes('pdf')) fileIcon = 'pdf';
+    else if (fileType.includes('word') || fileType.includes('doc')) fileIcon = 'doc';
+    else if (fileType.includes('spreadsheet') || fileType.includes('excel')) fileIcon = 'xls';
+    
+    fileElement.innerHTML = `
+      <div class="file-icon ${fileIcon}-icon"></div>
+      <div class="file-info">
+        <div class="file-name">${fileName}</div>
+        <div class="file-meta">${fileSize}</div>
+      </div>
+    `;
+    
+    // Add click to download
+    fileElement.addEventListener('click', () => {
+      window.open(fileUrl, '_blank');
+    });
+    
+    messageEl.appendChild(messageSenderName);
+    messageEl.appendChild(fileElement);
+    messageEl.appendChild(messageTime);
+  }
+  else {
+    // Regular text message
+    messageContent.textContent = message.msg_content || "";
+    
+    messageEl.appendChild(messageSenderName);
+    messageEl.appendChild(messageContent);
+    messageEl.appendChild(messageTime);
+  }
 
   // Add animation if needed
   if (animate) {
@@ -564,6 +832,13 @@ function createMessageElement(message, animate = true) {
   }
 
   return messageEl;
+}
+// Helper function to format file size
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  else if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+  else return (bytes / 1073741824).toFixed(1) + ' GB';
 }
 
 async function addMessageToChat(message) {
@@ -855,13 +1130,62 @@ async function retrieveChatMessages(chatId) {
     return data;
   }
 }
+// function renderChatMessages(messages, animate = true) {
+//   // Get the messages container
+//   const messagesContainer = document.querySelector(".chat__messages-container");
+
+//   // Clear existing messages
+//   messagesContainer.innerHTML = "";
+
+//   if (!messages || messages.length === 0) {
+//     // Show a message when there are no messages
+//     const emptyMessage = document.createElement("div");
+//     emptyMessage.classList.add("empty-messages");
+//     emptyMessage.textContent = "No messages yet. Start the conversation!";
+//     messagesContainer.appendChild(emptyMessage);
+//     return;
+//   }
+
+//   // Add scroll to load more UI element if we have more than 50 messages
+//   if (messages.length > 50) {
+//     const loadMoreDiv = document.createElement("div");
+//     loadMoreDiv.classList.add("load-more-messages");
+//     loadMoreDiv.textContent = "Scroll to load older messages";
+//     loadMoreDiv.setAttribute("data-total-messages", messages.length);
+//     messagesContainer.appendChild(loadMoreDiv);
+//   }
+
+//   // Modified: Only render the last 50 messages initially
+//   const messagesToRender = messages.slice(-50);
+
+//   // Performance optimization: Create a document fragment for batch render
+//   const fragment = document.createDocumentFragment();
+//   // Render messages in fragment
+//   messagesToRender.forEach(message => {
+//     const messageEl = createMessageElement(message, true);
+//     fragment.appendChild(messageEl);
+//   });
+
+//   // Append all messages at once
+//   messagesContainer.appendChild(fragment);
+
+//   // Store all messages in a data attribute for later lazy loading
+//   messagesContainer.setAttribute("data-all-messages", JSON.stringify(messages));
+//   messagesContainer.setAttribute("data-displayed-count", messagesToRender.length);
+
+//   // Scroll to bottom when all messages are rendered
+//   scrollToBottom();
+  
+//   // Set up scroll event listener for lazy loading older messages
+//   setupScrollListener();
+// }
 function renderChatMessages(messages, animate = true) {
   // Get the messages container
   const messagesContainer = document.querySelector(".chat__messages-container");
-
+  
   // Clear existing messages
   messagesContainer.innerHTML = "";
-
+  
   if (!messages || messages.length === 0) {
     // Show a message when there are no messages
     const emptyMessage = document.createElement("div");
@@ -870,7 +1194,7 @@ function renderChatMessages(messages, animate = true) {
     messagesContainer.appendChild(emptyMessage);
     return;
   }
-
+  
   // Add scroll to load more UI element if we have more than 50 messages
   if (messages.length > 50) {
     const loadMoreDiv = document.createElement("div");
@@ -879,25 +1203,26 @@ function renderChatMessages(messages, animate = true) {
     loadMoreDiv.setAttribute("data-total-messages", messages.length);
     messagesContainer.appendChild(loadMoreDiv);
   }
-
+  
   // Modified: Only render the last 50 messages initially
   const messagesToRender = messages.slice(-50);
-
+  
   // Performance optimization: Create a document fragment for batch render
   const fragment = document.createDocumentFragment();
+  
   // Render messages in fragment
   messagesToRender.forEach(message => {
-    const messageEl = createMessageElement(message, true);
+    const messageEl = createMessageElement(message, animate);
     fragment.appendChild(messageEl);
   });
-
+  
   // Append all messages at once
   messagesContainer.appendChild(fragment);
-
+  
   // Store all messages in a data attribute for later lazy loading
   messagesContainer.setAttribute("data-all-messages", JSON.stringify(messages));
   messagesContainer.setAttribute("data-displayed-count", messagesToRender.length);
-
+  
   // Scroll to bottom when all messages are rendered
   scrollToBottom();
   
@@ -1195,9 +1520,10 @@ document.addEventListener("visibilitychange", () => {
           if (messages && messages.length > 0) {
             // PROBLEM: This is causing the flickering by replacing all message elements
             // renderChatMessages(messages, false);
-            
+            setupFileUploadListeners();
             // Instead, check for and only add new messages
             updateMessagesIncrementally(messages);
+
           }
         });
       }
@@ -1507,5 +1833,485 @@ async function getInstructorName(userId) {
       console.error(`Error checking instructor ID ${userId}:`, error);
       return null;
     
+  }
+}
+window.pendingFileUpload = null;
+//////////////////////////////////////////////////////////
+function setupSendButtonListener() {
+  const sendButton = document.querySelector('.send__message-btn');
+  const messageInput = document.querySelector('.message__input');
+  
+  if (!sendButton || !messageInput) {
+    console.error("Could not find send button or message input");
+    return;
+  }
+  
+  sendButton.addEventListener('click', async () => {
+    if (!currentChatId) {
+      alert('Please select a chat first');
+      return;
+    }
+    
+    // Check if there's a pending file upload
+    if (window.pendingFileUpload) {
+      const { type, fileName, publicURL, fileType, fileSize } = window.pendingFileUpload;
+      
+      let messageContent;
+      if (type === 'image') {
+        messageContent = `[Image: ${fileName}]|IMAGE|${publicURL}`;
+      } else {
+        messageContent = `[File: ${fileName}]|FILE|${publicURL}|${fileType}|${fileSize}`;
+      }
+      
+      // Send the message with the file information
+      await sendMessage(currentChatId, messageContent);
+      
+      // Remove the upload indicator if it exists
+      const uploadIndicator = document.querySelector('.upload-indicator');
+      if (uploadIndicator) {
+        uploadIndicator.parentNode.removeChild(uploadIndicator);
+      }
+      
+      // Clear the pending file upload
+      window.pendingFileUpload = null;
+      
+      // Reset the message input placeholder
+      messageInput.placeholder = "Enter Your Message";
+      
+      return;
+    }
+    
+    // Regular text message handling
+    const message = messageInput.value.trim();
+    if (message) {
+      await sendMessage(currentChatId, message);
+      messageInput.value = '';
+    }
+  });
+  
+  // Also handle Enter key in message input
+  messageInput.addEventListener('keypress', async (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendButton.click();
+    }
+  });
+}
+function setupFileUploadListeners() {
+  // File attachment button
+  const fileBtn = document.querySelector('.file__message-btn');
+  fileBtn.addEventListener('click', () => {
+    console.log("fileBtn");
+    
+    createFileInput('document');
+  });
+  
+  // Gallery/Image button
+  const galleryBtn = document.querySelector('.gallery__message-btn');
+  galleryBtn.addEventListener('click', () => {
+    createFileInput('image');
+  });
+  
+  // Camera button
+  const cameraBtn = document.querySelector('.camera__message-btn');
+  cameraBtn.addEventListener('click', () => {
+    openCamera();
+  });
+}
+
+// function createFileInput(type) {
+//   // Create a hidden file input
+//   const fileInput = document.createElement('input');
+//   fileInput.type = 'file';
+//   fileInput.style.display = 'none';
+  
+//   // Set accepted file types
+//   if (type === 'image') {
+//     fileInput.accept = 'image/*';
+//   } else if (type === 'document') {
+//     fileInput.accept = '.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx';
+//   }
+  
+//   // Trigger click on the input
+//   document.body.appendChild(fileInput);
+//   fileInput.click();
+  
+//   // Handle file selection
+//   fileInput.addEventListener('change', async (e) => {
+//     if (e.target.files && e.target.files[0]) {
+//       const file = e.target.files[0];
+//       await uploadAndSendFile(file, type);
+//     }
+    
+//     // Remove the input from DOM after selection
+//     // document.body.removeChild(fileInput);
+//   });
+// }
+function createFileInput(type) {
+  // Create a hidden file input if it doesn't exist already
+  let fileInput = document.getElementById('hidden-file-input');
+  
+  if (!fileInput) {
+    fileInput = document.createElement('input');
+    fileInput.id = 'hidden-file-input';
+    fileInput.type = 'file';
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+  }
+  
+  // Set accepted file types
+  if (type === 'image') {
+    fileInput.accept = 'image/*';
+  } else if (type === 'document') {
+    fileInput.accept = '.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx';
+  }
+  
+  // Reset file input to allow selecting the same file again
+  fileInput.value = '';
+  
+  // Handle file selection
+  fileInput.onchange = async (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      await uploadAndSendFile(file, type);
+    }
+  };
+  
+  // Trigger click on the input - use setTimeout to ensure UI responsiveness
+  setTimeout(() => {
+    fileInput.click();
+  }, 0);
+}
+function displayFileInChat(messageElement, messageContent) {
+  // Parse the message content
+  const parts = messageContent.split('|');
+  
+  if (parts.length < 3) {
+    // Not a file/image message or format is incorrect
+    messageElement.textContent = messageContent;
+    return;
+  }
+  
+  const type = parts[1]; // IMAGE or FILE
+  const url = parts[2];
+  
+  if (type === 'IMAGE') {
+    // Create image element
+    const imageContainer = document.createElement('div');
+    imageContainer.className = 'message-image-container';
+    
+    const image = document.createElement('img');
+    image.src = url;
+    image.alt = 'Shared image';
+    image.className = 'message-image';
+    image.loading = 'lazy';
+    
+    // Add click to enlarge functionality
+    image.addEventListener('click', () => {
+      openImageViewer(url);
+    });
+    
+    imageContainer.appendChild(image);
+    messageElement.innerHTML = ''; // Clear text content
+    messageElement.appendChild(imageContainer);
+  } 
+  else if (type === 'FILE') {
+    // It's a file
+    const fileName = parts[0].replace('[File: ', '').replace(']', '');
+    const fileType = parts[3] || 'application/octet-stream';
+    
+    // Create file element
+    const fileContainer = document.createElement('div');
+    fileContainer.className = 'message-file-container';
+    
+    // Create file icon based on type
+    const fileIcon = document.createElement('div');
+    fileIcon.className = 'file-icon';
+    fileIcon.innerHTML = getFileIconByType(fileType);
+    
+    // Create file info
+    const fileInfo = document.createElement('div');
+    fileInfo.className = 'file-info';
+    fileInfo.innerHTML = `
+      <span class="file-name">${fileName}</span>
+      <a href="${url}" download="${fileName}" class="file-download-link">Download</a>
+    `;
+    
+    fileContainer.appendChild(fileIcon);
+    fileContainer.appendChild(fileInfo);
+    
+    messageElement.innerHTML = ''; // Clear text content
+    messageElement.appendChild(fileContainer);
+  }
+}
+function getFileIconByType(fileType) {
+  if (fileType.includes('pdf')) {
+    return '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v1.25c0 .41-.34.75-.75.75s-.75-.34-.75-.75V8c0-.55.45-1 1-1H11c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2c-.28 0-.5-.22-.5-.5v-5c0-.28.22-.5.5-.5h2c.83 0 1.5.67 1.5 1.5v3zm4-3.75c0 .41-.34.75-.75.75H19v1h.75c.41 0 .75.34.75.75s-.34.75-.75.75H19v1.25c0 .41-.34.75-.75.75s-.75-.34-.75-.75V8c0-.55.45-1 1-1h1.25c.41 0 .75.34.75.75zM9 9.5h1v-1H9v1zM3 6c-.55 0-1 .45-1 1v13c0 1.1.9 2 2 2h13c.55 0 1-.45 1-1s-.45-1-1-1H5c-.55 0-1-.45-1-1V7c0-.55-.45-1-1-1zm11 5.5h1v-3h-1v3z"/></svg>';
+  } else if (fileType.includes('word') || fileType.includes('doc')) {
+    return '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>';
+  } else if (fileType.includes('sheet') || fileType.includes('xls')) {
+    return '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1.94 14H7v-2h10.06v2zm0-4H7v-2h10.06v2zm0-4H7V7h10.06v2z"/></svg>';
+  } else if (fileType.includes('presentation') || fileType.includes('ppt')) {
+    return '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H7v-2h3v2zm0-4H7v-2h3v2zm0-4H7V7h3v2zm4 8h-3v-2h3v2zm0-4h-3v-2h3v2zm0-4h-3V7h3v2zm4 8h-3v-2h3v2zm0-4h-3v-2h3v2zm0-4h-3V7h3v2z"/></svg>';
+  } else {
+    return '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>';
+  }
+}
+function openImageViewer(imageUrl) {
+  const viewer = document.createElement('div');
+  viewer.className = 'image-viewer-overlay';
+  viewer.innerHTML = `
+    <div class="image-viewer-container">
+      <img src="${imageUrl}" alt="Full size image" class="image-viewer-image">
+      <button class="image-viewer-close">×</button>
+    </div>
+  `;
+  
+  document.body.appendChild(viewer);
+  
+  // Prevent scrolling on the body
+  document.body.style.overflow = 'hidden';
+  
+  // Add close functionality
+  const closeButton = viewer.querySelector('.image-viewer-close');
+  closeButton.addEventListener('click', () => {
+    document.body.removeChild(viewer);
+    document.body.style.overflow = '';
+  });
+  
+  // Close on background click
+  viewer.addEventListener('click', (e) => {
+    if (e.target === viewer) {
+      document.body.removeChild(viewer);
+      document.body.style.overflow = '';
+    }
+  });
+}
+function addStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .message-image-container {
+      max-width: 100%;
+      margin: 5px 0;
+    }
+    
+    .message-image {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    
+    .message-file-container {
+      display: flex;
+      align-items: center;
+      background: rgba(89, 85, 179, 0.1);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin: 5px 0;
+    }
+    
+    .file-icon {
+      margin-right: 12px;
+      color: #5955B3;
+    }
+    
+    .file-info {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .file-name {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    
+    .file-download-link {
+      color: #5955B3;
+      font-size: 12px;
+      text-decoration: none;
+    }
+    
+    .image-viewer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .image-viewer-container {
+      position: relative;
+      max-width: 90%;
+      max-height: 90%;
+    }
+    
+    .image-viewer-image {
+      max-width: 100%;
+      max-height: 90vh;
+      object-fit: contain;
+    }
+    
+    .image-viewer-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 32px;
+      cursor: pointer;
+    }
+  `;
+  
+  document.head.appendChild(style);
+}
+function initializeFileUpload() {
+  // Add necessary styles
+  addStyles();
+  
+  // Setup send button listener 
+  setupSendButtonListener();
+  
+  // Make sure file buttons are initialized
+  setupFileUploadListeners();
+  
+  console.log("File upload system initialized");
+}
+
+// Call this function after page load
+document.addEventListener('DOMContentLoaded', initializeFileUpload);
+function openCamera() {
+  // Create a container for the camera
+  const cameraContainer = document.createElement('div');
+  cameraContainer.className = 'camera-container';
+  cameraContainer.innerHTML = `
+    <div class="camera-wrapper">
+      <video id="camera-preview" autoplay></video>
+      <div class="camera-controls">
+        <button id="capture-btn">Capture</button>
+        <button id="cancel-btn">Cancel</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(cameraContainer);
+  
+  // Get video stream
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      const video = document.getElementById('camera-preview');
+      video.srcObject = stream;
+      
+      // Capture button
+      document.getElementById('capture-btn').addEventListener('click', () => {
+        // Create a canvas to capture the image
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+        
+        // Convert to file
+        canvas.toBlob(async (blob) => {
+          const file = new File([blob], `camera-capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
+          await uploadAndSendFile(file, 'image');
+          
+          // Close camera
+          closeCamera(stream);
+        }, 'image/jpeg');
+      });
+      
+      // Cancel button
+      document.getElementById('cancel-btn').addEventListener('click', () => {
+        closeCamera(stream);
+      });
+    })
+    .catch(err => {
+      console.error('Error accessing camera:', err);
+      alert('Could not access camera. Please check permissions.');
+      document.body.removeChild(cameraContainer);
+    });
+}
+
+function closeCamera(stream) {
+  // Stop all tracks
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+  }
+  
+  // Remove the camera container
+  const container = document.querySelector('.camera-container');
+  if (container) {
+    document.body.removeChild(container);
+  }
+}
+async function uploadAndSendFile(file, type) {
+  if (!currentChatId) {
+    alert('Please select a chat first');
+    return;
+  }
+  console.log(currentChatId);
+  console.log(file);
+  console.log(type);
+  
+  // Show upload progress indicator
+  const messagesContainer = document.querySelector('.chat__messages-container');
+  const uploadIndicator = document.createElement('div');
+  uploadIndicator.className = 'upload-indicator message sent';
+  uploadIndicator.innerHTML = `
+    <p class="message__sender-name">You</p>
+    <p class="message__content">Uploading ${file.name}...</p>
+    <div class="upload-progress">
+      <div class="upload-progress-bar"></div>
+    </div>
+  `;
+  messagesContainer.appendChild(uploadIndicator);
+  scrollToBottom();
+  
+  try {
+    // Generate a unique file path
+    const filePath = `${currentChatId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`.replaceAll('/', '');
+    
+    // Upload to Supabase Storage
+    const { data, error } = await supaClient.storage
+      .from('chat-attachments')
+      .upload(filePath, file);
+      
+    if (error) throw error;
+    
+    // Get the public URL for the file - FIXED THIS PART
+    const publicURL = supaClient.storage
+      .from('chat-attachments')
+      .getPublicUrl(filePath).data.publicUrl;
+    console.log(publicURL);
+    
+    console.log("File uploaded successfully, public URL:", publicURL);
+      
+    // Prepare message content based on file type
+    let messageContent;
+    if (type === 'image') {
+      messageContent = `[Image: ${file.name}]|IMAGE|${publicURL}`;
+    } else {
+      messageContent = `[File: ${file.name}]|FILE|${publicURL}|${file.type}|${file.size}`;
+    }
+    
+    // Send the message with the file information
+    await sendMessage(currentChatId, messageContent);
+    
+    // Remove the upload indicator
+    messagesContainer.removeChild(uploadIndicator);
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    uploadIndicator.innerHTML = `
+      <p class="message__sender-name">You</p>
+      <p class="message__content">Failed to upload ${file.name}</p>
+      <p class="message__time">Error: ${error.message}</p>
+    `;
   }
 }
