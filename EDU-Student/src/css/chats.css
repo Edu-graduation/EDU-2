@@ -296,7 +296,7 @@
 .camera__message-btn svg,
 .file__message-btn svg,
 .chat__phone-btn svg {
-  /* cursor: not-allowed; */
+  cursor: not-allowed;
 }
 .file__message-btn svg {
   z-index: -1;
