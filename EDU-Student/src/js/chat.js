@@ -1335,6 +1335,33 @@ window.addEventListener("beforeunload", () => {
 
 // A more intelligent visibility change handler that doesn't cause flickering
 let visibilityTimeout = null;
+// document.addEventListener("visibilitychange", () => {
+//   // Clear any pending timeout
+//   if (visibilityTimeout) {
+//     clearTimeout(visibilityTimeout);
+//   }
+
+//   // If the page becomes visible again
+//   if (document.visibilityState === "visible") {
+//     // Slight delay to prevent too many reconnection attempts
+//     visibilityTimeout = setTimeout(() => {
+//       // Check if we need to reconnect
+//       if (!isConnected) {
+//         console.log("Page visible, checking connections");
+//         checkConnection();
+//       }
+
+//       // If we have an active chat, check for any messages we might have missed
+//       if (currentChatId) {
+//         retrieveChatMessages(currentChatId).then((messages) => {
+//           if (messages && messages.length > 0) {
+//             renderChatMessages(messages, false);
+//           }
+//         });
+//       }
+//     }, 10);
+//   }
+// });
 document.addEventListener("visibilitychange", () => {
   // Clear any pending timeout
   if (visibilityTimeout) {
@@ -1355,14 +1382,77 @@ document.addEventListener("visibilitychange", () => {
       if (currentChatId) {
         retrieveChatMessages(currentChatId).then((messages) => {
           if (messages && messages.length > 0) {
-            renderChatMessages(messages, false);
+            // PROBLEM: This is causing the flickering by replacing all message elements
+            // renderChatMessages(messages, false);
+            
+            // Instead, check for and only add new messages
+            updateMessagesIncrementally(messages);
           }
         });
       }
     }, 10);
   }
 });
-
+function updateMessagesIncrementally(messages) {
+  const messagesContainer = document.querySelector(".chat__messages-container");
+  if (!messagesContainer) return;
+  
+  // Get existing message IDs for quick lookup
+  const existingMessageEls = messagesContainer.querySelectorAll('[data-message-id]');
+  const existingMessageIds = new Set();
+  existingMessageEls.forEach(el => {
+    const msgId = el.getAttribute('data-message-id');
+    if (msgId) existingMessageIds.add(msgId);
+  });
+  
+  // Find only messages that we haven't displayed yet
+  const newMessages = messages.filter(msg => {
+    return msg.msg_id && !existingMessageIds.has(msg.msg_id.toString());
+  });
+  
+  if (newMessages.length === 0) return; // No new messages to add
+  
+  console.log(`Adding ${newMessages.length} new messages without rebuilding`);
+  
+  // Sort new messages by timestamp
+  newMessages.sort((a, b) => {
+    return new Date(a.msg_date_time).getTime() - new Date(b.msg_date_time).getTime();
+  });
+  
+  // Add each new message to the appropriate position in the timeline
+  newMessages.forEach(message => {
+    const messageEl = createMessageElement(message, true);
+    const timestamp = new Date(message.msg_date_time).getTime();
+    
+    // Find the correct position to insert based on timestamp
+    let inserted = false;
+    const allMessages = messagesContainer.querySelectorAll('.message');
+    for (let i = 0; i < allMessages.length; i++) {
+      const existingMsg = allMessages[i];
+      const existingTimestamp = parseInt(existingMsg.getAttribute('data-timestamp'), 10) || 0;
+      
+      if (timestamp < existingTimestamp) {
+        messagesContainer.insertBefore(messageEl, existingMsg);
+        inserted = true;
+        break;
+      }
+    }
+    
+    // If we didn't find a place to insert, add to the end
+    if (!inserted) {
+      messagesContainer.appendChild(messageEl);
+    }
+    
+    // Add to processed IDs set
+    processedMessageIds.add(message.msg_id);
+  });
+  
+  // Scroll to bottom if we were already at the bottom
+  const isAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
+  if (isAtBottom) {
+    scrollToBottom();
+  }
+}
 function isUserComingFrom(pageUrl) {
   const referrer = document.referrer;
 
