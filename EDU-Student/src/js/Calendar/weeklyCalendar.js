@@ -143,7 +143,7 @@ export const startStr = startOfWeek.toISOString();
 export const endStr = endOfWeek.toISOString();
 
 const middleSide = document.querySelector(".middle__side");
-const dayRow = document.querySelector(".day__row");
+const dayRows = document.querySelectorAll(".day__row");
 const studentId = sessionStorage.getItem("studentId");
 
 // Clear all events from day rows
@@ -168,13 +168,13 @@ async function getInstructorInstitution() {
   }
 
   const instructorsId = data.map((instructor) => instructor.instructor_id);
-  console.log("Instructors at this institution:", instructorsId);
   return instructorsId;
 }
 async function getCalendarEvents() {
   const instructorsId = await getInstructorInstitution();
-  console.log(instructorsId);
-
+  dayRows.forEach((row) => {
+    row.innerHTML = "<div class='loading-spinner'></div>";
+  });
   const { data, error } = await supaClient
     .from("calendar_event")
     .select("*")

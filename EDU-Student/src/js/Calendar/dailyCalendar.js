@@ -85,6 +85,7 @@ async function getInstructorInstitution() {
   return instructorsId;
 }
 async function getDailySchedule() {
+  dailySchedule.innerHTML = "<div class='loading-spinner'></div>";
   const instructorsId = await getInstructorInstitution();
   const { data, error } = await supaClient
     .from("calendar_event")

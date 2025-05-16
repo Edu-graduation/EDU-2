@@ -276,6 +276,8 @@ const institutionId = sessionStorage.getItem("institution_id");
 const studentId = sessionStorage.getItem("studentId");
 const courseModal = document.querySelector(".courses__modal");
 const overlay = document.querySelector(".overlay");
+const coursesContainer = document.querySelector(".courses__container");
+
 async function getInstructorInstitution() {
   const { data, error } = await supaClient
     .from("instructor_institution")
@@ -316,7 +318,8 @@ async function getInstructorsMap() {
 
 async function getStudentCourses() {
   const instructorsId = await getInstructorInstitution();
-
+  coursesContainer.innerHTML =
+  '<div class="loading-spinner" style="grid-column: span 2; margin-top:15rem; width:6rem; height:6rem;"></div>';
   const { data, error } = await supaClient
     .from("enrollment")
     .select("*")
@@ -376,7 +379,7 @@ function getCourseImage(courseName) {
 }
 
 async function renderCourses() {
-  const coursesContainer = document.querySelector(".courses__container");
+  
   const courseInstructorMap = await getStudentCourses();
   console.log(courseInstructorMap);
   const instructorsMap = await getInstructorsMap();

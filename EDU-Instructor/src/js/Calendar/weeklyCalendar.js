@@ -126,6 +126,7 @@ const tuesdayRow = document.querySelector(".tuesday__row");
 const wednesdayRow = document.querySelector(".wednesday__row");
 const thursdayRow = document.querySelector(".thursday__row");
 const fridayRow = document.querySelector(".friday__row");
+const dayRows = document.querySelectorAll('.day__row')
 
 const today = new Date();
 
@@ -158,6 +159,9 @@ function clearAllEvents() {
 
 async function getCalendarEvents() {
   let uniqueEvents = [];
+  dayRows.forEach((row) => {
+    row.innerHTML = "<div class='loading-spinner'></div>";
+  });
   const { data, error } = await supaClient
     .from("calendar_event")
     .select("*")

@@ -341,6 +341,9 @@
   left: 50%;
   transform: translate(-50%, -50%);
 }
+.loading-chats{
+  margin-top: 15rem;
+}
 /* HTML: <div class="loader"></div> */
 .loader {
   width: 50px;

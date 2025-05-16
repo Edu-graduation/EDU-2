@@ -677,3 +677,6 @@
   transition-duration: 0.3s;
   padding-right: 10px;
 }
+.no-deadlines{
+  font-size: var(--fs-5);
+}

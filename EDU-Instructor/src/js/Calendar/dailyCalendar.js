@@ -71,6 +71,7 @@ function updateHoursDisplay(timeArray) {
 }
 
 async function getDailySchedule() {
+  dailySchedule.innerHTML = "<div class='loading-spinner'></div>";
   const { data, error } = await supaClient
     .from("calendar_event")
     .select("*")

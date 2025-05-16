@@ -2825,7 +2825,7 @@ function enhanceSearchInput() {
 }
 function applyFilters() {
   const courseId = document.getElementById("courseFilter").value;
-  const timeRange = document.getElementById("timeRangeFilter").value;
+  // const timeRange = document.getElementById("timeRangeFilter").value;
 
   // Show loading indicators for all charts during filtering
   showLoading("coursePerformanceChart");
@@ -3047,12 +3047,12 @@ document.addEventListener("DOMContentLoaded", () => {
       filterTimeout = setTimeout(applyFilters, 100);
     });
 
-  document
-    .getElementById("timeRangeFilter")
-    .addEventListener("change", function () {
-      clearTimeout(filterTimeout);
-      filterTimeout = setTimeout(applyFilters, 100);
-    });
+  // document
+  //   .getElementById("timeRangeFilter")
+  //   .addEventListener("change", function () {
+  //     clearTimeout(filterTimeout);
+  //     filterTimeout = setTimeout(applyFilters, 100);
+  //   });
 
   document
     .getElementById("refreshBtn")
@@ -3093,7 +3093,7 @@ function getSelectedCourseName() {
 // Update the page title based on selected filters
 function updatePageTitle() {
   const courseName = getSelectedCourseName();
-  const timeRange = document.getElementById("timeRangeFilter").value;
+  // const timeRange = document.getElementById("timeRangeFilter").value;
 
   let title = "Instructor Analytics";
   if (courseName !== "All My Courses") {

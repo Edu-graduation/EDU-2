@@ -93,6 +93,7 @@ async function getInstructorCourses() {
 // Get assignments for a specific course
 async function getInstructorAssignments(courseId) {
   try {
+    assignmentListBody.innerHTML=`<tr><td colspan="4" style="text-align: center;"><div class="loading-spinner"></div></td></tr>`
     if (!courseId) {
       const instructorCourses = await getInstructorCourses();
       if (instructorCourses && instructorCourses.length > 0) {
@@ -275,6 +276,7 @@ async function showAssignmentDetails(assignId) {
 // Initialize the course dropdown and load assignments
 async function initializeAssignmentPage() {
   try {
+    // assignmentListBody.innerHTML=`<tr><td colspan="4" style="text-align: center;">loading...<div class="loading-spinner"></div></td></tr>`
     // Clear course dropdown
     courseNameSelect.innerHTML = "";
 
@@ -504,7 +506,7 @@ async function getStudentDetails(studentIds) {
 async function renderStudentSubmissionsForCourse(courseId) {
   try {
     // Clear existing submissions
-    submissionListBody.innerHTML = "";
+    submissionListBody.innerHTML = "<tr><td colspan='4'><div class='loading-spinner'></div></td></tr>";
 
     // Get assignment IDs for the selected course
     const assignmentIds = await getAssignmentIDsForCourse(courseId);
@@ -561,7 +563,6 @@ async function renderStudentSubmissionsForCourse(courseId) {
                   </tr>`;
       }
     });
-
     submissionListBody.innerHTML =
       markup ||
       `

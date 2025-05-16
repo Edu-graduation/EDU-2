@@ -858,7 +858,7 @@ async function renderSessions(courseId) {
   sessionContainer.innerHTML = `
     <div class="loading-sessions" style="text-align: center; padding: 20px;">
       <div class="spinner" style="margin: 0 auto;"></div>
-      <p>Loading sessions...</p>
+      <p class="loading-spinner"></p>
     </div>
   `;
 

@@ -1261,7 +1261,6 @@ async function getInstructorInstitution() {
     .from("instructor_institution")
     .select("*")
     .eq("institution_id", institutionId);
-  console.log(data);
 
   if (error) {
     console.error("Error fetching institution data:", error);
@@ -1290,7 +1289,6 @@ async function getStudentCourses() {
     console.error("Error fetching enrollment data:", error);
     return [];
   }
-  console.log(data);
 
   return data;
 }
@@ -1342,13 +1340,9 @@ function isSessionToday(session) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // For debugging
-    console.log("Today's date:", today.toISOString().split("T")[0]);
-    console.log("Checking session:", session);
 
     // 1. Check session_date field (if it exists)
     if (session.session_date) {
-      console.log("Found session_date:", session.session_date);
       const sessionDate = new Date(session.session_date);
       sessionDate.setHours(0, 0, 0, 0);
 
@@ -1356,14 +1350,12 @@ function isSessionToday(session) {
         sessionDate.toISOString().split("T")[0] ===
         today.toISOString().split("T")[0]
       ) {
-        console.log("✓ Match found in session_date");
         return true;
       }
     }
 
     // 2. Check session_datetime field (if it exists)
     if (session.session_datetime) {
-      console.log("Found session_datetime:", session.session_datetime);
       const sessionDate = new Date(session.session_datetime);
       sessionDate.setHours(0, 0, 0, 0);
 
@@ -1371,14 +1363,12 @@ function isSessionToday(session) {
         sessionDate.toISOString().split("T")[0] ===
         today.toISOString().split("T")[0]
       ) {
-        console.log("✓ Match found in session_datetime");
         return true;
       }
     }
 
     // 3. Special check for session_time if it contains date information (format: 2025-05-07 14:00:00)
     if (session.session_time && session.session_time.includes("-")) {
-      console.log("Found session_time with date format:", session.session_time);
       const sessionDate = new Date(session.session_time);
       sessionDate.setHours(0, 0, 0, 0);
 
@@ -1386,14 +1376,12 @@ function isSessionToday(session) {
         sessionDate.toISOString().split("T")[0] ===
         today.toISOString().split("T")[0]
       ) {
-        console.log("✓ Match found in session_time");
         return true;
       }
     }
 
     // 4. Check session_day if it exists
     if (session.session_day) {
-      console.log("Found session_day:", session.session_day);
       // If session_day is a number representing day of week (0-6, where 0 is Sunday)
       if (
         typeof session.session_day === "number" ||
@@ -1403,7 +1391,6 @@ function isSessionToday(session) {
         const todayDayNum = today.getDay();
 
         if (sessionDayNum === todayDayNum) {
-          console.log("✓ Match found in session_day");
           return true;
         }
       }
@@ -1421,17 +1408,13 @@ function isSessionToday(session) {
         const todayDayName = days[today.getDay()];
 
         if (session.session_day.toLowerCase() === todayDayName) {
-          console.log("✓ Match found in session_day name");
           return true;
         }
       }
     }
-
-    console.log("No date match found for this session");
     return false;
   } catch (e) {
     console.error("Error checking if session is today:", e);
-    // In case of error, show the session (better to show extra than miss sessions)
     return true;
   }
 }
@@ -1457,15 +1440,8 @@ async function getStudentSessionWithCourseNames() {
     return [];
   }
 
-  console.log("All fetched sessions:", data);
-
   // Filter for today's sessions only
   const todaySessions = data.filter((session) => isSessionToday(session));
-
-  console.log(
-    `Filtered ${data.length} sessions to ${todaySessions.length} today's sessions:`,
-    todaySessions
-  );
 
   // Map sessions to include their corresponding course name
   const sessionsWithCourseNames = todaySessions.map((session) => {
@@ -1488,11 +1464,10 @@ async function renderStudentSession() {
 
   // Show loading indicator
   scheduleGrid.innerHTML =
-    '<div class="loading">Loading today\'s sessions...</div>';
+    '<div class="loading-spinner" style="grid-column: span 2;"></div>';
 
   try {
     const sessions = await getStudentSessionWithCourseNames();
-    console.log("Today's sessions with course names:", sessions);
 
     if (sessions.length === 0) {
       scheduleGrid.innerHTML =
@@ -1917,16 +1892,13 @@ async function renderWeeklyDeadlines() {
   try {
     // Show loading indicator
     deadlineContainer.innerHTML =
-      '<div class="loading">Loading deadlines...</div>';
+      '<div class="loading-spinner"></div>';
 
     // Get all deadlines
     const quizzes = await getWeeklyQuizzes();
     const assignments = await getWeeklyAssignments();
     const activities = await getWeeklyActivities();
 
-    console.log(
-      `Found ${quizzes.length} quizzes, ${assignments.length} assignments, ${activities.length} activities`
-    );
 
     // Clear loading indicator
     deadlineContainer.innerHTML = "";
@@ -1977,9 +1949,6 @@ async function renderWeeklyDeadlines() {
         console.error("Error processing activity:", err);
       }
     }
-
-    console.log("All deadline items:", deadlineItems);
-
     // Sort by deadline date (ascending)
     deadlineItems.sort((a, b) => a.date - b.date);
 

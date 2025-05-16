@@ -164,7 +164,7 @@ async function renderInstructorProjects(courseId) {
     // Clear existing projects and show loading state
     projectListBody.innerHTML = `
       <tr>
-        <td colspan="3" style="text-align: center;">Loading projects...</td>
+        <td colspan="3" style="text-align: center;"><div class="loading-spinner"></div></td>
       </tr>`;
     // Get projects for this course
     const projects = await getInstructorProjects(courseId);
@@ -432,8 +432,8 @@ function initializeProjectPage() {
         const selectedCourseId = e.target.value;
 
         // Clear existing data
-        projectListBody.innerHTML = `<tr><td colspan="3">Loading projects...</td></tr>`;
-        submissionListBody.innerHTML = `<tr><td colspan="3">Loading submissions...</td></tr>`;
+        projectListBody.innerHTML = `<tr><td colspan="3"><div class="loading-spinner"></div></td></tr>`;
+        submissionListBody.innerHTML = `<tr><td colspan="4"><div class="loading-spinner"></div></td></tr>`;
 
         // Fetch and render data specific to selected course
         renderInstructorProjects(selectedCourseId);
@@ -748,7 +748,7 @@ async function renderStudentSubmissionsForCourse(courseId) {
     // Clear existing submissions and show loading state
     submissionListBody.innerHTML = `
       <tr>
-        <td colspan="3" style="text-align: center;">Loading submissions...</td>
+        <td colspan="4" style="text-align: center;"><div class="loading-spinner"></div></td>
       </tr>`;
 
     // Get activity IDs for the selected course
@@ -767,7 +767,7 @@ async function renderStudentSubmissionsForCourse(courseId) {
     if (!submissions || submissions.length === 0) {
       submissionListBody.innerHTML = `
         <tr>
-          <td colspan="3" style="text-align: center;">No student submissions found for this course</td>
+          <td colspan="4" style="text-align: center;">No student submissions found for this course</td>
         </tr>`;
       return;
     }

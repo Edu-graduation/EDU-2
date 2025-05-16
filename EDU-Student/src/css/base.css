@@ -235,3 +235,18 @@ body {
 .log-out {
   margin-top: 6rem;
 }
+.loading-spinner {
+  width: 4rem;
+  height: 4rem;
+  border: 0.5rem solid var(--color-grey-light-3);
+  border-top: 0.5rem solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-inline: auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
