@@ -250,3 +250,18 @@ body {
     transform: rotate(360deg);
   }
 }
+.back-btn{
+  background-color: transparent;
+  border: none;
+  width: 4rem;
+  height: 4rem;
+  font-size: var(--fs-2);
+  cursor: pointer;
+  color: var(--color-primary);
+  transition: all 0.3s ease;
+}
+.back-btn:hover{
+    color: var(--color-primary);
+    transform: scale(1.1) translateX(-5px);
+}
+    

@@ -15,7 +15,7 @@
 .page-title {
   align-self: flex-start;
   position: absolute;
-  left: 3rem;
+  left: 10rem;
   top: 3rem;
   margin-bottom: 3rem;
 }
@@ -555,4 +555,9 @@
 .upload-icon {
   font-size: var(--fs-2);
   color: var(--color-primary);
+}
+.special{
+  position: absolute;
+  left: -5rem;
+  top: 0;
 }

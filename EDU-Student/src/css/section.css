@@ -1,5 +1,5 @@
 .main-content {
-padding: 2rem;
+padding: 1rem;
 width: 100%;
 background-color: var(--color-grey-light-1);
 border-radius: 5rem;
@@ -23,12 +23,11 @@ padding: 30px;
 
 }
 
-.section_title {
+#section-title {
 font-family: Arial, Helvetica, sans-serif;
-font-size: 40px;
-color: black;
-text-shadow: 2px 2px 10px #888;
-margin: 0 30px 30px;
+font-size: var(--fs-1);
+color: var(--color-grey-dark-1);
+/* text-shadow: 2px 2px 10px #888; */
 }
 
 /* ✅ الجديد هنا */
@@ -284,22 +283,31 @@ width: 85%;
   width: 85%;
   margin-top: -7rem;
 }
-.Title_container {
+/* .Title_container {
 align-self: flex-start;
 margin-left: 8px;
+} */
+
+
+.Title_container {
+  align-self: flex-start;
+  /* margin-left: 8px; */
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  /* margin: 0 30px 30px; */
+  margin: 3rem 2rem;
+
 }
-
-
-
 
 
 
 .file-button-outline {
   display: inline-block;
   background-color: transparent;
-  color: #4A6CF7;
+  color: var(--color-primary);
   padding: 7px 14px;
-  border: 2px solid #4A6CF7;
+  border: 2px solid var(--color-primary);
   border-radius: 4px;
   font-weight: 600;
   text-decoration: none;
@@ -323,13 +331,15 @@ margin-left: 8px;
   left: 0;
   width: 0%;
   height: 100%;
-  background-color: #4A6CF7;
+  /* background-color: #4A6CF7; */
+  background-color: var(--color-primary);
   transition: all 0.3s ease;
   z-index: -1;
 }
 
 .file-button-outline:hover {
-  color: white;
+  /* color: white; */
+  color: var(--color-grey-light-1);
 }
 
 .file-button-outline:hover::before {

@@ -773,9 +773,17 @@ async function getCourseName() {
   }
 
   if (data && data.length > 0) {
-    pageTitle.textContent = `${data[0].course_name} Projects`;
+    pageTitle.innerHTML = `${data[0].course_name} Projects <div class="back-button special">
+            <button class="back-btn" onclick="window.history.back()">
+                <i class="fa-solid fa-angle-left"></i>
+            </button>
+        </div>`;
     if (isInstitutionSchool()) {
-      pageTitle.textContent = `${data[0].course_name} Activities`;
+      pageTitle.innerHTML = `${data[0].course_name} Activities <div class="back-button special">
+            <button class="back-btn" onclick="window.history.back()">
+                <i class="fa-solid fa-angle-left"></i>
+            </button>
+        </div>`;
     }
   }
 }

@@ -106,9 +106,17 @@ async function getCourseName() {
   }
 
   if (data && data.length > 0) {
-    pageTitle.textContent = `${data[0].course_name} Assignments`;
+    pageTitle.innerHTML = `${data[0].course_name} Assignments <div class="back-button special">
+            <button class="back-btn" onclick="window.history.back()">
+                <i class="fa-solid fa-angle-left"></i>
+            </button>
+        </div>`;
     if (isInstitutionSchool()) {
-      pageTitle.textContent = `${data[0].course_name} Homeworks`;
+      pageTitle.innerHTML = `${data[0].course_name} Homeworks <div class="back-button special">
+            <button class="back-btn" onclick="window.history.back()">
+                <i class="fa-solid fa-angle-left"></i>
+            </button>
+        </div>`;
     }
   }
 }
