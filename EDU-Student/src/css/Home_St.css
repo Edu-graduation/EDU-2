@@ -1,5 +1,6 @@
-/* ======================================================= */
-/* Main Content */
+.container{
+  overflow: hidden;
+}
 .main-content {
   padding: 2rem;
   /* width: 100%; */
@@ -9,9 +10,9 @@
   box-shadow: 0 0.4rem 2rem rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  align-content: center;
-  justify-content: center;
-  align-items: center;
+  /* align-content: center; */
+  /* justify-content: center; */
+  /* align-items: center; */
   /* overflow: scroll; */
   scrollbar-width: none;
 }
@@ -26,9 +27,9 @@
 }
 
 .welcome {
-  margin: 1rem;
+  margin: 1rem auto;
   width: 90%;
-  height: 25%;
+  height: 20%;
   border-radius: 5rem;
   border: none;
   box-shadow: 2px 1px 20px 1px var(--color-primary);
@@ -40,7 +41,7 @@
   width: 35%;
   position: relative;
   left: 60%;
-  top: -10.5rem;
+  top: -12.5rem;
 }
 
 .welcome .goodMorning {
@@ -59,8 +60,9 @@
 }
 
 .Wdeadline {
-  width: 90%;
-  padding: 1.5rem;
+  /* width: 90%; */
+  padding: 1rem;
+  margin: auto;
 }
 
 .Wdeadline .deadline-title {
@@ -68,27 +70,63 @@
   font-weight: bold;
   color: var(--color-primary);
   align-content: center;
-  margin-bottom: 2%;
+  /* margin-bottom: 1rem; */
 }
 
 .Wdeadline .deadlineBoxes {
   display: flex;
   /* justify-content: space-between; */
   align-items: center;
-  /* padding: 10px; */
+  width: 90rem;
+  overflow: scroll hidden;
+  padding: 2rem;
+  /* scrollbar-width: thin; */
+  scrollbar-width: none;
+  /* scrollbar-color: var(--color-primary) transparent; */
   gap: 2rem;
 }
+.deadlineBoxes::-webkit-scrollbar {
+  height: 8px;
+}
 
+.deadlineBoxes::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: 10px;
+}
 .Wdeadline .deadlineBoxes .box {
   width: 16rem;
+  flex-shrink: 0;
   height: 16rem;
   border-radius: 2.9rem;
   background-color: var(--color-primary);
   border: none;
-  box-shadow: 2px 1px 2.5rem 1px var(--color-primary);
+  box-shadow: 2px 1px 1.5rem 1px var(--color-primary);
   transition: all 0.5s ease;
 }
 
+.nav-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.nav-button {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 2rem;
+  transition: all 0.3s ease;
+}
+.nav-button:hover {
+  background-color: var(--color-primary-dark);
+}
 .box:hover {
   transform: scale(1.1);
   z-index: 1;
@@ -103,6 +141,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
   font-size: 2rem;
   font-weight: bold;
   color: var(--color-primary);
@@ -125,16 +164,16 @@
   display: flex;
   justify-content: center;
   gap: 30px;
-  flex-wrap: wrap; /* عشان الموبايل */
-  margin-top: 30px;
+  flex-wrap: wrap;
 }
 #text-box2 {
-  margin-left: 20px;
-  margin-bottom: 20px;
+  /* margin-left: 20px; */
+  margin-bottom: 1rem;
+  text-align: center;
 }
 #text-box1 {
   margin-left: 50px;
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
 }
 #box2 {
   margin-top: 30px;
@@ -152,7 +191,6 @@
   margin-right: -20px;
   border-top: 5px solid #5648d1;
   border-right: 6px solid #5648d1;
-
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   border-bottom-left-radius: 20px;
@@ -162,8 +200,8 @@
 .course-card {
   background: #fff;
   border-radius: 20px;
-  padding: 25px;
-  width: 300px;
+  padding: 2.5rem;
+  width: 30rem;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   font-family: "Segoe UI", sans-serif;
 }
@@ -176,7 +214,7 @@
 .progress-track {
   background: #eee;
   border-radius: 30px;
-  height: 25px;
+  height: 35px;
   overflow: hidden;
 }
 
@@ -189,6 +227,9 @@
   align-items: center;
   justify-content: center;
   transition: width 0.4s ease;
+}
+.progress-text{
+  font-size: var(--fs-7);
 }
 
 .box__time-container {
@@ -203,7 +244,7 @@
   align-items: center;
   justify-content: space-between;
   border-radius: 1.5rem;
-  /* box-shadow: 0.6rem 0.6rem 2rem rgba(0, 0, 0, 0.4); */
+  /* box-shadow: 0.3rem 0.3rem 2rem rgba(0, 0, 0, 0.3); */
   backdrop-filter: blur(10rem);
 }
 
@@ -211,7 +252,8 @@
   font-weight: bold;
   width: 70%;
   text-transform: uppercase;
-  font-size: small;
+  /* font-size: small; */
+  font-size: var(--fs-7);
 }
 
 .imgCard {
@@ -372,6 +414,7 @@
   border-radius: 0rem 5rem 5rem 0rem;
   box-shadow: 0 0rem 3rem rgba(0, 0, 0, 0.3);
   margin-right: 1rem;
+  z-index: 1000;
 }
 
 .user-info {
@@ -679,4 +722,41 @@
 }
 .no-deadlines{
   font-size: var(--fs-5);
+}
+.semester-progress-date{
+  font-size: var(--fs-5);
+  text-align: center;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 1rem;
+}
+.today-progress-text{
+  font-size: var(--fs-5);
+  text-align: center;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 1rem;
+}
+@media screen and (max-height: 620px) {
+  .Wdeadline .deadlineBoxes .box {
+    width: 14rem;
+    height: 14rem;
+  }
+  .course-card{
+    padding: 1.5rem;
+    width: 35rem;
+    margin-top: -2rem;
+  }
+  #text-box1{
+    margin-bottom: 1rem;
+  }
+  .welcome{
+    margin-left: 0;
+  }
+}
+@media screen and (max-width: 1500px) {
+.main-content{
+  /* margin-left: -1rem; */
+  width: 85rem;
+}
 }

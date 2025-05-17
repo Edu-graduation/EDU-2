@@ -182,11 +182,10 @@ async function renderInstructorProjects(courseId) {
       renderStudentSubmissionsForCourse(courseId);
       return;
     }
-
+    projects.sort((a, b) => new Date(a.activity_duedate) - new Date(b.activity_duedate));
     // Create HTML for each project
     projects.forEach((project, index) => {
       const row = document.createElement("tr");
-
       // Format the date properly
       const dueDate = new Date(project.activity_duedate);
       const formattedDate = dueDate.toLocaleDateString();

@@ -1,1255 +1,3 @@
-// import { supaClient } from "./app.js";
-// const studentId = sessionStorage.getItem("studentId");
-// const institutionId = JSON.parse(sessionStorage.getItem("institution_id"));
-
-// // async function getWeeklyDeadlines() {
-// //     const { data, error } = await supaClient
-// //         .from("enrollment")
-// //         .select("*")
-// //         .eq("student_id", studentId);
-
-// //     if (error) {
-// //         console.error("Error fetching deadlines:", error);
-// //         return null;
-// //     }
-// //     console.log(data);
-// //     return data;
-// // }
-// async function getInstructorInstitution() {
-//   const { data, error } = await supaClient
-//     .from("instructor_institution")
-//     .select("*")
-//     .eq("institution_id", institutionId);
-
-//   if (error) {
-//     console.error("Error fetching institution data:", error);
-//     return null;
-//   }
-
-//   const instructorsId = data.map((instructor) => instructor.instructor_id);
-//   console.log("Instructors at this institution:", instructorsId);
-//   return instructorsId;
-// }
-
-// // async function getInstructorsMap() {
-// //   const instructorsId = await getInstructorInstitution();
-
-// //   const { data, error } = await supaClient
-// //     .from("instructor")
-// //     .select("*")
-// //     .in("instructor_id", instructorsId);
-
-// //   if (error) {
-// //     console.error("Error fetching instructors data:", error);
-// //     return null;
-// //   }
-
-// //   // Create a map of instructor_id to instructor_name
-// //   const instructorsMap = {};
-// //   data.forEach((instructor) => {
-// //     instructorsMap[instructor.instructor_id] = instructor.instructor_name;
-// // });
-
-// //   return instructorsMap;
-// // }
-// async function getStudentCourses() {
-//   const instructorsId = await getInstructorInstitution();
-
-//   const { data, error } = await supaClient
-//     .from("enrollment")
-//     .select("*")
-//     .in("instructor_id", instructorsId)
-//     .eq("student_id", studentId);
-
-//   if (error) {
-//     console.error("Error fetching enrollment data:", error);
-//     return null;
-//   }
-
-//   // Get unique course IDs while preserving the instructor association
-//   const courseInstructorMap = {};
-
-// //   data.forEach((enrollment) => {
-// //     const courseId = enrollment.course_id;
-// //     const instructorId = enrollment.instructor_id;
-
-// //     if (!courseInstructorMap[courseId]) {
-// //       courseInstructorMap[courseId] = [];
-// //     }
-
-// //     // Add instructor to the course if not already added
-// //     if (!courseInstructorMap[courseId].includes(instructorId)) {
-// //       courseInstructorMap[courseId].push(instructorId);
-// //     }
-// //   });
-
-// //   console.log("Course-Instructor Map:", courseInstructorMap);
-// console.log(data);
-
-//   return data;
-// }
-
-// async function getStudentDeadlineQuiz() {
-//     const studentCourses = await getStudentCourses();
-//     const coursesId = studentCourses.map((course) => course.course_id);
-//     const { data, error } = await supaClient
-//         .from("quiz")
-//         .select("*")
-//         .in("course_id", coursesId);
-
-//     if (error) {
-//         console.error("Error fetching deadlines:", error);
-//         return null;
-//     }
-//     if(data && data.length > 0){
-//         return data;
-//     }
-// }getStudentDeadlineQuiz();
-// async function getStudentDeadlineAssignment() {
-//     const studentCourses = await getStudentCourses();
-//     const coursesId = studentCourses.map((course) => course.course_id);
-//     const { data, error } = await supaClient
-//         .from("assignment")
-//         .select("*")
-//         .in("course_id", coursesId);
-
-//     if (error) {
-//         console.error("Error fetching deadlines:", error);
-//         return null;
-//     }
-//     if(data && data.length > 0){
-//         return data;
-//     }
-// }getStudentDeadlineAssignment();
-// async function getStudentDeadlineActivity() {
-//     const studentCourses = await getStudentCourses();
-//     const coursesId = studentCourses.map((course) => course.course_id);
-//     const { data, error } = await supaClient
-//         .from("course_activity")
-//         .select("*")
-//         .in("course_id", coursesId);
-
-//     if (error) {
-//         console.error("Error fetching deadlines:", error);
-//         return null;
-//     }
-//     if(data && data.length > 0){
-//         const activityIds = data.map((activity) => activity.activity_id);
-//         const {data: activityData, error: activityError} = await supaClient
-//         .from("activity")
-//         .select("*")
-//         .in("activity_id", activityIds);
-//         if(activityData && activityData.length > 0){
-//             return activityData;
-//         }
-//     }
-// }getStudentDeadlineActivity();
-
-// async function renderDeadlines() {
-// const weeklyDeadlineContainer = document.querySelector(".deadlineBoxes");
-// // weeklyDeadlineContainer.innerHTML = "";
-// let quizesMarkup = "";
-// let assignmentsMarkup = "";
-// let activitiesMarkup = "";
-// const quizes = await getStudentDeadlineQuiz();
-// const assignments = await getStudentDeadlineAssignment();
-// const activities = await getStudentDeadlineActivity();
-// if(quizes && quizes.length > 0){
-//     quizes.forEach(async (quiz) => {
-//         const courseName = await getCourseName(quiz.course_id);
-//         console.log(courseName);
-//         quizesMarkup += `<div class="box">
-//             <div class="upper">${courseName}</div>
-//             <div class="lower">Quiz</div>
-//             <div class="box__time-container">
-//               <p class="box__time">${quiz.quiz_deadline}</p>
-//               <img class="imgCard" src="src/images/icons8-clock-60.png" />
-//             </div>
-//           </div>`;
-//     });
-// }
-
-// if(assignments && assignments.length > 0){
-//     assignments.forEach(async (assignment) => {
-//         const courseName = await getCourseName(assignment.course_id);
-//         assignmentsMarkup += `<div class="box">
-//         <div class="upper">${courseName}</div>
-//         <div class="lower">Assignment</div>
-//         <div class="box__time-container">
-//           <p class="box__time">${assignment.assignment_deadline}</p>
-//           <img class="imgCard" src="src/images/icons8-clock-60.png" />
-//         </div>
-//       </div>`;
-//     });
-// }
-
-// if(activities && activities.length > 0){
-//     activities.forEach(async (activity) => {
-//         // const courseName = await getCourseName(activity.course_id);
-//         activitiesMarkup +=  `<div class="box">
-//         <div class="upper">${activity.activity_name}</div>
-//         <div class="lower">Activity</div>
-//         <div class="box__time-container">
-//           <p class="box__time">${activity.activity_deadline}</p>
-//           <img class="imgCard" src="src/images/icons8-clock-60.png" />
-//         </div>
-//       </div>`;
-//     });
-// }
-
-// weeklyDeadlineContainer.innerHTML = quizesMarkup + assignmentsMarkup + activitiesMarkup;
-// }
-// renderDeadlines().then(() => {
-//     console.log("Deadlines rendered successfully");
-// });
-
-// async function getCourseName(courseId) {
-//     const { data, error } = await supaClient
-//         .from("course")
-//         .select("course_name")
-//         .eq("course_id", courseId);
-//     if (error) {
-//         console.error("Error fetching course data:", error);
-//         return null;
-//     }
-//     return data[0].course_name;
-// }
-
-// import { supaClient } from "./app.js";
-// const studentId = sessionStorage.getItem("studentId");
-// const institutionId = JSON.parse(sessionStorage.getItem("institution_id"));
-
-// // Get instructors for the current institution
-// async function getInstructorInstitution() {
-//   const { data, error } = await supaClient
-//     .from("instructor_institution")
-//     .select("*")
-//     .eq("institution_id", institutionId);
-
-//   if (error) {
-//     console.error("Error fetching institution data:", error);
-//     return [];
-//   }
-
-//   const instructorsId = data.map((instructor) => instructor.instructor_id);
-//   console.log("Instructors at this institution:", instructorsId);
-//   return instructorsId;
-// }
-
-// // Get student's courses
-// async function getStudentCourses() {
-//   const instructorsId = await getInstructorInstitution();
-
-//   if (!instructorsId.length) {
-//     console.error("No instructors found for this institution");
-//     return [];
-//   }
-
-//   const { data, error } = await supaClient
-//     .from("enrollment")
-//     .select("*")
-//     .in("instructor_id", instructorsId)
-//     .eq("student_id", studentId);
-
-//   if (error) {
-//     console.error("Error fetching enrollment data:", error);
-//     return [];
-//   }
-
-//   console.log("Student courses:", data);
-//   return data;
-// }
-
-// // Get course name by ID
-// async function getCourseName(courseId) {
-//   const { data, error } = await supaClient
-//     .from("course")
-//     .select("course_name")
-//     .eq("course_id", courseId);
-
-//   if (error) {
-//     console.error("Error fetching course data:", error);
-//     return "Unknown Course";
-//   }
-
-//   return data && data.length > 0 ? data[0].course_name : "Unknown Course";
-// }
-
-// // Format date for display
-// function formatDate(dateString) {
-//   try {
-//     const date = new Date(dateString);
-//     if (isNaN(date.getTime())) {
-//       return dateString; // Return original if invalid
-//     }
-
-//     // Format: "5 Oct Sun"
-//     const day = date.getDate();
-//     const month = date.toLocaleString('en-US', { month: 'short' });
-//     const weekday = date.toLocaleString('en-US', { weekday: 'short' });
-
-//     return `${day} ${month} ${weekday.toLowerCase()}`;
-//   } catch (e) {
-//     console.error("Date formatting error:", e);
-//     return dateString;
-//   }
-// }
-
-// // Check if a date is within the next 7 days
-// function isWithinNextWeek(dateString) {
-//   try {
-//     const date = new Date(dateString);
-//     if (isNaN(date.getTime())) {
-//       return false;
-//     }
-
-//     const today = new Date();
-//     today.setHours(0, 0, 0, 0);
-
-//     const nextWeek = new Date(today);
-//     nextWeek.setDate(today.getDate() + 7);
-
-//     return date >= today && date <= nextWeek;
-//   } catch (e) {
-//     console.error("Date check error:", e);
-//     return false;
-//   }
-// }
-
-// // Get weekly quizzes
-// async function getWeeklyQuizzes() {
-//   const studentCourses = await getStudentCourses();
-
-//   if (!studentCourses.length) {
-//     return [];
-//   }
-
-//   const coursesId = studentCourses.map((course) => course.course_id);
-
-//   const { data, error } = await supaClient
-//     .from("quiz")
-//     .select("*")
-//     .in("course_id", coursesId);
-
-//   if (error) {
-//     console.error("Error fetching quizzes:", error);
-//     return [];
-//   }
-//     console.log(data);
-
-//   // Filter quizzes for the next week
-//   return data.filter(quiz => isWithinNextWeek(new Date(quiz.quiz_deadline)));
-// }
-
-// // Get weekly assignments
-// async function getWeeklyAssignments() {
-//   const studentCourses = await getStudentCourses();
-
-//   if (!studentCourses.length) {
-//     return [];
-//   }
-
-//   const coursesId = studentCourses.map((course) => course.course_id);
-
-//   const { data, error } = await supaClient
-//     .from("assignment")
-//     .select("*")
-//     .in("course_id", coursesId);
-//   if (error) {
-//     console.error("Error fetching assignments:", error);
-//     return [];
-//   }
-
-//   // Filter assignments for the next week
-//   console.log(data);
-//   return data.filter(assignment => isWithinNextWeek(new Date(assignment.assignment_deadline)));
-
-// }
-// console.log(isWithinNextWeek("2025-05-08"));
-
-// // Get weekly activities
-// async function getWeeklyActivities() {
-//   const studentCourses = await getStudentCourses();
-
-//   if (!studentCourses.length) {
-//     return [];
-//   }
-
-//   const coursesId = studentCourses.map((course) => course.course_id);
-
-//   const { data: courseActivities, error } = await supaClient
-//     .from("course_activity")
-//     .select("*")
-//     .in("course_id", coursesId);
-
-//   if (error) {
-//     console.error("Error fetching course activities:", error);
-//     return [];
-//   }
-
-//   if (!courseActivities.length) {
-//     return [];
-//   }
-
-//   const activityIds = courseActivities.map((activity) => activity.activity_id);
-
-//   const { data: activityData, error: activityError } = await supaClient
-//     .from("activity")
-//     .select("*")
-//     .in("activity_id", activityIds);
-//   if (activityError) {
-//     console.error("Error fetching activities:", activityError);
-//     return [];
-//   }
-
-//   // Filter activities for the next week
-//   return activityData.filter(activity => isWithinNextWeek(activity.activity_deadline));
-// }
-
-// // Create deadline box element
-// function createDeadlineBox(title, type, deadline) {
-//   const formattedDate = formatDate(deadline);
-
-//   const box = document.createElement("div");
-//   box.className = "box";
-
-//   box.innerHTML = `
-//     <div class="upper">${title}</div>
-//     <div class="lower">${type}</div>
-//     <div class="box__time-container">
-//       <p class="box__time">${formattedDate}</p>
-//       <img class="imgCard" src="src/images/icons8-clock-60.png" />
-//     </div>
-//   `;
-
-//   return box;
-// }
-
-// // Render all weekly deadlines
-// async function renderWeeklyDeadlines() {
-//   const deadlineContainer = document.querySelector(".deadlineBoxes");
-
-//   // Clear existing content
-//   deadlineContainer.innerHTML = "";
-
-//   try {
-//     // Show loading indicator
-//     deadlineContainer.innerHTML = '<div class="loading">Loading deadlines...</div>';
-
-//     // Get all deadlines
-//     const [quizzes, assignments, activities] = await Promise.all([
-//       getWeeklyQuizzes(),
-//       getWeeklyAssignments(),
-//       getWeeklyActivities()
-//     ]);
-//     console.log(quizzes);
-//     console.log(assignments);
-//     console.log(activities);
-//     // Clear loading indicator
-//     deadlineContainer.innerHTML = "";
-
-//     // Prepare deadline items with course names
-//     const deadlineItems = [];
-
-//     // Process quizzes
-//     for (const quiz of quizzes) {
-//       const courseName = await getCourseName(quiz.course_id);
-//       deadlineItems.push({
-//         title: courseName,
-//         type: "Quiz",
-//         deadline: quiz.quiz_deadline,
-//         date: new Date(quiz.quiz_deadline)
-//       });
-//     }
-
-//     // Process assignments
-//     for (const assignment of assignments) {
-//       const courseName = await getCourseName(assignment.course_id);
-//       deadlineItems.push({
-//         title: courseName,
-//         type: "Assignment",
-//         deadline: assignment.assignment_deadline,
-//         date: new Date(assignment.assignment_deadline)
-//       });
-//     }
-
-//     // Process activities
-//     for (const activity of activities) {
-//       deadlineItems.push({
-//         title: activity.activity_name,
-//         type: "Activity",
-//         deadline: activity.activity_deadline,
-//         date: new Date(activity.activity_deadline)
-//       });
-//     }
-
-//     // Sort by deadline date (ascending)
-//     deadlineItems.sort((a, b) => a.date - b.date);
-
-//     // Take only the first 4 items (or less if fewer exist)
-//     const itemsToShow = deadlineItems.slice(0, 4);
-
-//     // Display the deadline items
-
-//     if (itemsToShow.length > 0) {
-
-//       itemsToShow.forEach(item => {
-//         const box = createDeadlineBox(item.title, item.type, item.deadline);
-//         deadlineContainer.appendChild(box);
-//       });
-//     } else {
-//       deadlineContainer.innerHTML = '<div class="no-deadlines">No deadlines for the next week</div>';
-//     }
-
-//   } catch (error) {
-//     console.error("Error rendering deadlines:", error);
-//     deadlineContainer.innerHTML = '<div class="error">Failed to load deadlines</div>';
-//   }
-// }
-
-// // Initialize the page
-// function initializePage() {
-//   renderWeeklyDeadlines();
-
-//   // You can add other initialization code here
-// }
-
-// // Run when page loads
-// document.addEventListener('DOMContentLoaded', initializePage);
-
-// // Export function for use in other files
-// export { getInstructorInstitution };
-
-// import { supaClient } from "./app.js";
-// const studentId = sessionStorage.getItem("studentId");
-// const institutionId = JSON.parse(sessionStorage.getItem("institution_id"));
-
-// // Get instructors for the current institution
-// async function getInstructorInstitution() {
-//   const { data, error } = await supaClient
-//     .from("instructor_institution")
-//     .select("*")
-//     .eq("institution_id", institutionId);
-
-//   if (error) {
-//     console.error("Error fetching institution data:", error);
-//     return [];
-//   }
-
-//   const instructorsId = data.map((instructor) => instructor.instructor_id);
-//   console.log("Instructors at this institution:", instructorsId);
-//   return instructorsId;
-// }
-
-// // Get student's courses
-// async function getStudentCourses() {
-//   const instructorsId = await getInstructorInstitution();
-
-//   if (!instructorsId.length) {
-//     console.error("No instructors found for this institution");
-//     return [];
-//   }
-
-//   const { data, error } = await supaClient
-//     .from("enrollment")
-//     .select("*")
-//     .in("instructor_id", instructorsId)
-//     .eq("student_id", studentId);
-
-//   if (error) {
-//     console.error("Error fetching enrollment data:", error);
-//     return [];
-//   }
-
-//   console.log("Student courses:", data);
-//   return data;
-// }
-
-// // Get course name by ID
-// async function getCourseName(courseId) {
-//   const { data, error } = await supaClient
-//     .from("course")
-//     .select("course_name")
-//     .eq("course_id", courseId);
-
-//   if (error) {
-//     console.error("Error fetching course data:", error);
-//     return "Unknown Course";
-//   }
-
-//   return data && data.length > 0 ? data[0].course_name : "Unknown Course";
-// }
-
-// // Format date for display
-// function formatDate(dateString) {
-//   try {
-//     // Parse ISO 8601 date (e.g. "2025-05-08T12:00:00+00:00")
-//     const date = new Date(dateString);
-//     if (isNaN(date.getTime())) {
-//       console.warn("Invalid date:", dateString);
-//       return dateString; // Return original if invalid
-//     }
-
-//     // Format: "8 May Thu"
-//     const day = date.getDate();
-//     const month = date.toLocaleString('en-US', { month: 'short' });
-//     const weekday = date.toLocaleString('en-US', { weekday: 'short' });
-
-//     return `${day} ${month} ${weekday}`;
-//   } catch (e) {
-//     console.error("Date formatting error:", e);
-//     return dateString;
-//   }
-// }
-
-// // Check if a date is within the next 7 days
-// function isWithinNextWeek(dateString) {
-//   try {
-//     // Parse ISO 8601 date (e.g. "2025-05-08T12:00:00+00:00")
-//     const date = new Date(dateString);
-//     if (isNaN(date.getTime())) {
-//       console.warn("Invalid date for weekly check:", dateString);
-//       return false;
-//     }
-
-//     const today = new Date();
-//     today.setHours(0, 0, 0, 0);
-
-//     const nextWeek = new Date(today);
-//     nextWeek.setDate(today.getDate() + 7);
-//     nextWeek.setHours(23, 59, 59, 999);
-
-//     console.log(`Checking date: ${dateString}`);
-//     console.log(`Date parsed as: ${date}`);
-//     console.log(`Today: ${today}, Next week: ${nextWeek}`);
-//     console.log(`Is within week: ${date >= today && date <= nextWeek}`);
-
-//     return date >= today && date <= nextWeek;
-//   } catch (e) {
-//     console.error("Date check error:", e);
-//     return false;
-//   }
-// }
-
-// // Get weekly quizzes
-// async function getWeeklyQuizzes() {
-//   const studentCourses = await getStudentCourses();
-
-//   if (!studentCourses.length) {
-//     return [];
-//   }
-
-//   const coursesId = studentCourses.map((course) => course.course_id);
-
-//   const { data, error } = await supaClient
-//     .from("quiz")
-//     .select("*")
-//     .in("course_id", coursesId);
-
-//   if (error) {
-//     console.error("Error fetching quizzes:", error);
-//     return [];
-//   }
-
-//   console.log("Fetched quizzes:", data);
-
-//   // Filter quizzes for the next week
-//   const weeklyQuizzes = data.filter(quiz => isWithinNextWeek(quiz.quiz_dueDateTime));
-//   console.log("Weekly quizzes after filtering:", weeklyQuizzes);
-// //   console.log('data', data);
-
-//   return weeklyQuizzes;
-// }
-
-// // Get weekly assignments
-// async function getWeeklyAssignments() {
-//   const studentCourses = await getStudentCourses();
-
-//   if (!studentCourses.length) {
-//     return [];
-//   }
-
-//   const coursesId = studentCourses.map((course) => course.course_id);
-
-//   const { data, error } = await supaClient
-//     .from("assignment")
-//     .select("*")
-//     .in("course_id", coursesId);
-
-//   if (error) {
-//     console.error("Error fetching assignments:", error);
-//     return [];
-//   }
-
-//   console.log("Fetched assignments:", data);
-
-//   // Filter assignments for the next week
-//   const weeklyAssignments = data.filter(assignment => isWithinNextWeek(assignment.assign_duedate));
-//   console.log("Weekly assignments after filtering:", weeklyAssignments);
-
-//   return weeklyAssignments;
-// }
-
-// // Get weekly activities
-// async function getWeeklyActivities() {
-//   const studentCourses = await getStudentCourses();
-
-//   if (!studentCourses.length) {
-//     return [];
-//   }
-
-//   const coursesId = studentCourses.map((course) => course.course_id);
-
-//   const { data: courseActivities, error } = await supaClient
-//     .from("course_activity")
-//     .select("*")
-//     .in("course_id", coursesId);
-
-//   if (error) {
-//     console.error("Error fetching course activities:", error);
-//     return [];
-//   }
-
-//   if (!courseActivities.length) {
-//     return [];
-//   }
-
-//   console.log("Fetched course activities:", courseActivities);
-
-//   const activityIds = courseActivities.map((activity) => activity.activity_id);
-
-//   const { data: activityData, error: activityError } = await supaClient
-//     .from("activity")
-//     .select("*")
-//     .in("activity_id", activityIds);
-
-//   if (activityError) {
-//     console.error("Error fetching activities:", activityError);
-//     return [];
-//   }
-
-//   console.log("Fetched activities:", activityData);
-
-//   // Filter activities for the next week
-//   const weeklyActivities = activityData.filter(activity => isWithinNextWeek(activity.activity_duedate));
-//   console.log("Weekly activities after filtering:", weeklyActivities);
-
-//   return weeklyActivities;
-// }
-
-// // Create deadline box element
-// function createDeadlineBox(title, type, deadline) {
-//   const formattedDate = formatDate(deadline);
-
-//   const box = document.createElement("div");
-//   box.className = "box";
-
-//   box.innerHTML = `
-//     <div class="upper">${title}</div>
-//     <div class="lower">${type}</div>
-//     <div class="box__time-container">
-//       <p class="box__time">${formattedDate}</p>
-//       <img class="imgCard" src="src/images/icons8-clock-60.png" />
-//     </div>
-//   `;
-
-//   return box;
-// }
-
-// // Render all weekly deadlines
-// async function renderWeeklyDeadlines() {
-//   console.log("Starting to render weekly deadlines");
-//   const deadlineContainer = document.querySelector(".deadlineBoxes");
-
-//   if (!deadlineContainer) {
-//     console.error("Deadline container not found!");
-//     return;
-//   }
-
-//   // Clear existing content
-//   deadlineContainer.innerHTML = "";
-
-//   try {
-//     // Show loading indicator
-//     deadlineContainer.innerHTML = '<div class="loading">Loading deadlines...</div>';
-
-//     console.log("Fetching deadlines...");
-
-//     // Get all deadlines
-//     const quizzes = await getWeeklyQuizzes();
-//     const assignments = await getWeeklyAssignments();
-//     const activities = await getWeeklyActivities();
-
-//     console.log(`Found ${quizzes.length} quizzes, ${assignments.length} assignments, ${activities.length} activities`);
-
-//     // Clear loading indicator
-//     deadlineContainer.innerHTML = "";
-
-//     // Prepare deadline items with course names
-//     const deadlineItems = [];
-
-//     // Process quizzes
-//     for (const quiz of quizzes) {
-//       try {
-//         const courseName = await getCourseName(quiz.course_id);
-//         deadlineItems.push({
-//           title: courseName,
-//           type: "Quiz",
-//           deadline: quiz.quiz_dueDateTime,
-//           date: new Date(quiz.quiz_dueDateTime)
-//         });
-//       } catch (err) {
-//         console.error("Error processing quiz:", err);
-//       }
-//     }
-
-//     // Process assignments
-//     for (const assignment of assignments) {
-//       try {
-//         const courseName = await getCourseName(assignment.course_id);
-//         deadlineItems.push({
-//           title: courseName,
-//           type: "Assignment",
-//           deadline: assignment.assign_duedate,
-//           date: new Date(assignment.assign_duedate)
-//         });
-//       } catch (err) {
-//         console.error("Error processing assignment:", err);
-//       }
-//     }
-
-//     // Process activities
-//     for (const activity of activities) {
-//       try {
-//         deadlineItems.push({
-//           title: activity.activity_name,
-//           type: "Activity",
-//           deadline: activity.activity_duedate,
-//           date: new Date(activity.activity_duedate)
-//         });
-//       } catch (err) {
-//         console.error("Error processing activity:", err);
-//       }
-//     }
-
-//     console.log("All deadline items:", deadlineItems);
-
-//     // Sort by deadline date (ascending)
-//     deadlineItems.sort((a, b) => a.date - b.date);
-
-//     // Take only the first 4 items (or less if fewer exist)
-//     const itemsToShow = deadlineItems.slice(0, 4);
-
-//     console.log("Items to show:", itemsToShow);
-
-//     // Display the deadline items
-//     if (itemsToShow.length > 0) {
-//       itemsToShow.forEach(item => {
-//         const box = createDeadlineBox(item.title, item.type, item.deadline);
-//         deadlineContainer.appendChild(box);
-//       });
-//     } else {
-//       // If no deadlines, just create some sample boxes for testing
-//     //   console.log("No deadlines found, adding sample boxes for test display");
-
-//     //   const courseCodes = ["MOT", "ITI", "SAD", "Database"];
-//     //   const types = ["Assignment", "Assignment", "Presentation", "Assignment"];
-//     //   const dates = ["5 Oct Sun", "3 Nov Mon", "19 Oct Wed", "6 Oct Sat"];
-
-//     //   for (let i = 0; i < 4; i++) {
-//     //     const box = document.createElement("div");
-//     //     box.className = "box";
-
-//     //     box.innerHTML = `
-//     //       <div class="upper">${courseCodes[i]}</div>
-//     //       <div class="lower">${types[i]}</div>
-//     //       <div class="box__time-container">
-//     //         <p class="box__time">${dates[i]}</p>
-//     //         <img class="imgCard" src="src/images/icons8-clock-60.png" />
-//     //       </div>
-//     //     `;
-
-//     //     deadlineContainer.appendChild(box);
-//     //   }
-//     }
-
-//   } catch (error) {
-//     console.error("Error rendering deadlines:", error);
-//     deadlineContainer.innerHTML = '<div class="error">Failed to load deadlines</div>';
-//   }
-// }
-
-// // Initialize the page
-// function initializePage() {
-//   renderWeeklyDeadlines();
-
-//   // You can add other initialization code here
-// }
-
-// // Run when page loads
-// document.addEventListener('DOMContentLoaded', initializePage);
-
-// // Export function for use in other files
-// export { getInstructorInstitution };
-
-// import { supaClient } from "./app.js";
-// const studentId = sessionStorage.getItem("studentId");
-// const institutionId = JSON.parse(sessionStorage.getItem("institution_id"));
-
-// // Get instructors for the current institution
-// async function getInstructorInstitution() {
-//   const { data, error } = await supaClient
-//     .from("instructor_institution")
-//     .select("*")
-//     .eq("institution_id", institutionId);
-
-//   if (error) {
-//     console.error("Error fetching institution data:", error);
-//     return [];
-//   }
-
-//   const instructorsId = data.map((instructor) => instructor.instructor_id);
-//   console.log("Instructors at this institution:", instructorsId);
-//   return instructorsId;
-// }
-
-// // Get student's courses
-// async function getStudentCourses() {
-//   const instructorsId = await getInstructorInstitution();
-
-//   if (!instructorsId.length) {
-//     console.error("No instructors found for this institution");
-//     return [];
-//   }
-
-//   const { data, error } = await supaClient
-//     .from("enrollment")
-//     .select("*")
-//     .in("instructor_id", instructorsId)
-//     .eq("student_id", studentId);
-
-//   if (error) {
-//     console.error("Error fetching enrollment data:", error);
-//     return [];
-//   }
-
-//   console.log("Student courses:", data);
-//   return data;
-// }
-
-// // Get course name by ID
-// async function getCourseName(courseId) {
-//   const { data, error } = await supaClient
-//     .from("course")
-//     .select("course_name")
-//     .eq("course_id", courseId);
-
-//   if (error) {
-//     console.error("Error fetching course data:", error);
-//     return "Unknown Course";
-//   }
-
-//   return data && data.length > 0 ? data[0].course_name : "Unknown Course";
-// }
-
-// // Format date for display (UPDATED: now uses YYYY-MM-DD HH:MM format)
-// function formatDate(dateString) {
-//   try {
-//     // Parse ISO 8601 date (e.g. "2025-05-08T12:00:00+00:00")
-//     const date = new Date(dateString);
-//     if (isNaN(date.getTime())) {
-//       console.warn("Invalid date:", dateString);
-//       return dateString; // Return original if invalid
-//     }
-
-//     // Format: "2025-04-29 09:59"
-//     const year = date.getFullYear();
-//     const month = String(date.getMonth() + 1).padStart(2, '0');
-//     const day = String(date.getDate()).padStart(2, '0');
-//     const hours = String(date.getHours()).padStart(2, '0');
-//     const minutes = String(date.getMinutes()).padStart(2, '0');
-
-//     return `${year}-${month}-${day} ${hours}:${minutes}`;
-//   } catch (e) {
-//     console.error("Date formatting error:", e);
-//     return dateString;
-//   }
-// }
-
-// // Check if a date is within the next 7 days
-// function isWithinNextWeek(dateString) {
-//   try {
-//     // Parse ISO 8601 date (e.g. "2025-05-08T12:00:00+00:00")
-//     const date = new Date(dateString);
-//     if (isNaN(date.getTime())) {
-//       console.warn("Invalid date for weekly check:", dateString);
-//       return false;
-//     }
-
-//     const today = new Date();
-//     today.setHours(0, 0, 0, 0);
-
-//     const nextWeek = new Date(today);
-//     nextWeek.setDate(today.getDate() + 7);
-//     nextWeek.setHours(23, 59, 59, 999);
-
-//     console.log(`Checking date: ${dateString}`);
-//     console.log(`Date parsed as: ${date}`);
-//     console.log(`Today: ${today}, Next week: ${nextWeek}`);
-//     console.log(`Is within week: ${date >= today && date <= nextWeek}`);
-
-//     return date >= today && date <= nextWeek;
-//   } catch (e) {
-//     console.error("Date check error:", e);
-//     return false;
-//   }
-// }
-
-// // Get weekly quizzes
-// async function getWeeklyQuizzes() {
-//   const studentCourses = await getStudentCourses();
-
-//   if (!studentCourses.length) {
-//     return [];
-//   }
-
-//   const coursesId = studentCourses.map((course) => course.course_id);
-
-//   const { data, error } = await supaClient
-//     .from("quiz")
-//     .select("*")
-//     .in("course_id", coursesId);
-
-//   if (error) {
-//     console.error("Error fetching quizzes:", error);
-//     return [];
-//   }
-
-//   console.log("Fetched quizzes:", data);
-
-//   // Filter quizzes for the next week
-//   const weeklyQuizzes = data.filter(quiz => isWithinNextWeek(quiz.quiz_dueDateTime));
-//   console.log("Weekly quizzes after filtering:", weeklyQuizzes);
-
-//   return weeklyQuizzes;
-// }
-
-// // Get weekly assignments
-// async function getWeeklyAssignments() {
-//   const studentCourses = await getStudentCourses();
-
-//   if (!studentCourses.length) {
-//     return [];
-//   }
-
-//   const coursesId = studentCourses.map((course) => course.course_id);
-
-//   const { data, error } = await supaClient
-//     .from("assignment")
-//     .select("*")
-//     .in("course_id", coursesId);
-
-//   if (error) {
-//     console.error("Error fetching assignments:", error);
-//     return [];
-//   }
-
-//   console.log("Fetched assignments:", data);
-
-//   // Filter assignments for the next week
-//   const weeklyAssignments = data.filter(assignment => isWithinNextWeek(assignment.assign_duedate));
-//   console.log("Weekly assignments after filtering:", weeklyAssignments);
-
-//   return weeklyAssignments;
-// }
-
-// // Get weekly activities
-// async function getWeeklyActivities() {
-//   const studentCourses = await getStudentCourses();
-
-//   if (!studentCourses.length) {
-//     return [];
-//   }
-//   let courseName = [];
-//   const coursesId = studentCourses.map((course) => course.course_id);
-//   for (let i = 0; i < coursesId.length; i++) {
-//     courseName.push(await getCourseName(coursesId[i]));
-//   }
-//   console.log("Courses name:", courseName);
-
-//   console.log("Course name:", courseName);
-//   const { data: courseActivities, error } = await supaClient
-//     .from("course_activity")
-//     .select("*")
-//     .in("course_id", coursesId);
-//   console.log("Fetched course activities:", courseActivities);
-//   if (error) {
-//     console.error("Error fetching course activities:", error);
-//     return [];
-//   }
-
-//   if (!courseActivities.length) {
-//     return [];
-//   }
-
-//   console.log("Fetched course activities:", courseActivities);
-
-//   const activityIds = courseActivities.map((activity) => activity.activity_id);
-
-//   const { data: activityData, error: activityError } = await supaClient
-//     .from("activity")
-//     .select("*")
-//     .in("activity_id", activityIds);
-
-//   if (activityError) {
-//     console.error("Error fetching activities:", activityError);
-//     return [];
-//   }
-
-//   console.log("Fetched activities:", activityData);
-
-//   // Filter activities for the next week
-//   const weeklyActivities = activityData.filter(activity => isWithinNextWeek(activity.activity_duedate));
-//   console.log("Weekly activities after filtering:", weeklyActivities);
-
-//   return {...weeklyActivities,courseName};
-// }
-
-// // Create deadline box element
-// function createDeadlineBox(title, type, deadline) {
-//   const formattedDate = formatDate(deadline);
-
-//   const box = document.createElement("div");
-//   box.className = "box";
-
-//   box.innerHTML = `
-//     <div class="upper">${title}</div>
-//     <div class="lower">${type}</div>
-//     <div class="box__time-container">
-//       <p class="box__time">${formattedDate}</p>
-//       <img class="imgCard" src="src/images/icons8-clock-60.png" />
-//     </div>
-//   `;
-
-//   return box;
-// }
-
-// // Render all weekly deadlines
-// async function renderWeeklyDeadlines() {
-//   console.log("Starting to render weekly deadlines");
-//   const deadlineContainer = document.querySelector(".deadlineBoxes");
-
-//   if (!deadlineContainer) {
-//     console.error("Deadline container not found!");
-//     return;
-//   }
-
-//   // Clear existing content
-//   deadlineContainer.innerHTML = "";
-
-//   try {
-//     // Show loading indicator
-//     deadlineContainer.innerHTML = '<div class="loading">Loading deadlines...</div>';
-
-//     console.log("Fetching deadlines...");
-
-//     // Get all deadlines
-//     const quizzes = await getWeeklyQuizzes();
-//     const assignments = await getWeeklyAssignments();
-//     const activitiesData = await getWeeklyActivities();
-
-//     console.log(`Found ${quizzes.length} quizzes, ${assignments.length} assignments, ${activitiesData.length} activities`);
-
-//     // Clear loading indicator
-//     deadlineContainer.innerHTML = "";
-
-//     // Prepare deadline items with course names
-//     const deadlineItems = [];
-
-//     // Process quizzes
-//     for (const quiz of quizzes) {
-//       try {
-//         const courseName = await getCourseName(quiz.course_id);
-//         deadlineItems.push({
-//           title: courseName,
-//           type: "Quiz",
-//           deadline: quiz.quiz_dueDateTime,
-//           date: new Date(quiz.quiz_dueDateTime)
-//         });
-//       } catch (err) {
-//         console.error("Error processing quiz:", err);
-//       }
-//     }
-
-//     // Process assignments
-//     for (const assignment of assignments) {
-//       try {
-//         const courseName = await getCourseName(assignment.course_id);
-//         deadlineItems.push({
-//           title: courseName,
-//           type: "Assignment",
-//           deadline: assignment.assign_duedate,
-//           date: new Date(assignment.assign_duedate)
-//         });
-//       } catch (err) {
-//         console.error("Error processing assignment:", err);
-//       }
-//     }
-
-//     // Process activities
-//     for (const activity of activities) {
-//         console.log(activity);
-
-//       try {
-//         deadlineItems.push({
-//           title: activity.activity_name,
-//           type: "Activity",
-//           deadline: activity.activity_duedate,
-//           date: new Date(activity.activity_duedate)
-//         });
-//       } catch (err) {
-//         console.error("Error processing activity:", err);
-//       }
-//     }
-
-//     console.log("All deadline items:", deadlineItems);
-
-//     // Sort by deadline date (ascending)
-//     deadlineItems.sort((a, b) => a.date - b.date);
-
-//     // Take only the first 4 items (or less if fewer exist)
-//     const itemsToShow = deadlineItems.slice(0, 6);
-
-//     console.log("Items to show:", itemsToShow);
-
-//     // Display the deadline items
-//     if (itemsToShow.length > 0) {
-//       itemsToShow.forEach(item => {
-//         const box = createDeadlineBox(item.title, item.type, item.deadline);
-//         deadlineContainer.appendChild(box);
-//       });
-//     } else {
-//       deadlineContainer.innerHTML = '<div class="no-deadlines">No deadlines for the next week</div>';
-//     }
-
-//   } catch (error) {
-//     console.error("Error rendering deadlines:", error);
-//     deadlineContainer.innerHTML = '<div class="error">Failed to load deadlines</div>';
-//   }
-// }
-
-// // Initialize the page
-// function initializePage() {
-//   renderWeeklyDeadlines();
-
-//   // You can add other initialization code here
-// }
-
-// // Run when page loads
-// document.addEventListener('DOMContentLoaded', initializePage);
-
-// // Export function for use in other files
-// export { getInstructorInstitution };
 import { supaClient } from "./app.js";
 const studentId = sessionStorage.getItem("studentId");
 
@@ -1273,12 +21,10 @@ async function getInstructorInstitution() {
 // Get student's courses
 async function getStudentCourses() {
   const instructorsId = await getInstructorInstitution();
-
   if (!instructorsId.length) {
     console.error("No instructors found for this institution");
     return [];
   }
-
   const { data, error } = await supaClient
     .from("enrollment")
     .select("*")
@@ -1418,7 +164,329 @@ function isSessionToday(session) {
     return true;
   }
 }
+// async function getSemesterProgress() {
+//   const semesterProgress = document.querySelector(".semester-progress-fill");
+//   const semesterProgressPercentage = document.querySelector(".semester-progress-percentage");
+//   const semesterProgressDate = document.querySelector(".semester-progress-date");
+//   try {
+//     // Fetch student courses
+//     const courses = await getStudentCourses();
+//     const coursesId = courses.map((course) => course.course_id);
+    
+//     // Fetch sessions sorted by time
+//     const { data, error } = await supaClient
+//       .from("session")
+//       .select("*")
+//       .in("course_id", coursesId)
+//       .order("session_time");
+//       console.log(data);
+      
+//     if (error) {
+//       console.error("Error fetching session data:", error);
+//       return;
+//     }
+    
+//     if (data && data.length > 0) {
+//       // Parse dates properly to ensure correct calculations
+//       const startDate = new Date(data[0].session_time);
+//       const endDate = new Date(data[data.length - 1].session_time);
+//       const currentDate = new Date();
+      
+//       // Calculate discrete weeks by finding the difference in week numbers
+//       // Helper function to get week number of year for a date
+//       const getWeekNumber = (date) => {
+//         // Create a copy of the date to avoid modifying the original
+//         const dateCopy = new Date(date);
+//         // Set to nearest Thursday: current date + 4 - current day number
+//         // Make Sunday's day number 7
+//         const dayNum = dateCopy.getUTCDay() || 7;
+//         dateCopy.setUTCDate(dateCopy.getUTCDate() + 4 - dayNum);
+//         // Get first day of year
+//         const yearStart = new Date(Date.UTC(dateCopy.getUTCFullYear(), 0, 1));
+//         // Calculate full weeks to nearest Thursday
+//         const weekNumber = Math.ceil((((dateCopy - yearStart) / 86400000) + 1) / 7);
+        
+//         // Return array of year and week number
+//         return [dateCopy.getUTCFullYear(), weekNumber];
+//       };
+      
+//       // Calculate total weeks between start and end date
+//       const startWeekInfo = getWeekNumber(startDate);
+//       const endWeekInfo = getWeekNumber(endDate);
+//       const currentWeekInfo = getWeekNumber(currentDate);
+      
+//       // Calculate total number of weeks in semester
+//       // Account for year changes in semester span
+//       let totalWeeks = 0;
+//       if (startWeekInfo[0] === endWeekInfo[0]) {
+//         // Same year
+//         totalWeeks = endWeekInfo[1] - startWeekInfo[1] + 1; // +1 to include current week
+//       } else {
+//         // Different years
+//         // Get weeks in start year (from start week to end of year)
+//         const weeksInStartYear = 52 - startWeekInfo[1] + 1;
+//         // Add weeks in end year (from week 1 to end week)
+//         totalWeeks = weeksInStartYear + endWeekInfo[1];
+//       }
+      
+//       // Calculate elapsed weeks
+//       let elapsedWeeks = 0;
+//       if (startWeekInfo[0] === currentWeekInfo[0]) {
+//         // Same year
+//         elapsedWeeks = currentWeekInfo[1] - startWeekInfo[1] + 1; // +1 to include current week
+//       } else {
+//         // Different years
+//         // Get weeks in start year (from start week to end of year)
+//         const weeksInStartYear = 52 - startWeekInfo[1] + 1;
+//         // Add weeks in current year (from week 1 to current week)
+//         elapsedWeeks = weeksInStartYear + currentWeekInfo[1];
+//       }
+      
+//       // Ensure elapsedWeeks isn't greater than totalWeeks
+//       elapsedWeeks = Math.min(elapsedWeeks, totalWeeks);
+      
+//       // Handle edge case where elapsed weeks is negative
+//       if (elapsedWeeks < 0) {
+//         elapsedWeeks = 0;
+//       }
+      
+//       // Calculate progress percentage
+//       const progressPercentage = (elapsedWeeks / totalWeeks) * 100;
+//       // Round to nearest whole number for display
+//       const roundedPercentage = Math.round(progressPercentage);
+      
+//       // Update UI elements
+//       semesterProgress.style.width = `${roundedPercentage}%`;
+//       semesterProgressPercentage.textContent = `${roundedPercentage}%`;
+//       semesterProgressDate.textContent = `${elapsedWeeks}/${totalWeeks} weeks`;
+//       // // For debugging - show weeks calculation
+//       // console.log(`Start week: ${startWeekInfo[1]} (${startWeekInfo[0]})`);
+//       // console.log(`Current week: ${currentWeekInfo[1]} (${currentWeekInfo[0]})`);
+//       // console.log(`End week: ${endWeekInfo[1]} (${endWeekInfo[0]})`);
+//       // console.log(`Total semester weeks: ${totalWeeks} weeks`);
+//       // console.log(`Weeks elapsed: ${elapsedWeeks} weeks`);
+//       // console.log(`Progress: ${roundedPercentage}%`);
+//     } else {
+//       console.warn("No session data found");
+//       // Set default values if no data
+//       semesterProgress.style.width = "0%";
+//       semesterProgressPercentage.textContent = "0%";
+//     }
+//   } catch (err) {
+//     console.error("Error in getStudentFirstSession:", err);
+//     // Set default values on error
+//     semesterProgress.style.width = "0%";
+//     semesterProgressPercentage.textContent = "Error";
+//   }
+// }
 
+// // Execute the function
+// getSemesterProgress();
+async function getSemesterProgress() {
+  const semesterProgress = document.querySelector(".semester-progress-fill");
+  const semesterProgressPercentage = document.querySelector(".semester-progress-percentage");
+  const semesterProgressDate = document.querySelector(".semester-progress-date");
+  try {
+    // Fetch student courses
+    const courses = await getStudentCourses();
+    const coursesId = courses.map((course) => course.course_id);
+    
+    // Fetch sessions sorted by time
+    const { data, error } = await supaClient
+      .from("session")
+      .select("*")
+      .in("course_id", coursesId)
+      .order("session_time");
+    
+    if (error) {
+      console.error("Error fetching session data:", error);
+      return;
+    }
+    
+    if (data && data.length > 0) {
+      console.log("All sessions:", data);
+      
+      // Parse dates properly to ensure correct calculations
+      const allSessions = data.map(session => {
+        return {
+          ...session,
+          date: new Date(session.session_time)
+        };
+      });
+      
+      // Sort sessions by date
+      allSessions.sort((a, b) => a.date - b.date);
+      
+      // Divide sessions into first and second semester
+      const firstSessionDate = allSessions[0].date;
+      const lastSessionDate = allSessions[allSessions.length - 1].date;
+      
+      // Calculate the midpoint between first and last session
+      const totalMilliseconds = lastSessionDate - firstSessionDate;
+      const midpointDate = new Date(firstSessionDate.getTime() + totalMilliseconds / 2);
+      
+      console.log("First session date:", firstSessionDate);
+      console.log("Last session date:", lastSessionDate);
+      console.log("Midpoint date:", midpointDate);
+      
+      // Split sessions into first and second semester
+      const firstSemesterSessions = allSessions.filter(session => session.date < midpointDate);
+      const secondSemesterSessions = allSessions.filter(session => session.date >= midpointDate);
+        console.log("firstSemesterSessions",firstSemesterSessions);
+        console.log("secondSemesterSessions",secondSemesterSessions);
+        
+      console.log("First semester sessions:", firstSemesterSessions.length);
+      console.log("Second semester sessions:", secondSemesterSessions.length);
+      
+      // Determine current semester
+      const currentDate = new Date();
+      let currentSemesterSessions;
+      let semesterName;
+      console.log(currentDate);
+      console.log(midpointDate);
+      
+      if (currentDate < midpointDate) {
+        currentSemesterSessions = firstSemesterSessions;
+        semesterName = "First Semester";
+      } else {
+        currentSemesterSessions = secondSemesterSessions;
+        semesterName = "Second Semester";
+      }
+      
+      if (currentSemesterSessions.length === 0) {
+        console.warn("No sessions found for the current semester");
+        semesterProgress.style.width = "0%";
+        semesterProgressPercentage.textContent = "0%";
+        semesterProgressDate.textContent = `${semesterName}: 0/0 weeks`;
+        return;
+      }
+      
+      // Calculate progress for the current semester
+      const semesterStartDate = currentSemesterSessions[0].date;
+      const semesterEndDate = currentSemesterSessions[currentSemesterSessions.length - 1].date;
+      
+      // Helper function to get week number of year for a date
+      const getWeekNumber = (date) => {
+        // Create a copy of the date to avoid modifying the original
+        const dateCopy = new Date(date);
+        // Set to nearest Thursday: current date + 4 - current day number
+        // Make Sunday's day number 7
+        const dayNum = dateCopy.getUTCDay() || 7;
+        dateCopy.setUTCDate(dateCopy.getUTCDate() + 4 - dayNum);
+        // Get first day of year
+        const yearStart = new Date(Date.UTC(dateCopy.getUTCFullYear(), 0, 1));
+        // Calculate full weeks to nearest Thursday
+        const weekNumber = Math.ceil((((dateCopy - yearStart) / 86400000) + 1) / 7);
+        
+        // Return array of year and week number
+        return [dateCopy.getUTCFullYear(), weekNumber];
+      };
+      
+      // Calculate weeks for current semester
+      const startWeekInfo = getWeekNumber(semesterStartDate);
+      const endWeekInfo = getWeekNumber(semesterEndDate);
+      const currentWeekInfo = getWeekNumber(currentDate);
+      
+      // Calculate total number of weeks in semester
+      let totalWeeks = 0;
+      if (startWeekInfo[0] === endWeekInfo[0]) {
+        // Same year
+        totalWeeks = endWeekInfo[1] - startWeekInfo[1] + 1;
+      } else {
+        // Different years
+        const weeksInStartYear = 52 - startWeekInfo[1] + 1;
+        totalWeeks = weeksInStartYear + endWeekInfo[1];
+      }
+      
+      // Calculate elapsed weeks
+      let elapsedWeeks = 0;
+      if (startWeekInfo[0] === currentWeekInfo[0]) {
+        // Same year
+        elapsedWeeks = currentWeekInfo[1] - startWeekInfo[1] + 1;
+      } else {
+        // Different years
+        const weeksInStartYear = 52 - startWeekInfo[1] + 1;
+        elapsedWeeks = weeksInStartYear + currentWeekInfo[1];
+      }
+      
+      // Ensure elapsedWeeks isn't greater than totalWeeks
+      elapsedWeeks = Math.min(elapsedWeeks, totalWeeks);
+      
+      // Handle edge case where elapsed weeks is negative (current date before semester start)
+      if (elapsedWeeks < 0) {
+        elapsedWeeks = 0;
+      }
+      
+      // Calculate progress percentage
+      const progressPercentage = (elapsedWeeks / totalWeeks) * 100;
+      // Round to nearest whole number for display
+      const roundedPercentage = Math.round(progressPercentage);
+      
+      // Update UI elements
+      semesterProgress.style.width = `${roundedPercentage}%`;
+      semesterProgressPercentage.textContent = `${roundedPercentage}%`;
+      semesterProgressDate.textContent = `${semesterName}: ${elapsedWeeks}/${totalWeeks} weeks`;
+      
+      // For debugging - show weeks calculation
+      console.log(`Semester: ${semesterName}`);
+      console.log(`Start week: ${startWeekInfo[1]} (${startWeekInfo[0]})`);
+      console.log(`Current week: ${currentWeekInfo[1]} (${currentWeekInfo[0]})`);
+      console.log(`End week: ${endWeekInfo[1]} (${endWeekInfo[0]})`);
+      console.log(`Total semester weeks: ${totalWeeks} weeks`);
+      console.log(`Weeks elapsed: ${elapsedWeeks} weeks`);
+      console.log(`Progress: ${roundedPercentage}%`);
+    } else {
+      console.warn("No session data found");
+      // Set default values if no data
+      semesterProgress.style.width = "0%";
+      semesterProgressPercentage.textContent = "0%";
+      semesterProgressDate.textContent = "No semester data";
+    }
+  } catch (err) {
+    console.error("Error in getSemesterProgress:", err);
+    // Set default values on error
+    semesterProgress.style.width = "0%";
+    semesterProgressPercentage.textContent = "Error";
+    semesterProgressDate.textContent = "Error calculating progress";
+  }
+}
+
+// Execute the function
+getSemesterProgress();
+async function getTodayProgress() {
+  const todaySessions = await getStudentSessionWithCourseNames();
+  // Get current date and time
+  const now = new Date();
+  if (todaySessions.length === 0) {
+    updateProgressUI(0, "No sessions scheduled for today");
+    return;
+  }
+  
+  // Count completed sessions (sessions whose time has passed)
+  const completedSessions = todaySessions.filter(session => {
+    const sessionTime = new Date(session.session_time);
+    return sessionTime < now;
+  });
+  
+  // Calculate progress percentage
+  const progressPercentage = Math.round((completedSessions.length / todaySessions.length) * 100);
+  
+  // Update the UI with the progress
+  updateProgressUI(progressPercentage, `${completedSessions.length}/${todaySessions.length} completed`);
+}
+
+// Helper function to update the progress UI
+function updateProgressUI(percentage, text) {
+  const progressFill = document.querySelector('.today-progress-fill');
+  const progressPercentage = document.querySelector('.today-progress-percentage');
+  const progressText = document.querySelector('.today-progress-text');
+  if (progressFill && progressPercentage) {
+    progressFill.style.width = `${percentage}%`;
+    progressPercentage.textContent = `${percentage}%`;
+    progressText.textContent = text;
+  }
+}
+getTodayProgress();
 // Updated function to get sessions with course names (only today's sessions)
 async function getStudentSessionWithCourseNames() {
   const studentCourses = await getStudentCourses();
@@ -1496,182 +564,7 @@ async function renderStudentSession() {
 
 // Call the updated function
 renderStudentSession();
-// Format time to display as "At 8:00 AM"
-// function formatSessionTime(timeString) {
-//     try {
-//       // Check if it's a full ISO datetime or just a time
-//       let time;
-//       if (timeString.includes('T')) {
-//         // It's a full datetime
-//         time = new Date(timeString);
-//       } else {
-//         // It might be just a time like "14:30:00"
-//         const [hours, minutes] = timeString.split(':').map(num => parseInt(num));
-//         time = new Date();
-//         time.setHours(hours, minutes, 0);
-//       }
 
-//       if (isNaN(time.getTime())) {
-//         console.warn("Invalid time:", timeString);
-//         return timeString; // Return original if invalid
-//       }
-
-//       // Format as "8:00 AM"
-//       return time.toLocaleTimeString('en-US', {
-//         hour: 'numeric',
-//         minute: '2-digit',
-//         hour12: true
-//       });
-//     } catch (e) {
-//       console.error("Time formatting error:", e);
-//       return timeString;
-//     }
-//   }
-
-//   // Check if a session is scheduled for today
-//   function isSessionToday(sessionDate) {
-//     // If no date information, assume it's not for today
-//     if (!sessionDate) return false;
-
-//     try {
-//       const today = new Date();
-//       const sessionDay = new Date(sessionDate);
-
-//       // Compare year, month, and day
-//       return (
-//         today.getFullYear() === sessionDay.getFullYear() &&
-//         today.getMonth() === sessionDay.getMonth() &&
-//         today.getDate() === sessionDay.getDate()
-//       );
-//     } catch (e) {
-//       console.error("Error checking if session is today:", e);
-//       return false;
-//     }
-//   }
-
-//   // Updated function to get sessions with course names (only today's sessions)
-//   async function getStudentSessionWithCourseNames() {
-//     const studentCourses = await getStudentCourses();
-//     const coursesId = studentCourses.map((course) => course.course_id);
-
-//     // Create a map of course_id to course_name for quick lookup
-//     const courseNameMap = {};
-//     for (const courseId of coursesId) {
-//       courseNameMap[courseId] = await getCourseName(courseId);
-//     }
-
-//     const { data, error } = await supaClient
-//       .from("session")
-//       .select("*")
-//       .in("course_id", coursesId);
-
-//     if (error) {
-//       console.error("Error fetching session data:", error);
-//       return [];
-//     }
-//     console.log(data);
-//     // Filter for today's sessions only
-//     const todaySessions = data.filter(session => {
-//       // Check if session_date exists and is today
-//       if (session.session_date) {
-//         return isSessionToday(session.session_date);
-//       }
-
-//       // If session has a datetime field instead of separate date/time
-//       if (session.session_datetime) {
-//         return isSessionToday(session.session_datetime);
-//       }
-
-//       // If there's some other date field, add it here
-//       // For example: if (session.another_date_field) return isSessionToday(session.another_date_field);
-
-//       return false; // No date info, can't determine if it's today
-//     });
-
-//     console.log(`Filtered ${data.length} sessions to ${todaySessions.length} today's sessions`);
-
-//     // Map sessions to include their corresponding course name
-//     const sessionsWithCourseNames = todaySessions.map(session => {
-//       return {
-//         ...session,
-//         course_name: courseNameMap[session.course_id] || "Unknown Course"
-//       };
-//     });
-
-//     return sessionsWithCourseNames;
-//   }
-
-//   // Updated render function
-//   async function renderStudentSession() {
-//     const scheduleGrid = document.querySelector(".schedule-grid");
-//     if (!scheduleGrid) {
-//       console.error("Schedule grid element not found!");
-//       return;
-//     }
-
-//     // Show loading indicator
-//     scheduleGrid.innerHTML = '<div class="loading">Loading today\'s sessions...</div>';
-
-//     try {
-//       const sessions = await getStudentSessionWithCourseNames();
-//       console.log("Today's sessions with course names:", sessions);
-
-//       if (sessions.length === 0) {
-//         scheduleGrid.innerHTML = '<div class="no-sessions">No sessions scheduled for today</div>';
-//         return;
-//       }
-
-//       let markup = "";
-//       sessions.forEach((session) => {
-//         console.log(session);
-
-//         const formattedTime = formatSessionTime(session.session_time);
-//         markup += `
-//           <div class="schedule-item">
-//             <p>${session.session_name} - ${session.course_name}</p>
-//             <span>At ${formattedTime}</span>
-//           </div>
-//         `;
-//       });
-
-//       scheduleGrid.innerHTML = markup;
-//     } catch (error) {
-//       console.error("Error rendering today's sessions:", error);
-//       scheduleGrid.innerHTML = '<div class="error">Failed to load today\'s sessions</div>';
-//     }
-//   }
-
-//   // Call the updated function
-//   renderStudentSession();
-/////////////////////////////////////////////////////////
-// getStudentCourses();
-// async function getStudentSession(){
-//     const studentCourses = await getStudentCourses();
-//     const coursesId = studentCourses.map((course) => course.course_id);
-//     const { data, error } = await supaClient
-//     .from("session")
-//     .select("*")
-//     .in("course_id", coursesId);
-//     console.log(data);
-//     return data;
-// }
-// async function renderStudentSession() {
-//     const scheduleGrid = document.querySelector(".schedule-grid");
-//   const sessions = await getStudentSession();
-//   console.log(sessions);
-
-//   let markup = "";
-//   sessions.forEach((session) => {
-//     markup += `
-//    <div class="schedule-item">
-//                 <p>${session.session_name}</p>
-//                 <span>At ${session.session_time}</span>
-//             </div>
-//     `;
-//   });
-//   scheduleGrid.innerHTML = markup;
-// }
-// // renderStudentSession();
 // Get course name by ID
 async function getCourseName(courseId) {
   const { data, error } = await supaClient
@@ -1710,43 +603,46 @@ function formatDate(dateString) {
     return dateString;
   }
 }
-
-// Check if a date is within the next 7 days
 function isWithinNextWeek(dateString) {
   try {
-    if(!dateString){
-        return ;
+    if (!dateString) {
+      console.warn("Empty date string provided");
+      return false;
     }
-    // Parse ISO 8601 date (e.g. "2025-05-08T12:00:00+00:00")
+    
+    // Parse the date string
     const date = new Date(dateString);
+    
     if (isNaN(date.getTime())) {
       console.warn("Invalid date for weekly check:", dateString);
       return false;
     }
 
+    // Get today at 00:00:00
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // Get next week at 23:59:59
     const nextWeek = new Date(today);
     nextWeek.setDate(today.getDate() + 7);
     nextWeek.setHours(23, 59, 59, 999);
-
+    
     return date >= today && date <= nextWeek;
   } catch (e) {
-    console.error("Date check error:", e);
+    console.error("Date check error:", e, "for date:", dateString);
     return false;
   }
 }
-
-// Get weekly quizzes
 async function getWeeklyQuizzes() {
   const studentCourses = await getStudentCourses();
 
   if (!studentCourses.length) {
+    console.log("No student courses found");
     return [];
   }
 
   const coursesId = studentCourses.map((course) => course.course_id);
+  console.log("Course IDs for quiz fetching:", coursesId);
 
   const { data, error } = await supaClient
     .from("quiz")
@@ -1757,10 +653,21 @@ async function getWeeklyQuizzes() {
     console.error("Error fetching quizzes:", error);
     return [];
   }
-  // Filter quizzes for the next week
-  const weeklyQuizzes = data.filter((quiz) =>
-    isWithinNextWeek(quiz.quiz_dueDateTime)
-  );
+  ;
+  
+  // Filter quizzes for the next week - improved date handling
+  const weeklyQuizzes = data.filter((quiz) => {
+    // Make sure we're using the correct field
+    const dueDate = quiz.quiz_dueDateTime || quiz.quiz_duedatetime;
+    
+    if (!dueDate) {
+      console.warn("Quiz missing due date:", quiz);
+      return false;
+    }
+    
+    const isInNextWeek = isWithinNextWeek(dueDate);
+    return isInNextWeek;
+  });
 
   return weeklyQuizzes;
 }
@@ -1865,10 +772,10 @@ function createDeadlineBox(title, type, deadline) {
   box.className = "box";
 
   box.innerHTML = `
-    <div class="upper">${title}</div>
+    <div class="upper" ${title.length > 10 ? 'style="font-size: 1.5rem;"' : ''}>${title}</div>
     <div class="lower">${type}</div>
     <div class="box__time-container">
-      <p class="box__time">${formattedDate}</p>
+      <p class="box__time">${formatDateShort(formattedDate)}</p>
       <img class="imgCard" src="src/images/icons8-clock-60.png" />
     </div>
   `;
@@ -1876,7 +783,6 @@ function createDeadlineBox(title, type, deadline) {
   return box;
 }
 
-// Render all weekly deadlines
 async function renderWeeklyDeadlines() {
   console.log("Starting to render weekly deadlines");
   const deadlineContainer = document.querySelector(".deadlineBoxes");
@@ -1891,14 +797,12 @@ async function renderWeeklyDeadlines() {
 
   try {
     // Show loading indicator
-    deadlineContainer.innerHTML =
-      '<div class="loading-spinner"></div>';
+    deadlineContainer.innerHTML = '<div class="loading-spinner"></div>';
 
     // Get all deadlines
     const quizzes = await getWeeklyQuizzes();
     const assignments = await getWeeklyAssignments();
     const activities = await getWeeklyActivities();
-
 
     // Clear loading indicator
     deadlineContainer.innerHTML = "";
@@ -1906,18 +810,27 @@ async function renderWeeklyDeadlines() {
     // Prepare deadline items with course names
     const deadlineItems = [];
 
-    // Process quizzes
+    // Process quizzes with improved field access
     for (const quiz of quizzes) {
       try {
         const courseName = await getCourseName(quiz.course_id);
+        
+        // Handle potential field name variations (quiz_dueDateTime vs quiz_duedatetime)
+        const quizDueDate = quiz.quiz_dueDateTime || quiz.quiz_duedatetime;
+        
+        if (!quizDueDate) {
+          console.warn(`Quiz ${quiz.quiz_id} has no due date, skipping`);
+          continue;
+        }
+        
         deadlineItems.push({
           title: courseName,
-          type: "Quiz",
-          deadline: quiz.quiz_dueDateTime,
-          date: new Date(quiz.quiz_dueDateTime),
+          type: "Quiz: " + quiz.quiz_title,
+          deadline: quizDueDate,
+          date: new Date(quizDueDate),
         });
       } catch (err) {
-        console.error("Error processing quiz:", err);
+        console.error("Error processing quiz:", err, "Quiz data:", quiz);
       }
     }
 
@@ -1936,11 +849,11 @@ async function renderWeeklyDeadlines() {
       }
     }
 
-    // Process activities - now using the course_name we added to each activity
+    // Process activities
     for (const activity of activities) {
       try {
         deadlineItems.push({
-          title: activity.course_name, // Using course name instead of activity name
+          title: activity.course_name,
           type: "Activity",
           deadline: activity.activity_duedate,
           date: new Date(activity.activity_duedate),
@@ -1949,15 +862,17 @@ async function renderWeeklyDeadlines() {
         console.error("Error processing activity:", err);
       }
     }
+
     // Sort by deadline date (ascending)
     deadlineItems.sort((a, b) => a.date - b.date);
 
-    // Take only the first 6 items (or less if fewer exist)
-    const itemsToShow = deadlineItems.slice(0, 5);
-    // const itemsToShow = deadlineItems;
-
-    console.log("Items to show:", itemsToShow);
-
+    // Take only the first 5 items (or less if fewer exist)
+    // const itemsToShow = deadlineItems.slice(0, 5);
+    const itemsToShow = deadlineItems;
+    ///////// hide buttons if itemsToShow.length < 5
+    if(itemsToShow.length < 5){
+      document.querySelector(".nav-buttons").style.display = "none";
+    }
     // Display the deadline items
     if (itemsToShow.length > 0) {
       itemsToShow.forEach((item) => {
@@ -1974,7 +889,6 @@ async function renderWeeklyDeadlines() {
       '<div class="error">Failed to load deadlines</div>';
   }
 }
-
 // Initialize the page
 function initializePage() {
   renderWeeklyDeadlines();
@@ -1987,3 +901,81 @@ document.addEventListener("DOMContentLoaded", initializePage);
 
 // Export function for use in other files
 export { getInstructorInstitution };
+async function getStudentActivityCount() {
+const {data,error} = await supaClient.from("student_activity").select("*").eq("student_id",studentId);
+
+if(error){
+    console.error(error);
+    return;
+}
+if(data){
+const totalActivities = data.length;
+const sumbittedActivities = data.filter((activity) => activity.activity_path !== null);
+
+return{
+  totalActivities,
+  sumbittedActivities
+}
+}
+
+}getStudentActivityCount();
+async function getStudentAssignmentCount() {
+const {data,error} = await supaClient.from("student_assignment").select("*").eq("student_id",studentId);
+
+if(error){
+    console.error(error);
+    return;
+}
+if(data){
+const totalAssignments = data.length;
+const sumbittedAssignments = data.filter((assignment) => assignment.assign_path !== null).length;
+
+return{
+  totalAssignments,
+  sumbittedAssignments
+}
+}
+
+}getStudentAssignmentCount();
+// New function to format date as "5 Nov Sun"
+function formatDateShort(dateString) {
+  try {
+    // Parse the date string
+    const date = new Date(dateString);
+    
+    if (isNaN(date.getTime())) {
+      console.warn("Invalid date for short formatting:", dateString);
+      return dateString; // Return original if invalid
+    }
+    
+    // Get day number (1-31)
+    const day = date.getDate();
+    
+    // Get month short name (Jan, Feb, etc.)
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[date.getMonth()];
+    
+    // Get weekday short name (Sun, Mon, etc.)
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const weekday = weekdays[date.getDay()];
+    
+    // Format: "5 Nov Sun"
+    return `${day} ${month} ${weekday}`;
+  } catch (e) {
+    console.error("Date short formatting error:", e);
+    return dateString;
+  }
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const deadlineBoxes = document.querySelector('.deadlineBoxes');
+  const prevButton = document.getElementById('prev');
+  const nextButton = document.getElementById('next');
+  
+  nextButton.addEventListener('click', function() {
+      deadlineBoxes.scrollBy({ left: 350, behavior: 'smooth' });
+  });
+  
+  prevButton.addEventListener('click', function() {
+      deadlineBoxes.scrollBy({ left: -350, behavior: 'smooth' });
+  });
+});

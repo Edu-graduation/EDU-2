@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <title>Home</title>
   <link rel="icon" type="image/x-icon" href="/src/images/favicon.ico" />
   <link
@@ -106,23 +107,29 @@
             </div>
           </div>
         </div>
+        <div class="nav-buttons">
+          <button class="nav-button" id="prev"><i class="fa-solid fa-arrow-left"></i></button>
+          <button class="nav-button" id="next"><i class="fa-solid fa-arrow-right"></i></button>
+      </div>
       </div><br>
 
       <div class="courses-wrapper">
         <div id="box1" class="course-card">
-          <h3 id="text-box1" >Today’s Schedule</h3>
+          <h3 id="text-box1" >Today’s Progress</h3>
+          <p class="today-progress-text"></p>
           <div class="progress-track">
-            <div class="progress-fill" style="width: 60%">
-              <span class="progress-text">60%</span>
+            <div class="progress-fill today-progress-fill" style="width: 0%">
+              <span class="progress-text today-progress-percentage"></span>
             </div>
           </div>
         </div>
 
         <div id="box2"class="course-card">
-          <h3 id="text-box2">Backend Development</h3>
+          <h3 id="text-box2">Semester Progress</h3>
+          <p class="semester-progress-date"></p>
           <div class="progress-track">
-            <div class="progress-fill" style="width: 80%">
-              <span class="progress-text">80%</span>
+            <div class="progress-fill semester-progress-fill" style="width: 0%">
+              <span class="progress-text semester-progress-percentage"></span>
             </div>
           </div>
         </div>

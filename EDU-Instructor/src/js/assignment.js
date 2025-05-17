@@ -136,7 +136,7 @@ async function renderInstructorAssignments(courseId) {
         </tr>`;
       return;
     }
-
+    assignments.sort((a, b) => new Date(a.assign_duedate) - new Date(b.assign_duedate));
     // Create HTML for each assignment
     assignments.forEach((assignment, index) => {
       const row = document.createElement("tr");
