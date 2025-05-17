@@ -347,17 +347,17 @@ async function getSemesterProgress() {
       
       if (currentDate < midpointDate) {
         currentSemesterSessions = firstSemesterSessions;
-        semesterName = "First Semester";
+        // semesterName = "First Semester";
       } else {
         currentSemesterSessions = secondSemesterSessions;
-        semesterName = "Second Semester";
+        // semesterName = "Second Semester";
       }
       
       if (currentSemesterSessions.length === 0) {
         console.warn("No sessions found for the current semester");
         semesterProgress.style.width = "0%";
         semesterProgressPercentage.textContent = "0%";
-        semesterProgressDate.textContent = `${semesterName}: 0/0 weeks`;
+        // semesterProgressDate.textContent = `${semesterName}: 0/0 weeks`;
         return;
       }
       
@@ -425,7 +425,7 @@ async function getSemesterProgress() {
       // Update UI elements
       semesterProgress.style.width = `${roundedPercentage}%`;
       semesterProgressPercentage.textContent = `${roundedPercentage}%`;
-      semesterProgressDate.textContent = `${semesterName}: ${elapsedWeeks}/${totalWeeks} weeks`;
+      semesterProgressDate.textContent = `${elapsedWeeks}/${totalWeeks} weeks`;
       
       // For debugging - show weeks calculation
       console.log(`Semester: ${semesterName}`);
