@@ -107,8 +107,9 @@
 .nav-buttons {
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  gap: 2rem;
   margin-top: 1rem;
+  margin-left: -8rem;
 }
 .nav-button {
   background-color: var(--color-primary);
