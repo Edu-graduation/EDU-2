@@ -136,7 +136,7 @@ async function renderAssignments() {
   assignmentsContainer.innerHTML = `
     <div class="loading-assignments">
       <div class="loading-spinner"></div>
-      <p>Loading assignments...</p>
+      <p>Loading ${isInstitutionSchool() ? "homeworks" : "assignments"}...</p>
     </div>
   `;
 

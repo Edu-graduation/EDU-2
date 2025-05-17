@@ -906,7 +906,7 @@ async function renderActivities() {
   activitiesContainer.innerHTML = `
     <div class="loading-activities">
       <div class="loading-spinner"></div>
-      <p>Loading projects...</p>
+      <p>Loading ${isInstitutionSchool() ? "activities" : "projects"}...</p>
     </div>
   `;
 
