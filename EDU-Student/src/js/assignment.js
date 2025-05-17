@@ -251,7 +251,7 @@ async function renderAssignments() {
             for="file-${index}"
           >
              <i class="fi fi-bs-cloud-download upload-icon"></i>
-              <p>Drag and drop assignment file here or<br/><p class="upload-btn">  Upload File</p> </p>
+              <p>Drag and drop ${isInstitutionSchool() ? "homework" : "assignment"} file here or<br/><p class="upload-btn">  Upload File</p> </p>
             <div class="text">
               <span>Click to upload ${
                 isInstitutionSchool() ? "homework" : "assignment"
