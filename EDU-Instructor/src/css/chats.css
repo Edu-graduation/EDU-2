@@ -127,7 +127,11 @@
   background-color: transparent;
   font-size: var(--fs-3);
   color: var(--color-primary);
+  transition: all 0.2s ease-in-out;
   cursor: pointer;
+}
+.collapse__chat-btn:hover {
+  transform: scale(1.1) translateX(-0.5rem);
 }
 .collapse__chat-btn svg {
   width: 100%;
