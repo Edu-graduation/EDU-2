@@ -88,7 +88,6 @@ export async function getInstitutionId(studentId) {
   }
   if (data && data.length > 0) {
     const institutionId = data[0].institution_id;
-    console.log("Fetched institution_id:", institutionId);
     if (!sessionStorage.getItem("institution_id")) {
       sessionStorage.setItem("institution_id", institutionId);
     }
@@ -101,18 +100,18 @@ export async function getInstitutionId(studentId) {
 async function getInstitutionName() {
   // const institutionId = sessionStorage.getItem("institution_id");
   const institutionId = await getInstitutionId(studentId);
-  console.log("institutionId:", institutionId);
-
   const { data, error } = await supaClient
     .from("institution")
     .select("institution_name")
-    .eq("institution_id", +institutionId);
+    .eq("institution_id", institutionId);
   if (error) {
     console.error("Error fetching student name:", error);
     return null;
   }
   if (data && data.length > 0) {
     sessionStorage.setItem("institution_name", data[0].institution_name);
+    console.log("institution_name:", data[0].institution_name);
+
     return data[0].institution_name;
   }
 }
