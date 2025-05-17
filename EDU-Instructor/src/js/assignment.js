@@ -89,7 +89,17 @@ async function getInstructorCourses() {
     return [];
   }
 }
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  
+  // Format the date as DD/MM/YYYY
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+  const year = date.getFullYear();
+  const formattedDate = `${day}/${month}/${year}`;
 
+  return formattedDate;
+}
 // Get assignments for a specific course
 async function getInstructorAssignments(courseId) {
   try {
@@ -142,8 +152,7 @@ async function renderInstructorAssignments(courseId) {
       const row = document.createElement("tr");
 
       // Format the date properly
-      const dueDate = new Date(assignment.assign_duedate);
-      const formattedDate = dueDate.toLocaleDateString();
+      const dueDate = formatDate(assignment.assign_duedate);
 
       row.innerHTML = `
         <td>
@@ -151,7 +160,7 @@ async function renderInstructorAssignments(courseId) {
         assignment.assign_title
       }
         </td>
-        <td>${formattedDate}</td>
+        <td>${dueDate}</td>
         <td><p class="show__assignment-details" data-id="${
           assignment.assign_id
         }">View</p></td>
