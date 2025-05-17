@@ -401,21 +401,7 @@
         background-color: #5949e7;
         letter-spacing: 0.5px;
       }
-      .loading-spinner {
-  width: 4rem;
-  height: 4rem;
-  border: 0.5rem solid var(--color-grey-light-3);
-  border-top: 0.5rem solid var(--color-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-inline: auto;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
+      
     </style>
   </head>
   <body>
@@ -682,6 +668,7 @@
               return;
             }
         
+            quizzes.sort((a, b) => new Date(a.quiz_duedatetime) - new Date(b.quiz_duedatetime));
             quizzes.forEach((quiz, index) => {
               const quizElement = document.createElement("div");
               quizElement.className = "session lecture";

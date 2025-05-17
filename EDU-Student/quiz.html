@@ -418,7 +418,7 @@
 
           let html = "";
           const currentDate = new Date();
-
+          
           allQuizzes.forEach((quiz) => {
             const historyEntry = quizHistory.find((h) => h.quiz_id === quiz.quiz_id);
             const isCompleted = completedQuizIds.includes(quiz.quiz_id);
