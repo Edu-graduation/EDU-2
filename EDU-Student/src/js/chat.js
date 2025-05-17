@@ -40,6 +40,8 @@ if (studentId) {
 }
 async function OpenIfClickedFromCourse() {
   if (courseId && isUserComingFrom("courses.html")) {
+    console.log("courseId:", courseId);
+    console.log("isUserComingFrom:", isUserComingFrom("courses.html"));
     const chatName = await getCourseName();
     openChatByName(chatName);
     sessionStorage.setItem("courseId", null);
@@ -1265,6 +1267,9 @@ function updateMessagesIncrementally(messages) {
   }
 }
 function isUserComingFrom(pageUrl) {
+  console.log(pageUrl);
+  console.log(document.referrer);
+  
   const referrer = document.referrer;
 
   // If there's no referrer, the user either typed the URL directly,
