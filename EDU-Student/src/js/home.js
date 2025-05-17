@@ -1835,18 +1835,61 @@ async function getStudentAssignmentCount() {
 // Run when page loads
 document.addEventListener("DOMContentLoaded", initializePage);
 
-  document.addEventListener('DOMContentLoaded', function() {
+//   document.addEventListener('DOMContentLoaded', function() {
+//   const deadlineBoxes = document.querySelector('.deadlineBoxes');
+//   const prevButton = document.getElementById('prev');
+//   const nextButton = document.getElementById('next');
+  
+//   nextButton.addEventListener('click', function() {
+//       deadlineBoxes.scrollBy({ left: 350, behavior: 'smooth' });
+//   });
+  
+//   prevButton.addEventListener('click', function() {
+//       deadlineBoxes.scrollBy({ left: -350, behavior: 'smooth' });
+      
+      
+//   });
+// });
+document.addEventListener("DOMContentLoaded", function() {
   const deadlineBoxes = document.querySelector('.deadlineBoxes');
   const prevButton = document.getElementById('prev');
   const nextButton = document.getElementById('next');
   
+  // Get the width of a single box plus its gap
+  function getScrollDistance() {
+    const box = document.querySelector('.deadlineBoxes .box');
+    if (!box) return 0;
+    
+    // Get the actual width of a box
+    const boxWidth = box.offsetWidth;
+    
+    // Get the gap value from computed style
+    const computedStyle = window.getComputedStyle(deadlineBoxes);
+    const gap = parseInt(computedStyle.gap) || 0;
+      console.log(boxWidth);
+      console.log(gap);
+      
+    // Return single box width + gap
+    return boxWidth + gap;
+  }
+
   nextButton.addEventListener('click', function() {
-      deadlineBoxes.scrollBy({ left: 350, behavior: 'smooth' });
+    const scrollDistance = getScrollDistance();
+    deadlineBoxes.scrollBy({ 
+      left: scrollDistance, 
+      behavior: 'smooth' 
+    });
   });
   
   prevButton.addEventListener('click', function() {
-      deadlineBoxes.scrollBy({ left: -350, behavior: 'smooth' });
-      
-      
+    const scrollDistance = getScrollDistance();
+    deadlineBoxes.scrollBy({ 
+      left: -scrollDistance, 
+      behavior: 'smooth' 
+    });
   });
+  
+  // Hide scrollbar but keep functionality
+  deadlineBoxes.style.scrollbarWidth = 'none';
+  deadlineBoxes.style.msOverflowStyle = 'none';
 });
