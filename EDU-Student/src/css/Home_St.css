@@ -761,3 +761,7 @@
   width: 85rem;
 }
 }
+.no-sessions{
+  font-size: var(--fs-7);
+  grid-column: span 2;
+}
