@@ -1280,6 +1280,8 @@ function isUserComingFrom(pageUrl) {
 
   // Check if the referrer contains the pageUrl string
   // This works for both exact URLs and partial matches
+  console.log(referrer.includes(pageUrl));
+  
   return referrer.includes(pageUrl);
 }
 
