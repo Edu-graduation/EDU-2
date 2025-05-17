@@ -318,8 +318,7 @@ async function getInstructorsMap() {
 
 async function getStudentCourses() {
   const instructorsId = await getInstructorInstitution();
-  coursesContainer.innerHTML =
-  '<div class="loading-spinner" style="grid-column: span 2; margin-top:15rem; width:6rem; height:6rem;"></div>';
+
   const { data, error } = await supaClient
     .from("enrollment")
     .select("*")
@@ -377,11 +376,10 @@ function getCourseImage(courseName) {
   const path = imageMap[courseName] || "./images/Courses/brain2.svg";
   return encodeURI(path);
 }
-
 async function renderCourses() {
-  
+  coursesContainer.innerHTML =
+    '<div class="loading-spinner" style="grid-column: span 2; margin-top:10rem; width:8rem; height:8rem"></div>';
   const courseInstructorMap = await getStudentCourses();
-  console.log(courseInstructorMap);
   const instructorsMap = await getInstructorsMap();
 
   if (!courseInstructorMap || !instructorsMap) {
@@ -390,7 +388,6 @@ async function renderCourses() {
   }
 
   const courseIds = Object.keys(courseInstructorMap);
-  console.log(courseIds);
   const { data, error } = await supaClient
     .from("course")
     .select("*")
@@ -400,7 +397,6 @@ async function renderCourses() {
     console.error("Error fetching course data:", error);
     return;
   }
-  console.log(data);
   let markup = "";
   data.forEach((course, index) => {
     const imageSrc = getCourseImage(course.course_name);
