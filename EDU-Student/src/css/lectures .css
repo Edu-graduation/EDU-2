@@ -38,8 +38,8 @@
   /* overflow-y: hidden; */
   overflow: scroll hidden;
   /* padding-bottom: 20px; */
-  margin-top: -4rem;
-  width: 100%;
+   margin-top: -4rem;
+    width: 95%;
 }
 
 .card1 {
@@ -256,7 +256,7 @@
   display: flex;
   justify-content: space-between;
   width: 85%;
-  margin-top: -7rem;
+  margin-bottom: 5rem;
 }
 
 .Title_container {
@@ -266,7 +266,7 @@
   align-items: center;
   gap: 1rem;
   /* margin: 0 30px 30px; */
-  margin: 3rem 2rem;
+  margin: .7rem 2rem;
 
 }
 
