@@ -1866,8 +1866,6 @@ document.addEventListener("DOMContentLoaded", function() {
     // Get the gap value from computed style
     const computedStyle = window.getComputedStyle(deadlineBoxes);
     const gap = parseInt(computedStyle.gap) || 0;
-      console.log(boxWidth);
-      console.log(gap);
       
     // Return single box width + gap
     return boxWidth + gap;

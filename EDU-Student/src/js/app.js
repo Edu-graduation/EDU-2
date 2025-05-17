@@ -89,7 +89,9 @@ export async function getInstitutionId(studentId) {
   if (data && data.length > 0) {
     const institutionId = data[0].institution_id;
     console.log("Fetched institution_id:", institutionId);
-    sessionStorage.setItem("institution_id", institutionId);
+    if (!sessionStorage.getItem("institution_id")) {
+      sessionStorage.setItem("institution_id", institutionId);
+    }
     return institutionId;
   } else {
     console.log("No data found for studentId:", studentId);
@@ -97,7 +99,10 @@ export async function getInstitutionId(studentId) {
   }
 }
 async function getInstitutionName() {
-  const institutionId = sessionStorage.getItem("institution_id");
+  // const institutionId = sessionStorage.getItem("institution_id");
+  const institutionId = await getInstitutionId(studentId);
+  console.log("institutionId:", institutionId);
+
   const { data, error } = await supaClient
     .from("institution")
     .select("institution_name")
